@@ -32,6 +32,7 @@ const notificationsEnabled = ref(true)
 
     <van-cell-group inset title="Аккаунт" class="settings-group">
       <van-cell title="Вход / Регистрация" is-link to="/login" />
+      <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
       <van-cell title="О приложении" value="WhatCook v0.1.0" />
     </van-cell-group>
   </div>

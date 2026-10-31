@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppTabBar from '@/components/layout/AppTabBar.vue'
+import ReloadPrompt from '@/components/common/ReloadPrompt.vue'
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import AppTabBar from '@/components/layout/AppTabBar.vue'
       <router-view />
     </main>
     <AppTabBar />
+    <ReloadPrompt />
   </div>
 </template>
 

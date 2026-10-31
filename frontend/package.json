@@ -7,19 +7,25 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "dexie": "^4.0.11",
     "pinia": "^2.3.0",
     "vant": "^4.9.17",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "workbox-window": "^7.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "fake-indexeddb": "^6.0.0",
     "typescript": "~5.7.2",
     "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.1",
+    "vitest": "^3.0.0",
     "vue-tsc": "^2.2.0"
   }
 }
