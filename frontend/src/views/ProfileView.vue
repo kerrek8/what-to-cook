@@ -1,13 +1,98 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { showToast, showConfirmDialog } from 'vant'
+import { useAuthStore } from '@/stores/auth'
+import { getIngredientsApi } from '@/api/ingredients'
+import type { Ingredient } from '@/types/api'
 
-const allergen = ref('Орехи')
+const router = useRouter()
+const authStore = useAuthStore()
+
 const notificationsEnabled = ref(true)
+const showAllergenSheet = ref(false)
+const searchQuery = ref('')
+const ingredients = ref<Ingredient[]>([])
+const isLoadingIngredients = ref(false)
+
+const currentAllergenName = computed(() => {
+  const allergenId = authStore.primaryAllergenId
+  if (!allergenId) return 'Не выбрано'
+  const found = ingredients.value.find((item) => item.id === allergenId)
+  return found ? found.name : `ID: ${allergenId}`
+})
+
+const filteredIngredients = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return ingredients.value
+  return ingredients.value.filter((item) => item.name.toLowerCase().includes(q))
+})
+
+async function loadIngredients() {
+  if (ingredients.value.length > 0) return
+  isLoadingIngredients.value = true
+  try {
+    ingredients.value = await getIngredientsApi()
+  } catch {
+    // Fallback if offline
+    ingredients.value = [
+      { id: 1, name: 'Молоко', category: 'Молочные продукты', defaultUnit: 'л', isPantryEssential: false },
+      { id: 2, name: 'Яйца', category: 'Яйца', defaultUnit: 'шт', isPantryEssential: false },
+      { id: 3, name: 'Арахис', category: 'Орехи', defaultUnit: 'г', isPantryEssential: false },
+      { id: 4, name: 'Глютен (пшеница)', category: 'Бакалея', defaultUnit: 'г', isPantryEssential: false },
+      { id: 5, name: 'Рыба', category: 'Рыба и морепродукты', defaultUnit: 'г', isPantryEssential: false }
+    ]
+  } finally {
+    isLoadingIngredients.value = false
+  }
+}
+
+function openAllergenPicker() {
+  if (!authStore.isAuthenticated) {
+    showToast('Войдите, чтобы сохранить продукт-исключение')
+    router.push('/login')
+    return
+  }
+  loadIngredients()
+  showAllergenSheet.value = true
+}
+
+async function selectAllergen(id: number | null) {
+  try {
+    await authStore.setAllergen(id)
+    showToast({ type: 'success', message: id ? 'Аллерген сохранен' : 'Исключение снято' })
+    showAllergenSheet.value = false
+  } catch (err: any) {
+    const msg = err.response?.data?.error || 'Не удалось обновить исключение'
+    showToast({ type: 'fail', message: msg })
+  }
+}
+
+async function handleLogout() {
+  try {
+    await showConfirmDialog({
+      title: 'Выход из профиля',
+      message: 'Вы уверены, что хотите выйти из аккаунта?',
+      confirmButtonText: 'Выйти',
+      confirmButtonColor: '#f44336',
+      cancelButtonText: 'Отмена'
+    })
+    await authStore.logout()
+    showToast({ type: 'success', message: 'Вы вышли из системы' })
+  } catch {
+    // Cancelled dialog
+  }
+}
+
+onMounted(() => {
+  loadIngredients()
+})
 </script>
 
 <template>
   <div class="view-container">
-    <div class="user-card">
+    <!-- Authenticated Header -->
+    <div v-if="authStore.isAuthenticated && authStore.user" class="user-card">
       <van-image
         round
         width="64px"
@@ -15,26 +100,109 @@ const notificationsEnabled = ref(true)
         src="https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg"
       />
       <div class="user-meta">
-        <h3 class="user-name">Гость</h3>
-        <p class="user-subtitle">Войдите, чтобы синхронизировать данные</p>
+        <h3 class="user-name">{{ authStore.user.name }}</h3>
+        <p class="user-subtitle">{{ authStore.user.email }}</p>
       </div>
     </div>
 
-    <van-cell-group inset title="Настройки профиля">
-      <van-cell title="Продукт-исключение (Аллергия)" :value="allergen" is-link />
-      <van-cell center title="Уведомления о сроках годности">
+    <!-- Guest Header -->
+    <div v-else class="guest-card">
+      <div class="guest-meta">
+        <h3 class="user-name">Гостевой режим</h3>
+        <p class="user-subtitle">Войдите, чтобы синхронизировать холодильник и рецепты</p>
+      </div>
+      <div class="guest-actions">
+        <router-link to="/login">
+          <van-button round size="small" type="primary" color="#2e7d32">Войти</van-button>
+        </router-link>
+        <router-link to="/register">
+          <van-button round size="small" plain type="primary" color="#2e7d32">Регистрация</van-button>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Settings Group -->
+    <van-cell-group inset title="Диетические ограничения">
+      <van-cell
+        title="Продукт-исключение (Аллергия)"
+        :value="currentAllergenName"
+        is-link
+        label="1 бесплатный продукт в MVP"
+        @click="openAllergenPicker"
+      />
+      <van-cell title="Базовая корзина" value="Соль, масло, вода..." is-link />
+    </van-cell-group>
+
+    <van-cell-group inset title="Уведомления и система" class="settings-group">
+      <van-cell center title="Уведомления о сроках">
         <template #right-icon>
           <van-switch v-model="notificationsEnabled" size="22px" active-color="#2e7d32" />
         </template>
       </van-cell>
-      <van-cell title="Базовая корзина" value="Соль, масло, вода..." is-link />
-    </van-cell-group>
-
-    <van-cell-group inset title="Аккаунт" class="settings-group">
-      <van-cell title="Вход / Регистрация" is-link to="/login" />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
       <van-cell title="О приложении" value="WhatCook v0.1.0" />
     </van-cell-group>
+
+    <!-- Logout Action for Authenticated User -->
+    <div v-if="authStore.isAuthenticated" class="logout-wrapper">
+      <van-button round block plain type="danger" @click="handleLogout">
+        Выйти из аккаунта
+      </van-button>
+    </div>
+
+    <!-- Allergen Picker Popup -->
+    <van-popup
+      v-model:show="showAllergenSheet"
+      round
+      position="bottom"
+      :style="{ height: '70%' }"
+      closeable
+    >
+      <div class="popup-content">
+        <h4 class="popup-title">Выберите продукт-исключение</h4>
+        <van-search
+          v-model="searchQuery"
+          placeholder="Поиск ингредиента..."
+          shape="round"
+          class="popup-search"
+        />
+
+        <div class="ingredient-list">
+          <van-cell
+            v-if="authStore.primaryAllergenId"
+            title="Сбросить исключение"
+            class="reset-cell"
+            @click="selectAllergen(null)"
+          >
+            <template #right-icon>
+              <van-icon name="cross" color="#f44336" />
+            </template>
+          </van-cell>
+
+          <van-cell
+            v-for="item in filteredIngredients"
+            :key="item.id"
+            :title="item.name"
+            :label="item.category"
+            clickable
+            @click="selectAllergen(item.id)"
+          >
+            <template #right-icon>
+              <van-icon
+                v-if="authStore.primaryAllergenId === item.id"
+                name="success"
+                color="#2e7d32"
+              />
+            </template>
+          </van-cell>
+
+          <van-empty
+            v-if="filteredIngredients.length === 0 && !isLoadingIngredients"
+            description="Ничего не найдено"
+          />
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -43,17 +211,33 @@ const notificationsEnabled = ref(true)
   padding: 16px 0;
 }
 
-.user-card {
+.user-card,
+.guest-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 16px;
   margin: 0 16px 16px;
   background-color: var(--van-background-2);
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.user-card {
+  flex-direction: row;
+  align-items: center;
 }
 
 .user-meta {
   margin-left: 16px;
+}
+
+.guest-card {
+  gap: 12px;
+}
+
+.guest-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .user-name {
@@ -69,5 +253,38 @@ const notificationsEnabled = ref(true)
 
 .settings-group {
   margin-top: 16px;
+}
+
+.logout-wrapper {
+  margin: 24px 16px;
+}
+
+.popup-content {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.popup-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.popup-search {
+  padding: 4px 16px;
+}
+
+.ingredient-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.reset-cell {
+  color: #f44336;
+  font-weight: 500;
 }
 </style>
