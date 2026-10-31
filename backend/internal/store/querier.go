@@ -11,20 +11,32 @@ import (
 )
 
 type Querier interface {
+	AddRecipeFavorite(ctx context.Context, arg AddRecipeFavoriteParams) error
+	AddRecipeIngredient(ctx context.Context, arg AddRecipeIngredientParams) (RecipeIngredient, error)
+	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
 	CreateInventoryItem(ctx context.Context, arg CreateInventoryItemParams) (InventoryItem, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteInventoryItem(ctx context.Context, arg DeleteInventoryItemParams) error
+	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
+	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
 	GetIngredientByID(ctx context.Context, id int32) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
+	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
+	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
+	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)
 	ListInventoryItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListInventoryItemsByUserIDRow, error)
+	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
+	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
+	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
+	UpsertRecipe(ctx context.Context, arg UpsertRecipeParams) (Recipe, error)
 }
 
 var _ Querier = (*Queries)(nil)
