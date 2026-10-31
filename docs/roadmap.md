@@ -55,16 +55,18 @@ flowchart TD
   * [x] `GET /api/v1/ingredients/:id` — получение информации о продукте.
 * **Тесты**: Модульные тесты сервиса и хэндлеров с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
-### Этап B4. Холодильник пользователя (Fridge Inventory)
+### ✅ Этап B4. Холодильник пользователя (Fridge Inventory) (Завершен)
+* **Статус**: Выполнен.
 * **Задачи**:
-  * DTO в `internal/dto/inventory.go` (`CreateInventoryItemRequest`, `UpdateInventoryItemRequest`, `InventoryItemResponse`).
-  * Поддержка точного веса (`amount` + `unit`) и качественной оценки (`approximate_quantity: few | medium | much`).
-  * Сортировка по приближению даты порчи (`expiration_date ASC`).
+  * [x] DTO в `internal/dto/inventory.go` (`CreateInventoryItemRequest`, `UpdateInventoryItemRequest`, `InventoryItemResponse`).
+  * [x] Поддержка точного веса (`amount` + `unit`) и качественной оценки (`approximate_quantity: few | medium | much`).
+  * [x] Сортировка по приближению даты порчи (`expiration_date ASC`).
 * **Эндпоинты**:
-  * `GET /api/v1/inventory` — список продуктов в холодильнике пользователя;
-  * `POST /api/v1/inventory` — добавление продукта;
-  * `PATCH /api/v1/inventory/:id` — обновление количества или срока годности;
-  * `DELETE /api/v1/inventory/:id` — удаление/использование продукта.
+  * [x] `GET /api/v1/inventory` — список продуктов в холодильнике пользователя;
+  * [x] `POST /api/v1/inventory` — добавление продукта;
+  * [x] `PUT /api/v1/inventory/:id` — обновление количества или срока годности;
+  * [x] `DELETE /api/v1/inventory/:id` — удаление/использование продукта.
+* **Тесты**: Модульные тесты сервиса и хэндлеров с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
 ### Этап B5. Рецепты и алгоритм сопоставления (Recipes & Matching)
 * **Задачи**:
