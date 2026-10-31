@@ -44,25 +44,29 @@ flowchart TD
   * [x] `PUT /api/v1/users/me/allergens` — выбор 1 бесплатного продукта-исключения.
 * **Тесты**: Модульные тесты хэширования, токенов, сервисов и middleware с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
-### Этап B3. Справочник ингредиентов (Ingredients Catalog)
+### ✅ Этап B3. Справочник ингредиентов (Ingredients Catalog) (Завершен)
+* **Статус**: Выполнен.
 * **Задачи**:
-  * SQLC-запросы и DTO для поиска и получения ингредиентов (`internal/dto/ingredient.go`).
-  * Сид-файл (SQL/JSON) с базовым набором ~50–80 популярных продуктов и пометкой «Базовой корзины» (`is_pantry_essential = true`: соль, сахар, вода, перец, масло).
-  * Быстрый поиск по подстроке (`ILIKE`) для автокомплита в PWA.
+  * [x] SQLC-запросы и DTO для поиска и получения ингредиентов (`internal/dto/ingredient.go`).
+  * [x] Сид-файл миграции (`000002_seed_ingredients.up.sql`) с базовым набором 75 популярных продуктов и пометкой «Базовой корзины» (`is_pantry_essential = true`).
+  * [x] Быстрый поиск по подстроке (`ILIKE`) с приоритетной сортировкой для автокомплита в PWA.
 * **Эндпоинты**:
-  * `GET /api/v1/ingredients` — каталог с поиском `?q=...` и фильтром по категории;
-  * `GET /api/v1/ingredients/:id` — получение информации о продукте.
+  * [x] `GET /api/v1/ingredients` — каталог с поиском `?q=...` и фильтром по категории;
+  * [x] `GET /api/v1/ingredients/:id` — получение информации о продукте.
+* **Тесты**: Модульные тесты сервиса и хэндлеров с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
-### Этап B4. Холодильник пользователя (Fridge Inventory)
+### ✅ Этап B4. Холодильник пользователя (Fridge Inventory) (Завершен)
+* **Статус**: Выполнен.
 * **Задачи**:
-  * DTO в `internal/dto/inventory.go` (`CreateInventoryItemRequest`, `UpdateInventoryItemRequest`, `InventoryItemResponse`).
-  * Поддержка точного веса (`amount` + `unit`) и качественной оценки (`approximate_quantity: few | medium | much`).
-  * Сортировка по приближению даты порчи (`expiration_date ASC`).
+  * [x] DTO в `internal/dto/inventory.go` (`CreateInventoryItemRequest`, `UpdateInventoryItemRequest`, `InventoryItemResponse`).
+  * [x] Поддержка точного веса (`amount` + `unit`) и качественной оценки (`approximate_quantity: few | medium | much`).
+  * [x] Сортировка по приближению даты порчи (`expiration_date ASC`).
 * **Эндпоинты**:
-  * `GET /api/v1/inventory` — список продуктов в холодильнике пользователя;
-  * `POST /api/v1/inventory` — добавление продукта;
-  * `PATCH /api/v1/inventory/:id` — обновление количества или срока годности;
-  * `DELETE /api/v1/inventory/:id` — удаление/использование продукта.
+  * [x] `GET /api/v1/inventory` — список продуктов в холодильнике пользователя;
+  * [x] `POST /api/v1/inventory` — добавление продукта;
+  * [x] `PUT /api/v1/inventory/:id` — обновление количества или срока годности;
+  * [x] `DELETE /api/v1/inventory/:id` — удаление/использование продукта.
+* **Тесты**: Модульные тесты сервиса и хэндлеров с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
 ### Этап B5. Рецепты и алгоритм сопоставления (Recipes & Matching)
 * **Задачи**:

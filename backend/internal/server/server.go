@@ -33,10 +33,14 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 
 	authService := service.NewAuthService(queries, cfg.Auth.JWTSecret)
 	userService := service.NewUserService(queries)
+	ingredientService := service.NewIngredientService(queries)
+	inventoryService := service.NewInventoryService(queries)
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
 	userHandler := handler.NewUserHandler(userService)
+	ingredientHandler := handler.NewIngredientHandler(ingredientService)
+	inventoryHandler := handler.NewInventoryHandler(inventoryService)
 
 	router.GET("/health", healthHandler.Health)
 
@@ -50,6 +54,12 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 			auth.POST("/logout", authHandler.Logout)
 		}
 
+		ingredients := v1.Group("/ingredients")
+		{
+			ingredients.GET("", ingredientHandler.List)
+			ingredients.GET("/:id", ingredientHandler.GetByID)
+		}
+
 		protected := v1.Group("")
 		protected.Use(middleware.Auth(cfg.Auth.JWTSecret))
 		{
@@ -57,6 +67,15 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 			{
 				users.GET("/me", userHandler.GetMe)
 				users.PUT("/me/allergens", userHandler.UpdateAllergens)
+			}
+
+			inventory := protected.Group("/inventory")
+			{
+				inventory.GET("", inventoryHandler.List)
+				inventory.POST("", inventoryHandler.Create)
+				inventory.GET("/:id", inventoryHandler.GetByID)
+				inventory.PUT("/:id", inventoryHandler.Update)
+				inventory.DELETE("/:id", inventoryHandler.Delete)
 			}
 		}
 	}

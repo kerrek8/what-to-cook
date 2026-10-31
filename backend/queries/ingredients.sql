@@ -4,9 +4,13 @@ ORDER BY category, name;
 
 -- name: SearchIngredients :many
 SELECT * FROM ingredients
-WHERE name ILIKE '%' || $1 || '%'
-ORDER BY name
-LIMIT 20;
+WHERE 
+    (sqlc.narg('query')::text IS NULL OR sqlc.narg('query')::text = '' OR name ILIKE '%' || sqlc.narg('query') || '%' OR (name_en IS NOT NULL AND name_en ILIKE '%' || sqlc.narg('query') || '%'))
+    AND (sqlc.narg('category')::text IS NULL OR sqlc.narg('category')::text = '' OR category = sqlc.narg('category'))
+ORDER BY 
+    CASE WHEN sqlc.narg('query')::text IS NOT NULL AND sqlc.narg('query')::text != '' AND name ILIKE sqlc.narg('query') || '%' THEN 0 ELSE 1 END,
+    is_pantry_essential DESC,
+    name ASC;
 
 -- name: GetIngredientByID :one
 SELECT * FROM ingredients
