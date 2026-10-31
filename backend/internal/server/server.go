@@ -33,10 +33,12 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 
 	authService := service.NewAuthService(queries, cfg.Auth.JWTSecret)
 	userService := service.NewUserService(queries)
+	ingredientService := service.NewIngredientService(queries)
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
 	userHandler := handler.NewUserHandler(userService)
+	ingredientHandler := handler.NewIngredientHandler(ingredientService)
 
 	router.GET("/health", healthHandler.Health)
 
@@ -48,6 +50,12 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/refresh", authHandler.Refresh)
 			auth.POST("/logout", authHandler.Logout)
+		}
+
+		ingredients := v1.Group("/ingredients")
+		{
+			ingredients.GET("", ingredientHandler.List)
+			ingredients.GET("/:id", ingredientHandler.GetByID)
 		}
 
 		protected := v1.Group("")

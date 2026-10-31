@@ -101,13 +101,22 @@ func (q *Queries) ListIngredients(ctx context.Context) ([]Ingredient, error) {
 
 const searchIngredients = `-- name: SearchIngredients :many
 SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
-WHERE name ILIKE '%' || $1 || '%'
-ORDER BY name
-LIMIT 20
+WHERE 
+    ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR (name_en IS NOT NULL AND name_en ILIKE '%' || $1 || '%'))
+    AND ($2::text IS NULL OR $2::text = '' OR category = $2)
+ORDER BY 
+    CASE WHEN $1::text IS NOT NULL AND $1::text != '' AND name ILIKE $1 || '%' THEN 0 ELSE 1 END,
+    is_pantry_essential DESC,
+    name ASC
 `
 
-func (q *Queries) SearchIngredients(ctx context.Context, dollar_1 pgtype.Text) ([]Ingredient, error) {
-	rows, err := q.db.Query(ctx, searchIngredients, dollar_1)
+type SearchIngredientsParams struct {
+	Query    pgtype.Text `json:"query"`
+	Category pgtype.Text `json:"category"`
+}
+
+func (q *Queries) SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error) {
+	rows, err := q.db.Query(ctx, searchIngredients, arg.Query, arg.Category)
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)
-	SearchIngredients(ctx context.Context, dollar_1 pgtype.Text) ([]Ingredient, error)
+	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
 }
