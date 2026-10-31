@@ -39,6 +39,7 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	ingredientService := service.NewIngredientService(queries)
 	inventoryService := service.NewInventoryService(queries)
 	recipeService := service.NewRecipeService(queries, recipeProvider)
+	shoppingService := service.NewShoppingService(queries)
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
@@ -46,6 +47,7 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	ingredientHandler := handler.NewIngredientHandler(ingredientService)
 	inventoryHandler := handler.NewInventoryHandler(inventoryService)
 	recipeHandler := handler.NewRecipeHandler(recipeService)
+	shoppingHandler := handler.NewShoppingHandler(shoppingService)
 
 	router.GET("/health", healthHandler.Health)
 
@@ -94,6 +96,16 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 				protectedRecipes.GET("/match", recipeHandler.Match)
 				protectedRecipes.POST("/:id/favorite", recipeHandler.AddFavorite)
 				protectedRecipes.DELETE("/:id/favorite", recipeHandler.RemoveFavorite)
+			}
+
+			shopping := protected.Group("/shopping-list")
+			{
+				shopping.GET("", shoppingHandler.List)
+				shopping.POST("", shoppingHandler.Create)
+				shopping.POST("/from-recipe/:id", shoppingHandler.AddFromRecipe)
+				shopping.PATCH("/:id", shoppingHandler.Update)
+				shopping.DELETE("/:id", shoppingHandler.Delete)
+				shopping.POST("/transfer-to-inventory", shoppingHandler.TransferToInventory)
 			}
 		}
 
