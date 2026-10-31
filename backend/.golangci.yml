@@ -1,0 +1,133 @@
+# golangci-lint configuration for WhatCook backend
+# Docs: https://golangci-lint.run/usage/configuration/
+# Go version: 1.22+
+
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  # Disable all linters, enable only the ones listed below
+  default: none
+  enable:
+    # --- Correctness ---
+    - errcheck         # Checks for unchecked errors
+    - govet            # Reports suspicious constructs (shadow, printf, etc.)
+    - staticcheck      # Staticcheck: a collection of static analysis checks
+    - ineffassign      # Detects when assignments to existing variables are not used
+    - unused           # Checks Go code for unused constants, variables, functions and types
+
+    # --- Style & Readability ---
+    - gofmt            # Checks whether code was gofmt-ed
+    - goimports        # Checks missing or unrequited imports (superset of gofmt)
+    - gocritic         # Variety of checks that are not in other linters
+    - revive           # Fast, configurable, extensible linter for Go (replacement for golint)
+    - godot            # Checks that comments end with a period
+    - misspell         # Finds commonly misspelled English words in comments
+
+    # --- Complexity ---
+    - gocognit         # Checks cognitive complexity of functions
+    - cyclop           # Checks function and package cyclomatic complexity
+    - funlen           # Limits function length
+
+    # --- Security ---
+    - gosec            # Inspects source code for security problems
+
+    # --- Bugs prevention ---
+    - bodyclose        # Checks whether HTTP response body is closed successfully
+    - noctx            # Finds http.Request-based code without context.Context usage
+    - rowserrcheck     # Checks whether sql.Rows.Err() is checked
+    - sqlclosecheck    # Checks that sql.Rows, sql.Stmt, sqlx.NamedStmt, pgx.Query are closed
+    - exportloopref    # Checks for pointers to enclosing loop variables (pre-Go1.22 safety)
+
+    # --- Go idioms ---
+    - errorlint        # Finds code that will cause problems with Go error wrapping
+    - wrapcheck        # Checks that errors returned from external packages are wrapped
+
+linters-settings:
+  # --- revive ---
+  revive:
+    rules:
+      - name: exported
+        arguments:
+          - disableStutteringCheck
+      - name: error-strings
+      - name: if-return
+      - name: var-declaration
+      - name: unused-parameter
+        disabled: false
+
+  # --- gocritic ---
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - hugeParam      # Allow large structs in function arguments (common in Go)
+      - rangeValCopy   # Too noisy for slice iterations
+
+  # --- gocognit: max cognitive complexity per function ---
+  gocognit:
+    min-complexity: 20
+
+  # --- cyclop: max cyclomatic complexity ---
+  cyclop:
+    max-complexity: 15
+
+  # --- funlen: max function length ---
+  funlen:
+    lines: 80
+    statements: 50
+
+  # --- godot: require period at the end of comments ---
+  godot:
+    scope: declarations   # Only top-level declarations (exported symbols)
+    period: true
+
+  # --- gosec ---
+  gosec:
+    excludes:
+      - G115  # Potential integer overflow when converting between types (too noisy for MVP)
+
+  # --- errorlint ---
+  errorlint:
+    errorf: true
+    errorf-multi: true
+    asserts: true
+    comparison: true
+
+  # --- wrapcheck ---
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/gin-gonic/gin   # Gin errors are already wrapped with context
+      - net/http                   # Standard library HTTP errors
+
+issues:
+  # Maximum count of issues with the same text. Set to 0 to disable.
+  max-same-issues: 5
+
+  exclude-rules:
+    # Don't require error wrapping in main.go startup/init code
+    - path: "cmd/server/main.go"
+      linters:
+        - wrapcheck
+
+    # Test files: relax some rules
+    - path: "_test\\.go"
+      linters:
+        - errcheck
+        - wrapcheck
+        - funlen
+        - gosec
+
+    # Generated SQLC code: skip all linting
+    - path: "internal/store/query"
+      linters:
+        - all
+
+    # Generated Swagger docs: skip all linting
+    - path: "docs/"
+      linters:
+        - all

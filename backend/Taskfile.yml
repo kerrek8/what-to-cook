@@ -1,0 +1,101 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  BINARY_NAME: server
+  BUILD_DIR: bin
+  MIGRATIONS_DIR: ./migrations
+  CMD_DIR: ./cmd/server
+
+tasks:
+  # --------------------------------------------------------------------------
+  # Lint
+  # --------------------------------------------------------------------------
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run ./...
+
+  lint:fix:
+    desc: Run golangci-lint with auto-fix
+    cmds:
+      - golangci-lint run --fix ./...
+
+  # --------------------------------------------------------------------------
+  # Build & Run
+  # --------------------------------------------------------------------------
+  build:
+    desc: Build the server binary to ./bin/server
+    cmds:
+      - go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}} {{.CMD_DIR}}
+
+  run:
+    desc: Run the server without building binary
+    cmds:
+      - go run {{.CMD_DIR}}
+
+  # --------------------------------------------------------------------------
+  # Database migrations (golang-migrate)
+  # --------------------------------------------------------------------------
+  migrate:up:
+    desc: Apply all pending database migrations
+    cmds:
+      - migrate -path {{.MIGRATIONS_DIR}} -database "{{.DATABASE_URL}}" up
+
+  migrate:down:
+    desc: Rollback the last migration
+    cmds:
+      - migrate -path {{.MIGRATIONS_DIR}} -database "{{.DATABASE_URL}}" down 1
+
+  migrate:create:
+    desc: "Create a new migration pair. Usage: task migrate:create NAME=create_users_table"
+    cmds:
+      - migrate create -ext sql -dir {{.MIGRATIONS_DIR}} -seq {{.NAME}}
+
+  # --------------------------------------------------------------------------
+  # Code generation
+  # --------------------------------------------------------------------------
+  sqlc:generate:
+    desc: Generate type-safe Go code from SQL queries (SQLC)
+    cmds:
+      - sqlc generate
+
+  swagger:generate:
+    desc: Generate Swagger docs from Go annotations (swaggo)
+    cmds:
+      - swag init -g {{.CMD_DIR}}/main.go --output ./docs
+
+  generate:
+    desc: Run all code generators (sqlc + swagger)
+    deps:
+      - sqlc:generate
+      - swagger:generate
+
+  # --------------------------------------------------------------------------
+  # Testing
+  # --------------------------------------------------------------------------
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...
+
+  test:cover:
+    desc: Run tests with coverage report
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out
+
+  # --------------------------------------------------------------------------
+  # Utility
+  # --------------------------------------------------------------------------
+  tidy:
+    desc: Tidy and verify Go modules
+    cmds:
+      - go mod tidy
+      - go mod verify
+
+  check:
+    desc: Run lint + tests (useful before committing)
+    deps:
+      - lint
+      - test

@@ -1,0 +1,86 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Editor / IDE Directories and Files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Logs and Databases
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary & Cache Files
+tmp/
+temp/
+.cache/
+
+# Node / Frontend (Common)
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+out/
+
+# Python (Common)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+.eggs/
+
+# Build artifacts / General
+*.bak
+*.orig
+
+# Go artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+backend/bin/
+
+# Local media uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
