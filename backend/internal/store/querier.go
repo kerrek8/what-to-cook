@@ -16,24 +16,33 @@ type Querier interface {
 	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
 	CreateInventoryItem(ctx context.Context, arg CreateInventoryItemParams) (InventoryItem, error)
+	CreateShoppingItem(ctx context.Context, arg CreateShoppingItemParams) (ShoppingListItem, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteBoughtShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) error
 	DeleteInventoryItem(ctx context.Context, arg DeleteInventoryItemParams) error
 	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
+	DeleteShoppingItem(ctx context.Context, arg DeleteShoppingItemParams) error
 	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
 	GetIngredientByID(ctx context.Context, id int32) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
+	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
+	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)
 	ListInventoryItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListInventoryItemsByUserIDRow, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
+	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
+	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
+	TransferBoughtItemsToInventory(ctx context.Context, userID pgtype.UUID) ([]InventoryItem, error)
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
+	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
 	UpsertRecipe(ctx context.Context, arg UpsertRecipeParams) (Recipe, error)
