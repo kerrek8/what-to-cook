@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { LocalInventoryItem, LocalShoppingItem } from './types'
+import type { InventoryItemResponse } from '@/types/inventory'
 
 export class WhatCookDatabase extends Dexie {
   inventory!: EntityTable<LocalInventoryItem, 'id'>
@@ -41,6 +42,52 @@ export async function updateLocalInventoryItem(
 
 export async function deleteLocalInventoryItem(id: number): Promise<void> {
   await db.inventory.delete(id)
+}
+
+export async function syncServerInventory(
+  serverItems: InventoryItemResponse[]
+): Promise<LocalInventoryItem[]> {
+  const localItems = await db.inventory.toArray()
+  const serverMap = new Map(serverItems.map((s) => [s.id, s]))
+
+  for (const local of localItems) {
+    if (local.serverId) {
+      if (serverMap.has(local.serverId)) {
+        const s = serverMap.get(local.serverId)!
+        await db.inventory.update(local.id!, {
+          name: s.name,
+          category: s.category,
+          amount: s.amount,
+          unit: s.unit,
+          approximateQuantity: s.approximate_quantity,
+          expirationDate: s.expiration_date,
+          synced: 1,
+          updatedAt: s.updated_at
+        })
+        serverMap.delete(local.serverId)
+      } else if (local.synced === 1) {
+        await db.inventory.delete(local.id!)
+      }
+    }
+  }
+
+  for (const s of serverMap.values()) {
+    await db.inventory.add({
+      serverId: s.id,
+      ingredientId: s.ingredient_id,
+      name: s.name,
+      category: s.category,
+      amount: s.amount,
+      unit: s.unit,
+      approximateQuantity: s.approximate_quantity,
+      expirationDate: s.expiration_date,
+      isPantryEssential: false,
+      synced: 1,
+      updatedAt: s.updated_at
+    })
+  }
+
+  return await db.inventory.toArray()
 }
 
 export async function getLocalShoppingList(): Promise<LocalShoppingItem[]> {
