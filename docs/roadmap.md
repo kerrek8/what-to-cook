@@ -27,21 +27,22 @@ flowchart TD
   * [x] Модульные тесты с использованием `testify`.
 * **Результат**: Сервер запускается, подключается к БД, эндпоинт `GET /health` возвращает `200 OK`. Тесты и `go vet` пройдены успешно.
 
-### Этап B2. Аутентификация и пользователи (Auth & Users)
+### ✅ Этап B2. Аутентификация и пользователи (Auth & Users) (Завершен)
+* **Статус**: Выполнен.
 * **Задачи**:
-  * DTO в `internal/dto/auth.go` и `user.go` (`RegisterRequest`, `LoginRequest`, `AuthResponse`, `UserResponse`, `UpdateAllergensRequest`).
-  * Хэширование паролей через `bcrypt`.
-  * Генерация короткоживущего Access Token (15 мин) и долгоживущего Refresh Token (в `HttpOnly` Cookie).
-  * `AuthMiddleware` для проверки заголовка `Authorization: Bearer <token>`.
-  * Механизм мгновенного отзыва сессий через `token_version`.
+  * [x] DTO в `internal/dto/auth.go` и `user.go` (`RegisterRequest`, `LoginRequest`, `AuthResponse`, `UserResponse`, `UpdateAllergensRequest`).
+  * [x] Хэширование паролей через `bcrypt`.
+  * [x] Генерация короткоживущего Access Token (15 мин) и долгоживущего Refresh Token (в `HttpOnly` Cookie).
+  * [x] `AuthMiddleware` для проверки заголовка `Authorization: Bearer <token>`.
+  * [x] Механизм мгновенного отзыва сессий через `token_version`.
 * **Эндпоинты**:
-  * `POST /api/v1/auth/register` — регистрация;
-  * `POST /api/v1/auth/login` — авторизация;
-  * `POST /api/v1/auth/refresh` — обновление токенов;
-  * `POST /api/v1/auth/logout` — выход;
-  * `GET /api/v1/users/me` — профиль текущего пользователя;
-  * `PUT /api/v1/users/me/allergens` — выбор 1 бесплатного продукта-исключения.
-* **Тесты**: Модульные тесты хэширования, токенов и middleware с использованием `testify`.
+  * [x] `POST /api/v1/auth/register` — регистрация;
+  * [x] `POST /api/v1/auth/login` — авторизация;
+  * [x] `POST /api/v1/auth/refresh` — обновление токенов;
+  * [x] `POST /api/v1/auth/logout` — выход;
+  * [x] `GET /api/v1/users/me` — профиль текущего пользователя;
+  * [x] `PUT /api/v1/users/me/allergens` — выбор 1 бесплатного продукта-исключения.
+* **Тесты**: Модульные тесты хэширования, токенов, сервисов и middleware с использованием `testify`. Тесты и `go vet` пройдены успешно.
 
 ### Этап B3. Справочник ингредиентов (Ingredients Catalog)
 * **Задачи**:
