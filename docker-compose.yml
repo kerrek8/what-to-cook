@@ -1,0 +1,82 @@
+services:
+  # ----------------------------------------------------------------------------
+  # 1. PostgreSQL Database
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: whatcook-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-whatcook}
+      POSTGRES_USER: ${POSTGRES_USER:-whatcook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-whatcook_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-whatcook} -d ${POSTGRES_DB:-whatcook}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # 2. Database Migrations (golang-migrate)
+  # ----------------------------------------------------------------------------
+  migrate:
+    image: migrate/migrate:v4.18.2
+    container_name: whatcook-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/migrations:/migrations
+    command:
+      - -path=/migrations
+      - -database=postgres://${POSTGRES_USER:-whatcook}:${POSTGRES_PASSWORD:-whatcook_password}@postgres:5432/${POSTGRES_DB:-whatcook}?sslmode=disable
+      - up
+    restart: "no"
+
+  # ----------------------------------------------------------------------------
+  # 3. Golang Backend (Gin REST API)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: whatcook-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PORT: ${BACKEND_PORT:-8080}
+      DATABASE_URL: postgres://${POSTGRES_USER:-whatcook}:${POSTGRES_PASSWORD:-whatcook_password}@postgres:5432/${POSTGRES_DB:-whatcook}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_me_in_prod_123456}
+      GIN_MODE: ${GIN_MODE:-debug}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:80}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # 4. Vue 3 Frontend (PWA)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: whatcook-frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

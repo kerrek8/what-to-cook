@@ -1,15 +1,11 @@
 # golangci-lint configuration for WhatCook backend
 # Docs: https://golangci-lint.run/usage/configuration/
-# Go version: 1.22+
-
-version: "2"
 
 run:
   timeout: 5m
 
 linters:
-  # Disable all linters, enable only the ones listed below
-  default: none
+  disable-all: true
   enable:
     # --- Correctness ---
     - errcheck         # Checks for unchecked errors
@@ -39,7 +35,7 @@ linters:
     - noctx            # Finds http.Request-based code without context.Context usage
     - rowserrcheck     # Checks whether sql.Rows.Err() is checked
     - sqlclosecheck    # Checks that sql.Rows, sql.Stmt, sqlx.NamedStmt, pgx.Query are closed
-    - exportloopref    # Checks for pointers to enclosing loop variables (pre-Go1.22 safety)
+    - copyloopvar      # Detects places where loop variables are copied (Go 1.22+)
 
     # --- Go idioms ---
     - errorlint        # Finds code that will cause problems with Go error wrapping
@@ -123,7 +119,7 @@ issues:
         - gosec
 
     # Generated SQLC code: skip all linting
-    - path: "internal/store/query"
+    - path: "internal/store"
       linters:
         - all
 

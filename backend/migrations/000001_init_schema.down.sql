@@ -1,0 +1,9 @@
+-- 000001_init_schema.down.sql
+DROP TABLE IF EXISTS push_subscriptions CASCADE;
+DROP TABLE IF EXISTS recipe_favorites CASCADE;
+DROP TABLE IF EXISTS shopping_list_items CASCADE;
+DROP TABLE IF EXISTS recipe_ingredients CASCADE;
+DROP TABLE IF EXISTS recipes CASCADE;
+DROP TABLE IF EXISTS inventory_items CASCADE;
+DROP TABLE IF EXISTS ingredients CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
