@@ -3,7 +3,7 @@ export type QuantityLevel = 'few' | 'medium' | 'much'
 export interface LocalInventoryItem {
   id?: number
   serverId?: string | null
-  ingredientId?: string | null
+  ingredientId?: number | null
   name: string
   category: string
   amount?: number | null
@@ -18,7 +18,7 @@ export interface LocalInventoryItem {
 export interface LocalShoppingItem {
   id?: number
   serverId?: string | null
-  ingredientId?: string | null
+  ingredientId?: number | null
   name: string
   category: string
   amount?: number | null

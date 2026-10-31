@@ -1,10 +1,12 @@
 FROM node:20-alpine AS build
 
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* .npmrc* pnpm-workspace.yaml* ./
 RUN pnpm install
 
 COPY . .
