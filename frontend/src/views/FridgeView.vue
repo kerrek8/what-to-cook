@@ -9,6 +9,7 @@ const inventoryStore = useInventoryStore()
 
 const isRefreshing = ref(false)
 const showAddSheet = ref(false)
+const editingItem = ref<import('@/db/types').LocalInventoryItem | null>(null)
 
 async function onRefresh() {
   isRefreshing.value = true
@@ -29,6 +30,12 @@ async function onAddItem(data: AddItemData) {
   } catch {
     showToast({ type: 'fail', message: 'Ошибка при добавлении' })
   }
+}
+async function onUpdateItem(payload: { id: number; changes: Partial<import('@/db/types').LocalInventoryItem> }) {
+  await inventoryStore.updateItem(payload.id, payload.changes)
+  editingItem.value = null
+  showAddSheet.value = false
+  showToast('Продукт обновлен')
 }
 
 async function onDeleteItem(id: number) {
@@ -101,6 +108,7 @@ onMounted(() => {
             :key="item.id || item.serverId || item.name"
             :item="item"
             @delete="onDeleteItem"
+            @edit="(item) => { editingItem = item; showAddSheet = true }"
           />
         </div>
 
@@ -139,7 +147,7 @@ onMounted(() => {
     </div>
 
     <!-- Add Product Sheet -->
-    <AddProductSheet v-model:show="showAddSheet" @add="onAddItem" />
+    <AddProductSheet v-model:show="showAddSheet" :edit-item="editingItem" @add="onAddItem" @update="onUpdateItem" />
   </div>
 </template>
 

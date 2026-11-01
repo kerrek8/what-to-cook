@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'delete', id: number): void
+  (e: 'edit', item: LocalInventoryItem): void
 }>()
 
 const freshness = computed(() => getFreshnessInfo(props.item.expirationDate))
@@ -49,6 +50,7 @@ function handleDelete() {
     </div>
 
     <template #right>
+      <van-button square type="primary" text="Изменить" icon="edit" class="edit-button" @click="emit('edit', item)" />
       <van-button
         square
         type="danger"
@@ -142,4 +144,5 @@ function handleDelete() {
   height: 100%;
   min-width: 72px;
 }
+.edit-button { height: 100%; min-width: 82px; }
 </style>

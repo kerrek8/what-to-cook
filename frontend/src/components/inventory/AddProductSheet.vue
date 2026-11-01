@@ -4,14 +4,17 @@ import { showToast } from 'vant'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddItemData } from '@/stores/inventory'
+import type { LocalInventoryItem } from '@/db/types'
 
 const props = defineProps<{
   show: boolean
+  editItem?: LocalInventoryItem | null
 }>()
 
 const emit = defineEmits<{
   (e: 'update:show', value: boolean): void
   (e: 'add', item: AddItemData): void
+  (e: 'update', item: { id: number; changes: Partial<LocalInventoryItem> }): void
 }>()
 
 const visible = computed({
@@ -116,8 +119,9 @@ function handleSubmit(closeAfter = false) {
     expirationDate: expirationDate.value || null
   }
 
-  emit('add', payload)
-  showToast({ type: 'success', message: `${name} добавлен` })
+  if (props.editItem?.id != null) emit('update', { id: props.editItem.id, changes: { ...payload, name, updatedAt: new Date().toISOString() } })
+  else emit('add', payload)
+  showToast({ type: 'success', message: props.editItem ? `${name} обновлен` : `${name} добавлен` })
   resetForm()
   if (closeAfter) visible.value = false
 }
@@ -128,6 +132,18 @@ watch(
     if (val) loadCatalog()
   }
 )
+
+watch(() => props.editItem, (item) => {
+  if (!item) return
+  productName.value = item.name
+  selectedCategory.value = item.category
+  selectedIngredientId.value = item.ingredientId ?? null
+  amount.value = item.amount ?? undefined
+  unit.value = item.unit ?? 'г'
+  quantityMode.value = item.approximateQuantity ? 'approx' : 'exact'
+  approximateQuantity.value = item.approximateQuantity ?? 'medium'
+  expirationDate.value = item.expirationDate ?? ''
+}, { immediate: true })
 </script>
 
 <template>
@@ -140,7 +156,7 @@ watch(
     class="add-sheet"
   >
     <div class="sheet-content safe-area-bottom">
-      <h3 class="sheet-title">Добавить в холодильник</h3>
+      <h3 class="sheet-title">{{ editItem ? 'Изменить продукт' : 'Добавить в холодильник' }}</h3>
 
       <!-- 1. Название продукта с автокомплитом -->
       <div class="field-block">
@@ -506,6 +522,9 @@ watch(
 
 .action-footer {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .submit-button {

@@ -96,7 +96,7 @@ async function onRefresh() {
         type="button"
         class="tab-btn"
         :class="{ active: recipeStore.activeTab === 'favorites' }"
-        @click="recipeStore.activeTab = 'favorites'"
+        @click="recipeStore.activeTab = 'favorites'; recipeStore.loadFavorites()"
       >
         <span>Избранное</span>
         <span
@@ -219,8 +219,16 @@ async function onRefresh() {
             :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
           />
         </div>
+        <van-pagination
+          v-if="recipeStore.totalPages > 1"
+          :model-value="recipeStore.page"
+          :total-items="recipeStore.recipeTotal"
+          :items-per-page="recipeStore.pageSize"
+          mode="simple"
+          @change="recipeStore.setPage"
+        />
 
-        <div v-else class="empty-state">
+        <div v-if="recipeStore.filteredAllRecipes.length === 0" class="empty-state">
           <van-empty image="search" description="Рецепты не найдены">
             <van-button
               round

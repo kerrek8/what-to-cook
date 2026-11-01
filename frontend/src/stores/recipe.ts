@@ -22,6 +22,10 @@ export type CookingTimeFilter = 0 | 15 | 30 | 60 | 61
 export const useRecipeStore = defineStore('recipe', () => {
   const matchedRecipes = ref<RecipeMatchItem[]>([])
   const allRecipes = ref<RecipeResponse[]>([])
+  const favoriteCatalog = ref<RecipeResponse[]>([])
+  const recipeTotal = ref(0)
+  const page = ref(1)
+  const pageSize = 20
   const currentRecipe = ref<RecipeResponse | null>(null)
 
   const isLoading = ref(false)
@@ -103,9 +107,10 @@ export const useRecipeStore = defineStore('recipe', () => {
   const filteredAllRecipes = computed(() => {
     return allRecipes.value.filter((r) => filterRecipe(r))
   })
+  const totalPages = computed(() => Math.max(1, Math.ceil(recipeTotal.value / pageSize)))
 
   const favoriteRecipes = computed(() => {
-    return allRecipes.value.filter((r) => r.is_favorite && filterRecipe(r))
+    return favoriteCatalog.value.filter((r) => r.is_favorite && filterRecipe(r))
   })
 
   async function loadMatchedRecipes(force = false) {
@@ -132,13 +137,35 @@ export const useRecipeStore = defineStore('recipe', () => {
 
     isLoading.value = true
     try {
-      const resp = await getRecipesApi()
+      const resp = await getRecipesApi({ limit: pageSize, offset: (page.value - 1) * pageSize })
       allRecipes.value = resp.items
+      recipeTotal.value = resp.total
     } catch {
       allRecipes.value = []
     } finally {
       isLoading.value = false
     }
+  }
+
+  async function loadFavorites(force = false) {
+    if (!authStore.isAuthenticated) { favoriteCatalog.value = []; return }
+    if (favoriteCatalog.value.length && !force) return
+    isLoading.value = true
+    try {
+      const first = await getRecipesApi({ limit: 100, offset: 0 })
+      const pages = Math.ceil(first.total / 100)
+      const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
+      favoriteCatalog.value = [...first.items, ...rest.flatMap(result => result.items)].filter(recipe => recipe.is_favorite)
+    } catch {
+      favoriteCatalog.value = []
+    } finally { isLoading.value = false }
+  }
+
+  async function setPage(value: number) {
+    const next = Math.min(totalPages.value, Math.max(1, value))
+    if (next === page.value && allRecipes.value.length) return
+    page.value = next
+    await loadAllRecipes(true)
   }
 
   async function loadRecipeById(id: number): Promise<RecipeResponse | null> {
@@ -187,6 +214,10 @@ export const useRecipeStore = defineStore('recipe', () => {
     for (const r of allRecipes.value) {
       if (r.id === recipeId) r.is_favorite = isFav
     }
+    for (const r of favoriteCatalog.value) if (r.id === recipeId) r.is_favorite = isFav
+    const source = [...allRecipes.value, ...matchedRecipes.value.map(m => m.recipe), ...(currentRecipe.value ? [currentRecipe.value] : [])].find(r => r.id === recipeId)
+    if (isFav && source && !favoriteCatalog.value.some(r => r.id === recipeId)) favoriteCatalog.value.unshift(source)
+    if (!isFav) favoriteCatalog.value = favoriteCatalog.value.filter(r => r.id !== recipeId)
     for (const m of matchedRecipes.value) {
       if (m.recipe.id === recipeId) m.recipe.is_favorite = isFav
     }
@@ -202,6 +233,11 @@ export const useRecipeStore = defineStore('recipe', () => {
   return {
     matchedRecipes,
     allRecipes,
+    favoriteCatalog,
+    recipeTotal,
+    page,
+    pageSize,
+    totalPages,
     currentRecipe,
     isLoading,
     isMatching,
@@ -218,6 +254,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     getSavingIngredients,
     loadMatchedRecipes,
     loadAllRecipes,
+    loadFavorites,
+    setPage,
     loadRecipeById,
     toggleFavorite,
     addMissingToShopping
