@@ -13,7 +13,6 @@ import (
 	"github.com/kerrek8/what-to-cook/backend/internal/config"
 	"github.com/kerrek8/what-to-cook/backend/internal/database"
 	"github.com/kerrek8/what-to-cook/backend/internal/server"
-	"github.com/kerrek8/what-to-cook/backend/migrations"
 )
 
 // @title WhatCook API
@@ -30,10 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
-	if err := database.RunMigrations(cfg.Database.URL, migrations.Files); err != nil {
-		log.Fatalf("failed to apply database migrations: %v", err)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

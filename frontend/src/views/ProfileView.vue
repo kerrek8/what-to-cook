@@ -263,7 +263,7 @@ async function refreshTranslationStatus() {
         is-link
         @click="refreshTranslationStatus"
       />
-      <van-cell title="О приложении" value="WhatCook v0.1.7" />
+      <van-cell title="О приложении" value="WhatCook v0.1.8" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

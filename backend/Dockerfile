@@ -20,7 +20,6 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/bin/server /app/server
-COPY --from=builder /app/migrations /app/migrations
 
 RUN mkdir -p /app/uploads
 
