@@ -1,11 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { LocalInventoryItem, LocalShoppingItem } from './types'
+import type { CachedFavoriteRecipe, LocalInventoryItem, LocalShoppingItem } from './types'
+import type { RecipeResponse } from '@/types/recipe'
 import type { InventoryItemResponse } from '@/types/inventory'
 import type { ShoppingItemResponse } from '@/types/shopping'
 
 export class WhatCookDatabase extends Dexie {
   inventory!: EntityTable<LocalInventoryItem, 'id'>
   shoppingList!: EntityTable<LocalShoppingItem, 'id'>
+  favoriteRecipes!: EntityTable<CachedFavoriteRecipe, 'id'>
 
   constructor() {
     super('WhatCookDB')
@@ -13,10 +15,40 @@ export class WhatCookDatabase extends Dexie {
       inventory: '++id, serverId, ingredientId, name, category, expirationDate, synced',
       shoppingList: '++id, serverId, ingredientId, name, category, isBought, synced'
     })
+    this.version(2).stores({
+      inventory: '++id, serverId, ingredientId, name, category, expirationDate, synced',
+      shoppingList: '++id, serverId, ingredientId, name, category, isBought, synced',
+      favoriteRecipes: 'id, updatedAt'
+    })
   }
 }
 
 export const db = new WhatCookDatabase()
+
+export async function getCachedFavoriteRecipes(): Promise<RecipeResponse[]> {
+  const entries = await db.favoriteRecipes.toArray()
+  return entries.map(entry => entry.recipe)
+}
+
+export async function cacheFavoriteRecipes(recipes: RecipeResponse[]): Promise<void> {
+  const now = new Date().toISOString()
+  await db.transaction('rw', db.favoriteRecipes, async () => {
+    await db.favoriteRecipes.clear()
+    await db.favoriteRecipes.bulkPut(recipes.map(recipe => ({ id: recipe.id, recipe, updatedAt: now })))
+  })
+}
+
+export async function cacheFavoriteRecipe(recipe: RecipeResponse): Promise<void> {
+  await db.favoriteRecipes.put({ id: recipe.id, recipe, updatedAt: new Date().toISOString() })
+}
+
+export async function removeCachedFavoriteRecipe(id: number): Promise<void> {
+  await db.favoriteRecipes.delete(id)
+}
+
+export async function getCachedFavoriteRecipe(id: number): Promise<RecipeResponse | undefined> {
+  return (await db.favoriteRecipes.get(id))?.recipe
+}
 
 export async function getLocalInventory(): Promise<LocalInventoryItem[]> {
   return await db.inventory.toArray()

@@ -7,24 +7,11 @@ import AddShoppingItemSheet from '@/components/shopping/AddShoppingItemSheet.vue
 
 const shoppingStore = useShoppingStore()
 
-const isRefreshing = ref(false)
 const showAddSheet = ref(false)
 
 onMounted(() => {
   shoppingStore.loadShoppingList()
 })
-
-async function onRefresh() {
-  isRefreshing.value = true
-  try {
-    await shoppingStore.loadShoppingList(true)
-    showToast({ type: 'success', message: 'Список покупок обновлен' })
-  } catch {
-    showToast({ type: 'fail', message: 'Не удалось обновить' })
-  } finally {
-    isRefreshing.value = false
-  }
-}
 
 async function onAddItem(payload: AddShoppingItemPayload) {
   try {
@@ -135,11 +122,7 @@ async function onTransferToInventory() {
     </div>
 
     <!-- Pull to Refresh List -->
-    <van-pull-refresh
-      v-model="isRefreshing"
-      class="shopping-content"
-      @refresh="onRefresh"
-    >
+    <div class="shopping-content">
       <!-- Grouped Departments -->
       <div v-if="shoppingStore.groupedCategories.length > 0" class="groups-container">
         <div
@@ -183,7 +166,7 @@ async function onTransferToInventory() {
           </van-button>
         </van-empty>
       </div>
-    </van-pull-refresh>
+    </div>
 
     <!-- Floating Action Button (FAB) -->
     <div class="fab-wrapper safe-area-bottom">

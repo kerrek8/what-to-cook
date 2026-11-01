@@ -7,21 +7,8 @@ import AddProductSheet from '@/components/inventory/AddProductSheet.vue'
 
 const inventoryStore = useInventoryStore()
 
-const isRefreshing = ref(false)
 const showAddSheet = ref(false)
 const editingItem = ref<import('@/db/types').LocalInventoryItem | null>(null)
-
-async function onRefresh() {
-  isRefreshing.value = true
-  try {
-    await inventoryStore.loadInventory(true)
-    showToast({ type: 'success', message: 'Холодильник обновлен' })
-  } catch {
-    showToast({ type: 'fail', message: 'Не удалось обновить' })
-  } finally {
-    isRefreshing.value = false
-  }
-}
 
 async function onAddItem(data: AddItemData) {
   try {
@@ -54,7 +41,6 @@ onMounted(() => {
 
 <template>
   <div class="fridge-view">
-    <van-pull-refresh v-model="isRefreshing" @refresh="onRefresh">
       <div class="fridge-content">
         <!-- Search Bar -->
         <div class="search-section">
@@ -130,7 +116,6 @@ onMounted(() => {
           </van-empty>
         </div>
       </div>
-    </van-pull-refresh>
 
     <!-- Floating Action Button -->
     <div class="fab-wrapper safe-area-bottom">

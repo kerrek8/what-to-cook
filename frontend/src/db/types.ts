@@ -28,3 +28,9 @@ export interface LocalShoppingItem {
   synced: number
   updatedAt: string
 }
+
+export interface CachedFavoriteRecipe {
+  id: number
+  recipe: import('@/types/recipe').RecipeResponse
+  updatedAt: string
+}

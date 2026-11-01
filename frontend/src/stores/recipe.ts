@@ -16,6 +16,13 @@ import {
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
 import { getFreshnessInfo } from '@/utils/freshness'
+import {
+  cacheFavoriteRecipe,
+  cacheFavoriteRecipes,
+  getCachedFavoriteRecipe,
+  getCachedFavoriteRecipes,
+  removeCachedFavoriteRecipe
+} from '@/db'
 
 export type CookingTimeFilter = 0 | 15 | 30 | 60 | 61
 
@@ -150,15 +157,24 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   async function loadFavorites(force = false) {
     if (!authStore.isAuthenticated) { favoriteCatalog.value = []; return }
-    if (favoriteCatalog.value.length && !force) return
+    if (favoriteCatalog.value.length && !force && !navigator.onLine) return
     isLoading.value = true
     try {
+      if (!navigator.onLine) throw new Error('offline')
       const first = await getRecipesApi({ limit: 100, offset: 0 })
       const pages = Math.ceil(first.total / 100)
       const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
-      favoriteCatalog.value = [...first.items, ...rest.flatMap(result => result.items)].filter(recipe => recipe.is_favorite)
+      const favorites = [...first.items, ...rest.flatMap(result => result.items)].filter(recipe => recipe.is_favorite)
+      const detailed: RecipeResponse[] = []
+      for (let i = 0; i < favorites.length; i += 4) {
+        const chunk = favorites.slice(i, i + 4)
+        const details = await Promise.all(chunk.map(recipe => getRecipeByIdApi(recipe.id).catch(() => recipe)))
+        detailed.push(...details.map(recipe => ({ ...recipe, is_favorite: true })))
+      }
+      favoriteCatalog.value = detailed
+      await cacheFavoriteRecipes(detailed)
     } catch {
-      favoriteCatalog.value = []
+      favoriteCatalog.value = await getCachedFavoriteRecipes()
     } finally { isLoading.value = false }
   }
 
@@ -170,12 +186,19 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function loadRecipeById(id: number): Promise<RecipeResponse | null> {
     isDetailLoading.value = true
     try {
+      if (!navigator.onLine) {
+        const cached = await getCachedFavoriteRecipe(id)
+        currentRecipe.value = cached ?? null
+        return currentRecipe.value
+      }
       const recipe = await getRecipeByIdApi(id)
       currentRecipe.value = recipe
+      if (recipe.is_favorite) await cacheFavoriteRecipe(recipe)
       return recipe
     } catch {
-      currentRecipe.value = null
-      return null
+      const cached = await getCachedFavoriteRecipe(id)
+      currentRecipe.value = cached ?? null
+      return currentRecipe.value
     } finally {
       isDetailLoading.value = false
     }
@@ -201,8 +224,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       if (newState) {
         await addFavoriteApi(recipeId)
+        const fullRecipe = currentRecipe.value?.id === recipeId
+          ? currentRecipe.value
+          : await getRecipeByIdApi(recipeId).catch(() => target)
+        if (fullRecipe) {
+          fullRecipe.is_favorite = true
+          updateFavoriteState(recipeId, true)
+          await cacheFavoriteRecipe(fullRecipe)
+        }
       } else {
         await removeFavoriteApi(recipeId)
+        await removeCachedFavoriteRecipe(recipeId)
       }
     } catch {
       updateFavoriteState(recipeId, previousState)
@@ -217,6 +249,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     const source = [...allRecipes.value, ...matchedRecipes.value.map(m => m.recipe), ...(currentRecipe.value ? [currentRecipe.value] : [])].find(r => r.id === recipeId)
     if (isFav && source && !favoriteCatalog.value.some(r => r.id === recipeId)) favoriteCatalog.value.unshift(source)
     if (!isFav) favoriteCatalog.value = favoriteCatalog.value.filter(r => r.id !== recipeId)
+    if (!isFav) void removeCachedFavoriteRecipe(recipeId)
     for (const m of matchedRecipes.value) {
       if (m.recipe.id === recipeId) m.recipe.is_favorite = isFav
     }

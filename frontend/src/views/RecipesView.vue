@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { showToast } from 'vant'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
@@ -10,7 +9,6 @@ const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
-const isRefreshing = ref(false)
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
   { label: 'Любое время', value: 0 },
@@ -33,25 +31,11 @@ onMounted(async () => {
   }
   await Promise.all([
     recipeStore.loadMatchedRecipes(),
-    recipeStore.loadAllRecipes()
+    recipeStore.loadAllRecipes(),
+    recipeStore.loadFavorites()
   ])
 })
 
-async function onRefresh() {
-  isRefreshing.value = true
-  try {
-    await Promise.all([
-      inventoryStore.loadInventory(true),
-      recipeStore.loadMatchedRecipes(true),
-      recipeStore.loadAllRecipes(true)
-    ])
-    showToast({ type: 'success', message: 'Рецепты обновлены' })
-  } catch {
-    showToast({ type: 'fail', message: 'Ошибка обновления' })
-  } finally {
-    isRefreshing.value = false
-  }
-}
 </script>
 
 <template>
@@ -63,17 +47,6 @@ async function onRefresh() {
         placeholder="Поиск рецептов..."
         shape="round"
         clearable
-      />
-      <van-button
-        square
-        plain
-        type="primary"
-        color="#2e7d32"
-        icon="replay"
-        aria-label="Обновить рецепты"
-        :loading="isRefreshing"
-        class="refresh-button"
-        @click="onRefresh"
       />
     </div>
 
@@ -301,13 +274,6 @@ async function onRefresh() {
   padding: 4px 8px 0;
   display: flex;
   align-items: center;
-}
-
-.refresh-button {
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  margin-right: 4px;
 }
 
 .tabs-nav {
