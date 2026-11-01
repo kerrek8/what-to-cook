@@ -62,6 +62,16 @@ services:
       - ./backend/uploads:/app/uploads
     restart: unless-stopped
 
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: whatcook-libretranslate
+    command: ["--load-only", "en,ru", "--disable-web-ui", "--req-limit", "30", "--translation-cache", "all"]
+    ports:
+      - "${LIBRETRANSLATE_PORT:-5000}:5000"
+    volumes:
+      - libretranslate_data:/home/libretranslate/.local
+    restart: unless-stopped
+
   # ----------------------------------------------------------------------------
   # 4. Vue 3 Frontend (PWA)
   # ----------------------------------------------------------------------------
@@ -69,14 +79,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_LIBRETRANSLATE_URL: ${VITE_LIBRETRANSLATE_URL:-http://localhost:5000}
     container_name: whatcook-frontend
     depends_on:
       - backend
-    environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     restart: unless-stopped
 
 volumes:
   postgres_data:
+  libretranslate_data:

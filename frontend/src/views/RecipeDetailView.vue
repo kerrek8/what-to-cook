@@ -6,6 +6,7 @@ import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
+import { displayText, displayUnit } from '@/i18n/translation'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,9 +69,9 @@ const difficultyLabel = computed(() => {
 })
 
 function formatIngredientAmount(ing: RecipeIngredientResponse): string {
-  if (ing.display_text) return ing.display_text
+  if (ing.localized_display_text || ing.display_text) return ing.localized_display_text || ing.display_text || ''
   if (ing.amount != null) {
-    return `${ing.amount} ${ing.unit || ''}`.trim()
+    return `${ing.amount} ${displayUnit(ing.unit)}`.trim()
   }
   return ing.is_pantry_essential ? 'По вкусу (Базовый)' : 'По вкусу'
 }
@@ -156,7 +157,7 @@ function onFavoriteToggle() {
           <van-icon name="photograph" size="48" color="#b0bec5" />
         </div>
 
-        <button
+      <button
           type="button"
           class="fav-btn"
           :class="{ active: recipe.is_favorite }"
@@ -172,7 +173,7 @@ function onFavoriteToggle() {
       </div>
 
       <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ recipe.title }}</h1>
+        <h1 class="recipe-title">{{ recipe.localized_title ?? recipe.title }}</h1>
 
         <!-- Saving banner -->
         <div v-if="savingProducts.length > 0" class="saving-banner">
@@ -180,7 +181,7 @@ function onFavoriteToggle() {
           <div class="saving-text">
             <strong>Спасает продукты!</strong>
             Использует скоропортящиеся:
-            {{ savingProducts.map((p) => p.name).join(', ') }}
+            {{ savingProducts.map((p) => displayText(p.name)).join(', ') }}
           </div>
         </div>
 
@@ -201,7 +202,7 @@ function onFavoriteToggle() {
         </div>
 
         <p v-if="recipe.description" class="recipe-desc">
-          {{ recipe.description }}
+          {{ recipe.localized_description ?? recipe.description }}
         </p>
 
         <!-- Ingredients Section -->
@@ -227,7 +228,7 @@ function onFavoriteToggle() {
               >
                 <div class="ing-left">
                   <van-icon name="passed" color="#2e7d32" size="16" />
-                  <span class="ing-name">{{ ing.name }}</span>
+                  <span class="ing-name">{{ ing.localized_name ?? ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -253,7 +254,7 @@ function onFavoriteToggle() {
                   >
                     {{ getCriticalityBadge(ing.criticality).label }}
                   </span>
-                  <span class="ing-name">{{ ing.name }}</span>
+                  <span class="ing-name">{{ ing.localized_name ?? ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -307,7 +308,7 @@ function onFavoriteToggle() {
 
           <div class="steps-list">
             <div
-              v-for="(step, idx) in recipe.instructions"
+              v-for="(step, idx) in recipe.localized_instructions ?? recipe.instructions"
               :key="idx"
               class="step-item"
               :class="{ completed: completedSteps[idx] }"
@@ -320,15 +321,15 @@ function onFavoriteToggle() {
               <div class="step-body">
                 <p class="step-text">{{ step }}</p>
                 <div
-                  v-if="extractTimerMinutes(step)"
+                  v-if="extractTimerMinutes(recipe.instructions[idx] ?? step)"
                   class="step-timer-row"
                 >
                   <button
                     type="button"
                     class="step-timer-chip"
-                    @click.stop="startStepTimer(extractTimerMinutes(step)!)"
+                    @click.stop="startStepTimer(extractTimerMinutes(recipe.instructions[idx] ?? step)!)"
                   >
-                    ⏱️ Запустить {{ extractTimerMinutes(step) }} мин
+                    ⏱️ Запустить {{ extractTimerMinutes(recipe.instructions[idx] ?? step) }} мин
                   </button>
                 </div>
               </div>

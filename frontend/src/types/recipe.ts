@@ -11,6 +11,8 @@ export interface RecipeIngredientResponse {
   display_text?: string | null
   criticality: IngredientCriticality | string
   is_pantry_essential: boolean
+  localized_name?: string
+  localized_display_text?: string | null
 }
 
 export interface RecipeResponse {
@@ -26,6 +28,9 @@ export interface RecipeResponse {
   ingredients?: RecipeIngredientResponse[]
   created_at: string
   updated_at: string
+  localized_title?: string
+  localized_description?: string | null
+  localized_instructions?: string[]
 }
 
 export interface RecipeListResponse {

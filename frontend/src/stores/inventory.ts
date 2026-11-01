@@ -16,6 +16,7 @@ import {
 } from '@/api/inventory'
 import { useAuthStore } from './auth'
 import { getFreshnessInfo } from '@/utils/freshness'
+import { displayText, translateTexts } from '@/i18n/translation'
 
 export interface AddItemData {
   ingredientId?: number | null
@@ -60,7 +61,9 @@ export const useInventoryStore = defineStore('inventory', () => {
       result = result.filter(
         (item) =>
           item.name.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q)
+          item.category.toLowerCase().includes(q) ||
+          displayText(item.name).toLowerCase().includes(q) ||
+          displayText(item.category).toLowerCase().includes(q)
       )
     }
 
@@ -85,6 +88,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     isLoading.value = true
     try {
       items.value = await getLocalInventory()
+      void translateTexts(items.value.flatMap(item => [item.name, item.category]))
 
       if (refreshServer && authStore.isAuthenticated && navigator.onLine) {
         await syncWithServer()
@@ -100,6 +104,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     try {
       const serverItems = await getInventoryApi()
       items.value = await syncServerInventory(serverItems)
+      void translateTexts(items.value.flatMap(item => [item.name, item.category]))
     } catch {
       // Offline fallback: continue using local items
     } finally {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useAuthStore } from '@/stores/auth'
@@ -7,6 +7,7 @@ import { useNotificationStore } from '@/stores/notification'
 import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
+import { displayIngredientName, displayText, translateSearchQuery, translateTexts } from '@/i18n/translation'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -18,19 +19,33 @@ const showPantrySheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
+const translatedSearch = ref('')
 
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
   if (!allergenId) return 'Не выбрано'
   const found = ingredients.value.find((item) => item.id === allergenId)
-  return found ? found.name : `ID: ${allergenId}`
+  return found ? displayIngredientName(found.name, found.nameEn) : `ID: ${allergenId}`
 })
-const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?.pantryIngredientIds.includes(i.id)).map(i => i.name))
+const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?.pantryIngredientIds.includes(i.id)).map(i => displayIngredientName(i.name, i.nameEn)))
 
 const filteredIngredients = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return ingredients.value
-  return ingredients.value.filter((item) => item.name.toLowerCase().includes(q))
+  const terms = [q, translatedSearch.value.toLowerCase()]
+  return ingredients.value.filter((item) => [item.name, item.nameEn ?? '', displayIngredientName(item.name, item.nameEn), item.category, displayText(item.category)].some(value => terms.some(term => term && value.toLowerCase().includes(term))))
+})
+
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(searchQuery, (query) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(async () => {
+    translatedSearch.value = await translateSearchQuery(query)
+  }, 250)
+})
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
 })
 
 async function loadIngredients() {
@@ -38,6 +53,7 @@ async function loadIngredients() {
   isLoadingIngredients.value = true
   try {
     ingredients.value = await getIngredientsApi()
+    void translateTexts(ingredients.value.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     // Fallback if offline
     ingredients.value = [
@@ -212,7 +228,7 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="О приложении" value="WhatCook v0.1.5" />
+      <van-cell title="О приложении" value="WhatCook v0.1.6" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->
@@ -254,8 +270,8 @@ onMounted(() => {
           <van-cell
             v-for="item in filteredIngredients"
             :key="item.id"
-            :title="item.name"
-            :label="item.category"
+            :title="displayIngredientName(item.name, item.nameEn)"
+            :label="displayText(item.category)"
             clickable
             @click="selectAllergen(item.id)"
           >
@@ -281,7 +297,7 @@ onMounted(() => {
         <h4 class="popup-title">Продукты, которые обычно есть дома</h4>
         <van-search v-model="searchQuery" placeholder="Поиск ингредиента..." shape="round" class="popup-search" />
         <div class="ingredient-list">
-          <van-cell v-for="item in filteredIngredients" :key="item.id" :title="item.name" :label="item.category" clickable @click="togglePantry(item.id)">
+          <van-cell v-for="item in filteredIngredients" :key="item.id" :title="displayIngredientName(item.name, item.nameEn)" :label="displayText(item.category)" clickable @click="togglePantry(item.id)">
             <template #right-icon><van-checkbox :model-value="authStore.user?.pantryIngredientIds.includes(item.id) ?? false" /></template>
           </van-cell>
         </div>
