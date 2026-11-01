@@ -7,7 +7,14 @@ import { useNotificationStore } from '@/stores/notification'
 import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
-import { displayIngredientName, displayText, translateSearchQuery, translateTexts } from '@/i18n/translation'
+import {
+  checkTranslationService,
+  displayIngredientName,
+  displayText,
+  translateSearchQuery,
+  translateTexts,
+  translationServiceStatus
+} from '@/i18n/translation'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -152,8 +159,29 @@ async function handleLogout() {
 
 onMounted(() => {
   loadIngredients()
+  void checkTranslationService()
   notificationStore.checkSubscription()
 })
+
+const translationStatusText = computed(() => ({
+  checking: 'Проверка…',
+  connected: 'Подключён',
+  'not-configured': 'Адрес не задан',
+  unavailable: 'Нет соединения',
+  unsupported: 'Нет пары en ↔ ru'
+})[translationServiceStatus.value])
+
+const translationStatusHint = computed(() => ({
+  checking: 'Проверяется доступность сервиса перевода',
+  connected: 'LibreTranslate доступен, русский и английский включены',
+  'not-configured': 'Задайте VITE_LIBRETRANSLATE_URL и пересоберите фронтенд',
+  unavailable: 'Проверьте URL сервиса и доступность адреса /languages',
+  unsupported: 'Включите языковые модели английского и русского'
+})[translationServiceStatus.value])
+
+async function refreshTranslationStatus() {
+  await checkTranslationService()
+}
 </script>
 
 <template>
@@ -228,7 +256,14 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="О приложении" value="WhatCook v0.1.6" />
+      <van-cell
+        title="Перевод рецептов"
+        :value="translationStatusText"
+        :label="translationStatusHint"
+        is-link
+        @click="refreshTranslationStatus"
+      />
+      <van-cell title="О приложении" value="WhatCook v0.1.7" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
+import { checkTranslationService, translationServiceStatus } from '@/i18n/translation'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
@@ -12,6 +13,12 @@ const isSearchingExternal = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 let externalSearchSequence = 0
 const requestedExternalQueries = new Set<string>()
+const translationHint = computed(() => {
+  if (translationServiceStatus.value === 'not-configured') return 'Переводчик не задан. Настройте LibreTranslate в профиле.'
+  if (translationServiceStatus.value === 'unavailable') return 'LibreTranslate недоступен. Проверьте адрес и подключение.'
+  if (translationServiceStatus.value === 'unsupported') return 'В LibreTranslate не включён перевод между английским и русским.'
+  return ''
+})
 
 watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
   if (searchTimer) clearTimeout(searchTimer)
@@ -54,6 +61,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 ]
 
 onMounted(async () => {
+  void checkTranslationService()
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -80,6 +88,10 @@ onMounted(async () => {
     <div v-if="isSearchingExternal" class="external-search-status">
       <van-loading size="16px" color="#2e7d32" />
       <span>Ищем в TheMealDB…</span>
+    </div>
+    <div v-if="translationHint" class="translation-hint" role="status">
+      <span>{{ translationHint }}</span>
+      <router-link to="/profile">Проверить</router-link>
     </div>
 
     <!-- Navigation Tabs -->
@@ -187,7 +199,10 @@ onMounted(async () => {
         </div>
 
         <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
-          <p class="fallback-note">Пока нет точных совпадений. Вот блюда и продукты, которых не хватает:</p>
+          <div class="fallback-note">
+            <van-icon name="info-o" size="18" />
+            <span>Пока нет рецептов, которые можно приготовить только из продуктов в холодильнике. Вот подходящие варианты:</span>
+          </div>
           <RecipeCard
             v-for="r in recipeStore.visibleAllRecipes"
             :key="r.id"
@@ -303,12 +318,32 @@ onMounted(async () => {
 }
 
 .search-header {
-  padding: 4px 8px 0;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e7ece7;
 }
 
 .search-header :deep(.van-search) {
   width: 100%;
   padding: 0;
+  background: transparent;
+}
+
+.search-header :deep(.van-search__content) {
+  min-height: 48px;
+  padding: 0 12px;
+  background-color: #f5f7f5;
+  border: 1px solid #e2e9e2;
+  border-radius: 14px;
+}
+
+.search-header :deep(.van-field__control) {
+  color: #243126;
+  font-size: 15px;
+}
+
+.search-header :deep(.van-field__control::placeholder) {
+  color: #7c887e;
 }
 
 .external-search-status {
@@ -319,6 +354,28 @@ onMounted(async () => {
   min-height: 28px;
   color: #68706b;
   font-size: 12px;
+}
+
+.translation-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 16px 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background-color: #fff7e8;
+  color: #704b16;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.translation-hint a {
+  flex: 0 0 auto;
+  color: #2e7d32;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .tabs-nav {
@@ -446,7 +503,25 @@ onMounted(async () => {
 }
 
 .recipes-list {
-  padding: 8px 12px;
+  padding: 12px 16px 16px;
+}
+
+.fallback-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background-color: #edf5ee;
+  color: #315d37;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.fallback-note :deep(.van-icon) {
+  flex: 0 0 auto;
+  margin-top: 1px;
 }
 
 .empty-state {

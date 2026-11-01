@@ -556,11 +556,11 @@ function onFavoriteToggle() {
 }
 
 .ingredient-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
+  align-items: start;
   font-size: 13px;
-  gap: 8px;
+  gap: 10px;
 }
 
 .ing-left {
@@ -568,17 +568,26 @@ function onFavoriteToggle() {
   align-items: center;
   gap: 6px;
   flex: 1;
+  min-width: 0;
 }
 
 .ing-name {
   color: #212121;
   font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
 .ing-amount {
   color: #616161;
   font-weight: 600;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
+  line-height: 1.35;
 }
 
 .crit-badge {
@@ -586,6 +595,8 @@ function onFavoriteToggle() {
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .crit-critical {

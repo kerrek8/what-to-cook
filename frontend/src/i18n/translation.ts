@@ -3,6 +3,35 @@ import { ref } from 'vue'
 const cacheKey = 'whatcook:translations:en-ru-v1'
 const translations = new Map<string, string>()
 export const translationRevision = ref(0)
+export type TranslationServiceStatus = 'checking' | 'connected' | 'not-configured' | 'unavailable' | 'unsupported'
+export const translationServiceStatus = ref<TranslationServiceStatus>('not-configured')
+
+export async function checkTranslationService(): Promise<TranslationServiceStatus> {
+  const baseUrl = translatorUrl()
+  if (!baseUrl) {
+    translationServiceStatus.value = 'not-configured'
+    return translationServiceStatus.value
+  }
+
+  translationServiceStatus.value = 'checking'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 7000)
+  try {
+    const response = await fetch(`${baseUrl}/languages`, { signal: controller.signal })
+    if (!response.ok) throw new Error(`LibreTranslate returned ${response.status}`)
+    const languages = await response.json() as Array<{ code: string; targets: string[] }>
+    const english = languages.find(language => language.code === 'en')
+    const russian = languages.find(language => language.code === 'ru')
+    translationServiceStatus.value = english?.targets.includes('ru') && russian?.targets.includes('en')
+      ? 'connected'
+      : 'unsupported'
+  } catch {
+    translationServiceStatus.value = 'unavailable'
+  } finally {
+    clearTimeout(timeout)
+  }
+  return translationServiceStatus.value
+}
 
 const knownTranslations: Record<string, string> = {
   produce: 'Овощи и фрукты', vegetables: 'Овощи', vegetable: 'Овощи', fruit: 'Фрукты', fruits: 'Фрукты',
@@ -72,7 +101,7 @@ function translatorUrl(): string {
 
 export async function translateTexts(texts: string[], source = 'en', target = 'ru'): Promise<string[]> {
   const unique = [...new Set(texts.map(text => text.trim()).filter(Boolean))]
-  const missing = unique.filter(text => !/[А-Яа-яЁё]/.test(text) && !translations.has(text) && !knownTranslations[text.toLowerCase()])
+  const missing = unique.filter(text => !isMostlyRussian(text) && !translations.has(text) && !knownTranslations[text.toLowerCase()])
   const baseUrl = translatorUrl()
 
   if (baseUrl && missing.length > 0 && navigator.onLine) {
@@ -84,16 +113,21 @@ export async function translateTexts(texts: string[], source = 'en', target = 'r
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ q: batch, source, target, format: 'text' })
         })
-        if (!response.ok) continue
+        if (!response.ok) {
+          translationServiceStatus.value = 'unavailable'
+          continue
+        }
         const result = await response.json() as { translatedText?: string | string[] }
         const translated = Array.isArray(result.translatedText) ? result.translatedText : [result.translatedText]
         batch.forEach((text, index) => {
           const value = translated[index]?.trim()
           if (value) translations.set(text, value)
         })
+        translationServiceStatus.value = 'connected'
         translationRevision.value++
         saveCache()
       } catch {
+        translationServiceStatus.value = 'unavailable'
         // Keep source text visible when LibreTranslate is unavailable.
       }
     }
@@ -103,6 +137,14 @@ export async function translateTexts(texts: string[], source = 'en', target = 'r
     const trimmed = text.trim()
     return knownTranslations[trimmed.toLowerCase()] ?? translations.get(trimmed) ?? text
   })
+}
+
+function isMostlyRussian(text: string): boolean {
+  if (/[A-Za-z]{3,}/.test(text)) return false
+  const letters = text.match(/[A-Za-zА-Яа-яЁё]/g) ?? []
+  if (letters.length === 0) return false
+  const russianLetters = text.match(/[А-Яа-яЁё]/g)?.length ?? 0
+  return russianLetters / letters.length >= 0.45
 }
 
 export async function translateSearchQuery(query: string): Promise<string> {
@@ -119,8 +161,11 @@ export async function translateSearchQuery(query: string): Promise<string> {
       if (response.ok) {
         const result = await response.json() as { translatedText?: string }
         if (result.translatedText?.trim()) return result.translatedText.trim()
+      } else {
+        translationServiceStatus.value = 'unavailable'
       }
     } catch {
+      translationServiceStatus.value = 'unavailable'
       // Use known query translations when LibreTranslate is unavailable.
     }
   }
