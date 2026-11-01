@@ -157,6 +157,7 @@ func MapUserToDTO(u store.User) dto.UserResponse {
 		Email:                 u.Email,
 		Name:                  u.Name,
 		ExcludedIngredientIDs: u.ExcludedIngredientIds,
+		PantryIngredientIDs:   u.PantryIngredientIds,
 		CreatedAt:             u.CreatedAt.Time.Format(time.RFC3339),
 	}
 }

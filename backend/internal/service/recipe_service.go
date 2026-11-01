@@ -146,6 +146,14 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		excludedSet[id] = true
 	}
 
+	customPantry := user.PantryIngredientIds != nil
+	pantrySet := make(map[int32]bool)
+	if customPantry {
+		for _, id := range user.PantryIngredientIds {
+			pantrySet[id] = true
+		}
+	}
+
 	invItems, err := s.store.ListInventoryItemsByUserID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
@@ -202,7 +210,14 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 
 		for _, ing := range ings {
 			ingDTO := mapAllDetailsIngredientToDTO(ing)
-			if ing.IsPantryEssential || availableSet[ing.IngredientID] {
+			isPantry := false
+			if customPantry {
+				isPantry = pantrySet[ing.IngredientID]
+			} else {
+				isPantry = ing.IsPantryEssential
+			}
+
+			if isPantry || availableSet[ing.IngredientID] {
 				used = append(used, ingDTO)
 			} else {
 				missing = append(missing, ingDTO)

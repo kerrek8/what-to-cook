@@ -14,3 +14,15 @@ export async function updateAllergensApi(
   })
   return data
 }
+
+export async function updatePantryApi(pantryIngredientIds: number[]): Promise<UserBackendResponse> {
+  const { data } = await apiClient.put<UserBackendResponse>('/api/v1/users/me/pantry', {
+    pantry_ingredient_ids: pantryIngredientIds
+  })
+  return data
+}
+
+export async function getPantryApi(): Promise<number[]> {
+  const { data } = await apiClient.get<{ pantry_ingredient_ids: number[] }>('/api/v1/users/me/pantry')
+  return data.pantry_ingredient_ids
+}

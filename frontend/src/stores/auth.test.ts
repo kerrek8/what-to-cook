@@ -83,6 +83,7 @@ describe('useAuthStore', () => {
       email: 'test@example.com',
       name: 'Иван',
       excludedIngredientIds: [],
+      pantryIngredientIds: [],
       createdAt: '2026-10-31T20:00:00Z'
     }
     store.accessToken = 'mock-token'
@@ -108,6 +109,7 @@ describe('useAuthStore', () => {
       email: 'e@e.com',
       name: 'U',
       excludedIngredientIds: [],
+      pantryIngredientIds: [],
       createdAt: ''
     }
     localStorage.setItem('access_token', 'token-to-clear')
@@ -122,3 +124,5 @@ describe('useAuthStore', () => {
     expect(localStorage.getItem('access_token')).toBeNull()
   })
 })
+
+

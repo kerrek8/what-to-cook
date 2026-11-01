@@ -20,3 +20,9 @@ WHERE id = $1;
 UPDATE users
 SET excluded_ingredient_ids = $2, updated_at = NOW()
 WHERE id = $1;
+
+-- name: UpdateUserPantryIngredients :exec
+UPDATE users
+SET pantry_ingredient_ids = $2, updated_at = NOW()
+WHERE id = $1;
+

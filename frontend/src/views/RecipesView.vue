@@ -171,10 +171,20 @@ async function onRefresh() {
           />
         </div>
 
+        <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
+          <p class="fallback-note">Пока нет точных совпадений. Вот блюда и продукты, которых не хватает:</p>
+          <RecipeCard
+            v-for="r in recipeStore.filteredAllRecipes"
+            :key="r.id"
+            :recipe="r"
+            :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
+          />
+        </div>
+
         <div v-else class="empty-state">
           <van-empty
             image="search"
-            description="Нет рецептов, точно подходящих под ваши фильтры."
+            description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
           >
             <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
               <van-button round type="primary" color="#2e7d32" class="action-btn">
@@ -182,7 +192,7 @@ async function onRefresh() {
               </van-button>
             </router-link>
             <van-button
-              v-else
+              v-if="recipeStore.searchQuery || recipeStore.timeFilter || recipeStore.difficultyFilter !== 'all' || recipeStore.saveExpiringOnly"
               round
               plain
               class="action-btn"

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { LoginPayload, RegisterPayload, User, UserBackendResponse } from '@/types/api'
 import { loginApi, registerApi, logoutApi, refreshApi } from '@/api/auth'
-import { getMeApi, updateAllergensApi } from '@/api/user'
+import { getMeApi, updateAllergensApi, updatePantryApi } from '@/api/user'
 
 function mapUser(res: UserBackendResponse): User {
   return {
@@ -10,6 +10,7 @@ function mapUser(res: UserBackendResponse): User {
     email: res.email,
     name: res.name,
     excludedIngredientIds: res.excluded_ingredient_ids || [],
+    pantryIngredientIds: res.pantry_ingredient_ids || [],
     createdAt: res.created_at
   }
 }
@@ -95,6 +96,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function setPantry(ids: number[]): Promise<void> {
+    const updated = await updatePantryApi(ids)
+    if (user.value) user.value = mapUser(updated)
+  }
+
   async function init(): Promise<void> {
     if (isInitialized.value) return
 
@@ -135,6 +141,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     fetchProfile,
     setAllergen,
+    setPantry,
     init,
     clearSession
   }

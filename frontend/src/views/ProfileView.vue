@@ -14,6 +14,7 @@ const notificationStore = useNotificationStore()
 const pwaStore = usePwaStore()
 
 const showAllergenSheet = ref(false)
+const showPantrySheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
@@ -24,6 +25,7 @@ const currentAllergenName = computed(() => {
   const found = ingredients.value.find((item) => item.id === allergenId)
   return found ? found.name : `ID: ${allergenId}`
 })
+const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?.pantryIngredientIds.includes(i.id)).map(i => i.name))
 
 const filteredIngredients = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -69,6 +71,27 @@ async function selectAllergen(id: number | null) {
     const msg = err.response?.data?.error || 'Не удалось обновить исключение'
     showToast({ type: 'fail', message: msg })
   }
+}
+
+async function togglePantry(id: number) {
+  const current = authStore.user?.pantryIngredientIds ?? []
+  const next = current.includes(id) ? current.filter(value => value !== id) : [...current, id]
+  try {
+    await authStore.setPantry(next)
+    showToast({ type: 'success', message: 'Базовая корзина сохранена' })
+  } catch {
+    showToast({ type: 'fail', message: 'Не удалось сохранить базовую корзину' })
+  }
+}
+
+function openPantryPicker() {
+  if (!authStore.isAuthenticated) {
+    showToast('Войдите, чтобы настроить базовую корзину')
+    router.push('/login')
+    return
+  }
+  loadIngredients()
+  showPantrySheet.value = true
 }
 
 async function onNotificationSwitch(val: boolean) {
@@ -158,7 +181,7 @@ onMounted(() => {
         label="1 бесплатный продукт в MVP"
         @click="openAllergenPicker"
       />
-      <van-cell title="Базовая корзина" value="Соль, масло, вода..." is-link />
+      <van-cell title="Базовая корзина" :value="pantryNames.length ? pantryNames.join(', ') : 'Не настроена'" is-link @click="openPantryPicker" />
     </van-cell-group>
 
     <van-cell-group inset title="Уведомления и система" class="settings-group">
@@ -249,6 +272,18 @@ onMounted(() => {
             v-if="filteredIngredients.length === 0 && !isLoadingIngredients"
             description="Ничего не найдено"
           />
+        </div>
+      </div>
+    </van-popup>
+
+    <van-popup v-model:show="showPantrySheet" round position="bottom" :style="{ height: '70%' }" closeable>
+      <div class="popup-content">
+        <h4 class="popup-title">Продукты, которые обычно есть дома</h4>
+        <van-search v-model="searchQuery" placeholder="Поиск ингредиента..." shape="round" class="popup-search" />
+        <div class="ingredient-list">
+          <van-cell v-for="item in filteredIngredients" :key="item.id" :title="item.name" :label="item.category" clickable @click="togglePantry(item.id)">
+            <template #right-icon><van-checkbox :model-value="authStore.user?.pantryIngredientIds.includes(item.id) ?? false" /></template>
+          </van-cell>
         </div>
       </div>
     </van-popup>

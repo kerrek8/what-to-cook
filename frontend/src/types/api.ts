@@ -3,6 +3,7 @@ export interface User {
   email: string
   name: string
   excludedIngredientIds: number[]
+  pantryIngredientIds: number[]
   createdAt: string
 }
 
@@ -11,6 +12,7 @@ export interface UserBackendResponse {
   email: string
   name: string
   excluded_ingredient_ids: number[]
+  pantry_ingredient_ids?: number[]
   created_at: string
 }
 

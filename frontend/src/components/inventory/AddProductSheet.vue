@@ -99,7 +99,7 @@ function resetForm() {
   expirationDate.value = ''
 }
 
-function handleSubmit() {
+function handleSubmit(closeAfter = false) {
   const name = productName.value.trim()
   if (!name) {
     showToast('Укажите название продукта')
@@ -117,8 +117,9 @@ function handleSubmit() {
   }
 
   emit('add', payload)
+  showToast({ type: 'success', message: `${name} добавлен` })
   resetForm()
-  visible.value = false
+  if (closeAfter) visible.value = false
 }
 
 watch(
@@ -264,15 +265,18 @@ watch(
       </div>
 
       <div class="action-footer">
+        <van-button round block plain type="primary" color="#2e7d32" class="submit-button continue-button" @click="handleSubmit(false)">
+          Добавить ещё
+        </van-button>
         <van-button
           round
           block
           type="primary"
           color="#2e7d32"
           class="submit-button"
-          @click="handleSubmit"
+          @click="handleSubmit(true)"
         >
-          Добавить в холодильник
+          Добавить и закрыть
         </van-button>
       </div>
 
