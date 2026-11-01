@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { showToast } from 'vant'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
@@ -11,36 +11,6 @@ const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
 const isRefreshing = ref(false)
-const pullDistance = ref(0)
-let scrollContainer: HTMLElement | null = null
-let touchStartY = 0
-let gestureStartedAtTop = false
-
-function onTouchStart(event: TouchEvent) {
-  if (isRefreshing.value || event.touches.length !== 1) return
-  touchStartY = event.touches[0].clientY
-  gestureStartedAtTop = Boolean(scrollContainer && scrollContainer.scrollTop === 0)
-}
-
-function onTouchMove(event: TouchEvent) {
-  if (!gestureStartedAtTop || isRefreshing.value || event.touches.length !== 1) return
-  const distance = event.touches[0].clientY - touchStartY
-  if (distance <= 0) return
-  event.preventDefault()
-  pullDistance.value = Math.min(distance * 0.55, 88)
-}
-
-function onTouchEnd() {
-  const shouldRefresh = gestureStartedAtTop && pullDistance.value >= 64
-  gestureStartedAtTop = false
-  pullDistance.value = 0
-  if (shouldRefresh) void onRefresh()
-}
-
-function onTouchCancel() {
-  gestureStartedAtTop = false
-  pullDistance.value = 0
-}
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
   { label: 'Любое время', value: 0 },
@@ -58,11 +28,6 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 ]
 
 onMounted(async () => {
-  scrollContainer = document.querySelector('.content-wrapper')
-  scrollContainer?.addEventListener('touchstart', onTouchStart, { capture: true, passive: true })
-  scrollContainer?.addEventListener('touchmove', onTouchMove, { capture: true, passive: false })
-  scrollContainer?.addEventListener('touchend', onTouchEnd, { capture: true })
-  scrollContainer?.addEventListener('touchcancel', onTouchCancel, { capture: true })
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -70,13 +35,6 @@ onMounted(async () => {
     recipeStore.loadMatchedRecipes(),
     recipeStore.loadAllRecipes()
   ])
-})
-
-onUnmounted(() => {
-  scrollContainer?.removeEventListener('touchstart', onTouchStart, true)
-  scrollContainer?.removeEventListener('touchmove', onTouchMove, true)
-  scrollContainer?.removeEventListener('touchend', onTouchEnd, true)
-  scrollContainer?.removeEventListener('touchcancel', onTouchCancel, true)
 })
 
 async function onRefresh() {
@@ -98,14 +56,6 @@ async function onRefresh() {
 
 <template>
   <div class="recipes-view">
-    <div
-      v-if="pullDistance > 0 || isRefreshing"
-      class="pull-indicator"
-      :style="{ height: `${isRefreshing ? 44 : pullDistance}px` }"
-    >
-      <van-loading v-if="isRefreshing" size="18px" color="#2e7d32" />
-      <span>{{ isRefreshing ? 'Обновление…' : pullDistance >= 64 ? 'Отпустите для обновления' : 'Потяните вниз для обновления' }}</span>
-    </div>
     <!-- Search Bar -->
     <div class="search-header">
       <van-search
@@ -113,6 +63,17 @@ async function onRefresh() {
         placeholder="Поиск рецептов..."
         shape="round"
         clearable
+      />
+      <van-button
+        square
+        plain
+        type="primary"
+        color="#2e7d32"
+        icon="replay"
+        aria-label="Обновить рецепты"
+        :loading="isRefreshing"
+        class="refresh-button"
+        @click="onRefresh"
       />
     </div>
 
@@ -311,7 +272,7 @@ async function onRefresh() {
 
         <div v-else class="empty-state">
           <van-empty
-            image="like-o"
+            image="default"
             description="У вас пока нет сохраненных рецептов. Нажмите на сердечко на карточке рецепта, чтобы добавить его сюда."
           >
             <van-button
@@ -336,19 +297,17 @@ async function onRefresh() {
   flex-direction: column;
 }
 
-.pull-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  overflow: hidden;
-  color: #2e7d32;
-  font-size: 13px;
-  transition: height 100ms ease-out;
-}
-
 .search-header {
   padding: 4px 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+.refresh-button {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
 }
 
 .tabs-nav {
