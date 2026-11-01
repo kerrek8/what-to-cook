@@ -8,7 +8,13 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: [
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+        'push-worker.js'
+      ],
       manifest: {
         name: 'Что приготовить? — WhatCook',
         short_name: 'WhatCook',
@@ -40,6 +46,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        importScripts: ['/push-worker.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {

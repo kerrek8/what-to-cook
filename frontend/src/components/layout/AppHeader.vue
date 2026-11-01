@@ -6,12 +6,16 @@ const route = useRoute()
 const router = useRouter()
 
 const title = computed(() => (route.meta.title as string) || 'WhatCook')
-const showBack = computed(() => route.path === '/login' || route.path === '/register')
+const showBack = computed(
+  () => route.path === '/login' || route.path === '/register' || route.name === 'recipe-detail'
+)
 
 function onClickLeft() {
   if (showBack.value) {
     if (window.history.length > 1) {
       router.back()
+    } else if (route.name === 'recipe-detail') {
+      router.push('/recipes')
     } else {
       router.push('/profile')
     }

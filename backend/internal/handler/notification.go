@@ -13,6 +13,7 @@ import (
 
 type NotificationHandler struct {
 	notificationService service.NotificationService
+	vapidPublicKey      string
 }
 
 func NewNotificationHandler(notificationService service.NotificationService) *NotificationHandler {
@@ -21,12 +22,26 @@ func NewNotificationHandler(notificationService service.NotificationService) *No
 	}
 }
 
+func (h *NotificationHandler) WithVAPIDKey(key string) *NotificationHandler {
+	h.vapidPublicKey = key
+	return h
+}
+
 func (h *NotificationHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
 	userIDStr, err := middleware.GetUserID(c)
 	if err != nil {
 		return uuid.Nil, err
 	}
 	return uuid.Parse(userIDStr)
+}
+
+// @Summary Get VAPID public key
+// @Tags notifications
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /api/v1/notifications/vapid-key [get]
+func (h *NotificationHandler) GetVAPIDKey(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"public_key": h.vapidPublicKey})
 }
 
 // @Summary Subscribe to Web Push notifications

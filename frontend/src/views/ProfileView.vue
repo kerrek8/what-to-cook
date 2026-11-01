@@ -3,13 +3,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
+import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
+const pwaStore = usePwaStore()
 
-const notificationsEnabled = ref(true)
 const showAllergenSheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
@@ -68,6 +71,30 @@ async function selectAllergen(id: number | null) {
   }
 }
 
+async function onNotificationSwitch(val: boolean) {
+  if (!authStore.isAuthenticated) {
+    showToast('Войдите в аккаунт, чтобы получать уведомления')
+    router.push('/login')
+    return
+  }
+
+  if (val) {
+    const ok = await notificationStore.enableNotifications()
+    if (ok) {
+      showToast({ type: 'success', message: 'Уведомления включены' })
+    } else {
+      if (notificationStore.permission === 'denied') {
+        showToast({ type: 'fail', message: 'Разрешите уведомления в настройках браузера' })
+      } else {
+        showToast('Уведомления не подключены')
+      }
+    }
+  } else {
+    await notificationStore.disableNotifications()
+    showToast('Уведомления отключены')
+  }
+}
+
 async function handleLogout() {
   try {
     await showConfirmDialog({
@@ -86,6 +113,7 @@ async function handleLogout() {
 
 onMounted(() => {
   loadIngredients()
+  notificationStore.checkSubscription()
 })
 </script>
 
@@ -134,11 +162,32 @@ onMounted(() => {
     </van-cell-group>
 
     <van-cell-group inset title="Уведомления и система" class="settings-group">
-      <van-cell center title="Уведомления о сроках">
+      <van-cell
+        center
+        title="Уведомления о сроках годности"
+        label="Web Push напоминания за 1-2 дня"
+      >
         <template #right-icon>
-          <van-switch v-model="notificationsEnabled" size="22px" active-color="#2e7d32" />
+          <van-switch
+            :model-value="notificationStore.isSubscribed"
+            :loading="notificationStore.isLoading"
+            size="22px"
+            active-color="#2e7d32"
+            @update:model-value="onNotificationSwitch"
+          />
         </template>
       </van-cell>
+      <van-cell
+        v-if="pwaStore.canInstall"
+        title="Установить WhatCook"
+        value="На экран телефона"
+        is-link
+        @click="pwaStore.installApp"
+      />
+      <van-cell
+        title="Режим работы"
+        :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
+      />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
       <van-cell title="О приложении" value="WhatCook v0.1.0" />
     </van-cell-group>
@@ -208,7 +257,7 @@ onMounted(() => {
 
 <style scoped>
 .view-container {
-  padding: 16px 0;
+  padding: 16px 0 80px;
 }
 
 .user-card,

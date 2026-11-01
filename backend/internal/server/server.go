@@ -56,7 +56,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	inventoryHandler := handler.NewInventoryHandler(inventoryService)
 	recipeHandler := handler.NewRecipeHandler(recipeService)
 	shoppingHandler := handler.NewShoppingHandler(shoppingService)
-	notificationHandler := handler.NewNotificationHandler(notificationService)
+	notificationHandler := handler.NewNotificationHandler(notificationService).WithVAPIDKey(cfg.VAPID.PublicKey)
 
 	router.GET("/health", healthHandler.Health)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -82,6 +82,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 			recipes.GET("", recipeHandler.List)
 			recipes.POST("/sync", recipeHandler.Sync)
 		}
+
+		v1.GET("/notifications/vapid-key", notificationHandler.GetVAPIDKey)
 
 		protected := v1.Group("")
 		protected.Use(middleware.Auth(cfg.Auth.JWTSecret))
