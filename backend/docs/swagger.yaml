@@ -1,0 +1,1310 @@
+basePath: /
+definitions:
+  dto.AddFromRecipeResponse:
+    properties:
+      added_count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/dto.ShoppingItemResponse'
+        type: array
+      recipe_id:
+        type: integer
+    type: object
+  dto.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.CreateInventoryItemRequest:
+    properties:
+      amount:
+        type: number
+      approximate_quantity:
+        enum:
+        - few
+        - medium
+        - much
+        type: string
+      custom_name:
+        type: string
+      expiration_date:
+        type: string
+      in_stock:
+        type: boolean
+      ingredient_id:
+        type: integer
+      unit:
+        type: string
+    type: object
+  dto.CreateShoppingItemRequest:
+    properties:
+      amount:
+        type: number
+      custom_name:
+        type: string
+      ingredient_id:
+        type: integer
+      unit:
+        type: string
+    type: object
+  dto.IngredientListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.IngredientResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.IngredientResponse:
+    properties:
+      category:
+        type: string
+      default_unit:
+        type: string
+      id:
+        type: integer
+      is_pantry_essential:
+        type: boolean
+      name:
+        type: string
+      name_en:
+        type: string
+    type: object
+  dto.InventoryItemResponse:
+    properties:
+      amount:
+        type: number
+      approximate_quantity:
+        type: string
+      category:
+        type: string
+      created_at:
+        type: string
+      expiration_date:
+        type: string
+      id:
+        type: string
+      in_stock:
+        type: boolean
+      ingredient_id:
+        type: integer
+      name:
+        type: string
+      name_en:
+        type: string
+      unit:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.InventoryListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.InventoryItemResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.PushKeys:
+    properties:
+      auth:
+        type: string
+      p256dh:
+        type: string
+    type: object
+  dto.PushSubscriptionResponse:
+    properties:
+      created_at:
+        type: string
+      endpoint:
+        type: string
+      id:
+        type: string
+    type: object
+  dto.RecipeIngredientResponse:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      criticality:
+        type: string
+      display_text:
+        type: string
+      ingredient_id:
+        type: integer
+      is_pantry_essential:
+        type: boolean
+      name:
+        type: string
+      name_en:
+        type: string
+      unit:
+        type: string
+    type: object
+  dto.RecipeListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.RecipeResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.RecipeMatchItem:
+    properties:
+      available_count:
+        type: integer
+      can_cook_now:
+        type: boolean
+      match_percentage:
+        type: integer
+      missing_ingredients:
+        items:
+          $ref: '#/definitions/dto.RecipeIngredientResponse'
+        type: array
+      recipe:
+        $ref: '#/definitions/dto.RecipeResponse'
+      total_ingredients:
+        type: integer
+      used_ingredients:
+        items:
+          $ref: '#/definitions/dto.RecipeIngredientResponse'
+        type: array
+    type: object
+  dto.RecipeMatchResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.RecipeMatchItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.RecipeResponse:
+    properties:
+      cooking_time_minutes:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: string
+      external_id:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      ingredients:
+        items:
+          $ref: '#/definitions/dto.RecipeIngredientResponse'
+        type: array
+      instructions:
+        items:
+          type: string
+        type: array
+      is_favorite:
+        type: boolean
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.RecipeSyncResponse:
+    properties:
+      synced_count:
+        type: integer
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        maxLength: 72
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.ShoppingItemResponse:
+    properties:
+      amount:
+        type: number
+      category:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      ingredient_id:
+        type: integer
+      is_bought:
+        type: boolean
+      name:
+        type: string
+      name_en:
+        type: string
+      unit:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ShoppingListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.ShoppingItemResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.SubscribeNotificationRequest:
+    properties:
+      auth:
+        type: string
+      endpoint:
+        type: string
+      keys:
+        $ref: '#/definitions/dto.PushKeys'
+      p256dh:
+        type: string
+    required:
+    - endpoint
+    type: object
+  dto.TransferToInventoryResponse:
+    properties:
+      transferred_count:
+        type: integer
+    type: object
+  dto.UpdateAllergensRequest:
+    properties:
+      excluded_ingredient_ids:
+        items:
+          type: integer
+        maxItems: 1
+        type: array
+    required:
+    - excluded_ingredient_ids
+    type: object
+  dto.UpdateInventoryItemRequest:
+    properties:
+      amount:
+        type: number
+      approximate_quantity:
+        enum:
+        - few
+        - medium
+        - much
+        type: string
+      custom_name:
+        type: string
+      expiration_date:
+        type: string
+      in_stock:
+        type: boolean
+      ingredient_id:
+        type: integer
+      unit:
+        type: string
+    type: object
+  dto.UpdateShoppingItemRequest:
+    properties:
+      amount:
+        type: number
+      custom_name:
+        type: string
+      ingredient_id:
+        type: integer
+      is_bought:
+        type: boolean
+      unit:
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      excluded_ingredient_ids:
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: REST API для мобильного PWA-приложения WhatCook («Что приготовить?»).
+  title: WhatCook API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - auth
+  /api/v1/auth/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      summary: Logout user
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Registration payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /api/v1/ingredients:
+    get:
+      parameters:
+      - description: Search query by name
+        in: query
+        name: q
+        type: string
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.IngredientListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List and search ingredients
+      tags:
+      - ingredients
+  /api/v1/ingredients/{id}:
+    get:
+      parameters:
+      - description: Ingredient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.IngredientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get ingredient by ID
+      tags:
+      - ingredients
+  /api/v1/inventory:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventoryListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List inventory items
+      tags:
+      - inventory
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Inventory item payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateInventoryItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.InventoryItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create inventory item
+      tags:
+      - inventory
+  /api/v1/inventory/{id}:
+    delete:
+      parameters:
+      - description: Inventory item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete inventory item
+      tags:
+      - inventory
+    get:
+      parameters:
+      - description: Inventory item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventoryItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get inventory item by ID
+      tags:
+      - inventory
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Inventory item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Inventory item update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateInventoryItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventoryItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update inventory item
+      tags:
+      - inventory
+  /api/v1/notifications/subscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Push subscription payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SubscribeNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.PushSubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Subscribe to Web Push notifications
+      tags:
+      - notifications
+  /api/v1/notifications/subscriptions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PushSubscriptionResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List user push subscriptions
+      tags:
+      - notifications
+  /api/v1/recipes:
+    get:
+      parameters:
+      - description: Search query by title
+        in: query
+        name: q
+        type: string
+      - description: Filter by difficulty (easy, medium, hard)
+        in: query
+        name: difficulty
+        type: string
+      - description: Max cooking time in minutes
+        in: query
+        name: max_time
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecipeListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List recipes
+      tags:
+      - recipes
+  /api/v1/recipes/{id}:
+    get:
+      parameters:
+      - description: Recipe ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecipeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get recipe by ID
+      tags:
+      - recipes
+  /api/v1/recipes/{id}/favorite:
+    delete:
+      parameters:
+      - description: Recipe ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove recipe from favorites
+      tags:
+      - recipes
+    post:
+      parameters:
+      - description: Recipe ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add recipe to favorites
+      tags:
+      - recipes
+  /api/v1/recipes/match:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecipeMatchResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Match recipes against user inventory
+      tags:
+      - recipes
+  /api/v1/recipes/sync:
+    post:
+      parameters:
+      - description: Search query for external API
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RecipeSyncResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sync recipes from TheMealDB
+      tags:
+      - recipes
+  /api/v1/shopping-list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ShoppingListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List shopping items
+      tags:
+      - shopping-list
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Shopping item payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateShoppingItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ShoppingItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create shopping item
+      tags:
+      - shopping-list
+  /api/v1/shopping-list/{id}:
+    delete:
+      parameters:
+      - description: Shopping item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete shopping item
+      tags:
+      - shopping-list
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Shopping item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update shopping item payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateShoppingItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ShoppingItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update shopping item
+      tags:
+      - shopping-list
+  /api/v1/shopping-list/from-recipe/{id}:
+    post:
+      parameters:
+      - description: Recipe ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AddFromRecipeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add missing ingredients from recipe to shopping list
+      tags:
+      - shopping-list
+  /api/v1/shopping-list/transfer-to-inventory:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TransferToInventoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Transfer bought shopping list items to inventory
+      tags:
+      - shopping-list
+  /api/v1/users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - users
+  /api/v1/users/me/allergens:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Excluded ingredients list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAllergensRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user allergens / excluded ingredients
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: 'Токен авторизации в формате: Bearer <access_token>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

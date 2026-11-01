@@ -15,6 +15,15 @@ import (
 	"github.com/kerrek8/what-to-cook/backend/internal/server"
 )
 
+// @title WhatCook API
+// @version 1.0
+// @description REST API для мобильного PWA-приложения WhatCook («Что приготовить?»).
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Токен авторизации в формате: Bearer <access_token>
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -48,7 +57,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Printf("server forced to shutdown: %v", err)
+		log.Fatalf("server forced to shutdown: %v", err)
 	}
 
 	log.Println("server exited cleanly")

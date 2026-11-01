@@ -7,33 +7,34 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/kerrek8/what-to-cook/backend/docs"
 	"github.com/kerrek8/what-to-cook/backend/internal/config"
 	"github.com/kerrek8/what-to-cook/backend/internal/handler"
 	"github.com/kerrek8/what-to-cook/backend/internal/middleware"
 	"github.com/kerrek8/what-to-cook/backend/internal/provider"
 	"github.com/kerrek8/what-to-cook/backend/internal/service"
 	"github.com/kerrek8/what-to-cook/backend/internal/store"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
 	httpServer       *http.Server
 	db               *pgxpool.Pool
 	expirationWorker *service.ExpirationWorker
+	router           *gin.Engine
 }
 
-func New(cfg *config.Config, db *pgxpool.Pool) *Server {
+func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider provider.RecipeProvider, pushSender service.PushSender) *Server {
 	gin.SetMode(cfg.Server.Mode)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 	router.Use(middleware.CORS(cfg.CORS.AllowedOrigins))
 
-	var queries store.Querier
-	if db != nil {
-		queries = store.New(db)
+	if recipeProvider == nil {
+		recipeProvider = provider.NewTheMealDBClient("", 10*time.Second)
 	}
-
-	recipeProvider := provider.NewTheMealDBClient("", 10*time.Second)
 
 	authService := service.NewAuthService(queries, cfg.Auth.JWTSecret)
 	userService := service.NewUserService(queries)
@@ -42,7 +43,9 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
 
-	pushSender := service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
+	if pushSender == nil {
+		pushSender = service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
+	}
 	notificationService := service.NewNotificationService(queries, pushSender)
 	expirationWorker := service.NewExpirationWorker(notificationService, 24*time.Hour)
 
@@ -56,6 +59,7 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	router.GET("/health", healthHandler.Health)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	v1 := router.Group("/api/v1")
 	{
@@ -134,9 +138,24 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 
 	return &Server{
 		httpServer:       httpServer,
-		db:               db,
 		expirationWorker: expirationWorker,
+		router:           router,
 	}
+}
+
+func New(cfg *config.Config, db *pgxpool.Pool) *Server {
+	var queries store.Querier
+	if db != nil {
+		queries = store.New(db)
+	}
+
+	srv := NewWithQuerier(cfg, queries, nil, nil)
+	srv.db = db
+	return srv
+}
+
+func (s *Server) Router() *gin.Engine {
+	return s.router
 }
 
 func (s *Server) Start() error {
