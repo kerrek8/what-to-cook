@@ -63,6 +63,7 @@ async function onRefresh() {
 
 <template>
   <div class="recipes-view">
+    <van-pull-refresh v-model="isRefreshing" :disabled="!refreshAllowedForGesture" pulling-text="Потяните вниз для обновления" loosing-text="Отпустите, чтобы обновить" loading-text="Обновление…" success-text="Обновлено" class="recipes-content" @touchstart.capture="onRefreshTouchStart" @refresh="onRefresh">
     <!-- Search Bar -->
     <div class="search-header">
       <van-search
@@ -153,7 +154,6 @@ async function onRefresh() {
     </div>
 
     <!-- Pull Refresh Content -->
-    <van-pull-refresh v-model="isRefreshing" :disabled="!refreshAllowedForGesture" pulling-text="Потяните вниз для обновления" loosing-text="Отпустите, чтобы обновить" loading-text="Обновление…" success-text="Обновлено" class="recipes-content" @touchstart.capture="onRefreshTouchStart" @refresh="onRefresh">
       <!-- Skeletons while loading -->
       <div
         v-if="recipeStore.isMatching || recipeStore.isLoading"
@@ -181,7 +181,7 @@ async function onRefresh() {
         <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
           <p class="fallback-note">Пока нет точных совпадений. Вот блюда и продукты, которых не хватает:</p>
           <RecipeCard
-            v-for="r in recipeStore.filteredAllRecipes"
+            v-for="r in recipeStore.visibleAllRecipes"
             :key="r.id"
             :recipe="r"
             :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
@@ -220,16 +220,16 @@ async function onRefresh() {
       <template v-else-if="recipeStore.activeTab === 'all'">
         <div v-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list">
           <RecipeCard
-            v-for="r in recipeStore.filteredAllRecipes"
+            v-for="r in recipeStore.visibleAllRecipes"
             :key="r.id"
             :recipe="r"
             :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
           />
         </div>
         <van-pagination
-          v-if="recipeStore.totalPages > 1"
+          v-if="recipeStore.filteredAllRecipes.length > recipeStore.pageSize"
           :model-value="recipeStore.page"
-          :total-items="recipeStore.recipeTotal"
+          :total-items="recipeStore.filteredAllRecipes.length"
           :items-per-page="recipeStore.pageSize"
           prev-text="Назад"
           next-text="Далее"

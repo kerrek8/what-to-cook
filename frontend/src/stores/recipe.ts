@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type {
   RecipeResponse,
   RecipeMatchItem,
@@ -23,7 +23,6 @@ export const useRecipeStore = defineStore('recipe', () => {
   const matchedRecipes = ref<RecipeMatchItem[]>([])
   const allRecipes = ref<RecipeResponse[]>([])
   const favoriteCatalog = ref<RecipeResponse[]>([])
-  const recipeTotal = ref(0)
   const page = ref(1)
   const pageSize = 20
   const currentRecipe = ref<RecipeResponse | null>(null)
@@ -107,7 +106,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   const filteredAllRecipes = computed(() => {
     return allRecipes.value.filter((r) => filterRecipe(r))
   })
-  const totalPages = computed(() => Math.max(1, Math.ceil(recipeTotal.value / pageSize)))
+  const visibleAllRecipes = computed(() => filteredAllRecipes.value.slice((page.value - 1) * pageSize, page.value * pageSize))
+  const totalPages = computed(() => Math.max(1, Math.ceil(filteredAllRecipes.value.length / pageSize)))
+  watch([searchQuery, timeFilter, difficultyFilter, saveExpiringOnly], () => { page.value = 1 })
 
   const favoriteRecipes = computed(() => {
     return favoriteCatalog.value.filter((r) => r.is_favorite && filterRecipe(r))
@@ -137,9 +138,9 @@ export const useRecipeStore = defineStore('recipe', () => {
 
     isLoading.value = true
     try {
-      const resp = await getRecipesApi({ limit: pageSize, offset: (page.value - 1) * pageSize })
-      allRecipes.value = resp.items
-      recipeTotal.value = resp.total
+      const first = await getRecipesApi({ limit: 100, offset: 0 })
+      const remaining = await Promise.all(Array.from({ length: Math.ceil(first.total / 100) - 1 }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
+      allRecipes.value = [...first.items, ...remaining.flatMap(response => response.items)]
     } catch {
       allRecipes.value = []
     } finally {
@@ -163,9 +164,7 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   async function setPage(value: number) {
     const next = Math.min(totalPages.value, Math.max(1, value))
-    if (next === page.value && allRecipes.value.length) return
     page.value = next
-    await loadAllRecipes(true)
   }
 
   async function loadRecipeById(id: number): Promise<RecipeResponse | null> {
@@ -234,7 +233,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     matchedRecipes,
     allRecipes,
     favoriteCatalog,
-    recipeTotal,
     page,
     pageSize,
     totalPages,
@@ -250,6 +248,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     expiringItems,
     filteredMatchedRecipes,
     filteredAllRecipes,
+    visibleAllRecipes,
     favoriteRecipes,
     getSavingIngredients,
     loadMatchedRecipes,
