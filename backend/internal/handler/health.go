@@ -14,6 +14,11 @@ func NewHealthHandler() *HealthHandler {
 	return &HealthHandler{}
 }
 
+// @Summary Health check
+// @Tags health
+// @Produce json
+// @Success 200 {object} dto.HealthResponse
+// @Router /health [get]
 func (h *HealthHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.HealthResponse{
 		Status: "ok",

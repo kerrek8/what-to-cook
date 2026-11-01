@@ -50,6 +50,13 @@ definitions:
       unit:
         type: string
     type: object
+  dto.HealthResponse:
+    properties:
+      status:
+        type: string
+      time:
+        type: string
+    type: object
   dto.IngredientListResponse:
     properties:
       items:
@@ -808,6 +815,20 @@ paths:
       summary: List user push subscriptions
       tags:
       - notifications
+  /api/v1/notifications/vapid-key:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get VAPID public key
+      tags:
+      - notifications
   /api/v1/recipes:
     get:
       parameters:
@@ -1301,6 +1322,18 @@ paths:
       summary: Update user allergens / excluded ingredients
       tags:
       - users
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.HealthResponse'
+      summary: Health check
+      tags:
+      - health
 securityDefinitions:
   BearerAuth:
     description: 'Токен авторизации в формате: Bearer <access_token>'
