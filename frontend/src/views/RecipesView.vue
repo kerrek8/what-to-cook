@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +8,34 @@ import RecipeCard from '@/components/recipes/RecipeCard.vue'
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
+const isSearchingExternal = ref(false)
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+let externalSearchSequence = 0
+const requestedExternalQueries = new Set<string>()
+
+watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  const term = query.trim()
+  if (term.length < 3 || tab === 'favorites') return
+
+  const sequence = ++externalSearchSequence
+  searchTimer = setTimeout(async () => {
+    if (requestedExternalQueries.has(term.toLowerCase())) return
+    requestedExternalQueries.add(term.toLowerCase())
+    isSearchingExternal.value = true
+    try {
+      await recipeStore.searchExternalRecipes(term)
+    } catch {
+      requestedExternalQueries.delete(term.toLowerCase())
+    } finally {
+      if (sequence === externalSearchSequence) isSearchingExternal.value = false
+    }
+  }, 600)
+})
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
@@ -48,6 +76,10 @@ onMounted(async () => {
         shape="round"
         clearable
       />
+    </div>
+    <div v-if="isSearchingExternal" class="external-search-status">
+      <van-loading size="16px" color="#2e7d32" />
+      <span>Ищем в TheMealDB…</span>
     </div>
 
     <!-- Navigation Tabs -->
@@ -272,8 +304,21 @@ onMounted(async () => {
 
 .search-header {
   padding: 4px 8px 0;
+}
+
+.search-header :deep(.van-search) {
+  width: 100%;
+  padding: 0;
+}
+
+.external-search-status {
   display: flex;
+  justify-content: center;
   align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: #68706b;
+  font-size: 12px;
 }
 
 .tabs-nav {

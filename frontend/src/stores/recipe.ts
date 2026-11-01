@@ -11,7 +11,8 @@ import {
   matchRecipesApi,
   addFavoriteApi,
   removeFavoriteApi,
-  addMissingIngredientsToShoppingListApi
+  addMissingIngredientsToShoppingListApi,
+  syncRecipesApi
 } from '@/api/recipe'
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
@@ -83,9 +84,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   ): boolean {
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
-      const titleMatch = recipe.title.toLowerCase().includes(q)
-      const descMatch = recipe.description?.toLowerCase().includes(q) || false
-      if (!titleMatch && !descMatch) return false
+      const alias = recipeSearchAliases[q] ?? q
+      const text = `${recipe.title} ${recipe.description ?? ''}`.toLowerCase()
+      if (!text.includes(q) && !text.includes(alias)) return false
     }
 
     if (difficultyFilter.value !== 'all' && recipe.difficulty !== difficultyFilter.value) {
@@ -104,6 +105,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
 
     return true
+  }
+
+  const recipeSearchAliases: Record<string, string> = {
+    десерт: 'dessert',
+    десерты: 'dessert',
+    курица: 'chicken',
+    говядина: 'beef',
+    салат: 'salad',
+    паста: 'pasta',
+    суп: 'soup',
+    рыба: 'fish'
   }
 
   const filteredMatchedRecipes = computed(() => {
@@ -262,6 +274,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     return await addMissingIngredientsToShoppingListApi(recipeId)
   }
 
+  async function searchExternalRecipes(query: string): Promise<number> {
+    const normalized = recipeSearchAliases[query.trim().toLowerCase()] ?? query.trim()
+    const count = await syncRecipesApi(normalized)
+    if (count > 0) {
+      page.value = 1
+      await loadAllRecipes(true)
+      if (authStore.isAuthenticated) await loadMatchedRecipes(true)
+    }
+    return count
+  }
+
   return {
     matchedRecipes,
     allRecipes,
@@ -290,6 +313,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     setPage,
     loadRecipeById,
     toggleFavorite,
-    addMissingToShopping
+    addMissingToShopping,
+    searchExternalRecipes
   }
 })
