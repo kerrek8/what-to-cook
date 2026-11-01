@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { LocalInventoryItem, LocalShoppingItem } from './types'
 import type { InventoryItemResponse } from '@/types/inventory'
+import type { ShoppingItemResponse } from '@/types/shopping'
 
 export class WhatCookDatabase extends Dexie {
   inventory!: EntityTable<LocalInventoryItem, 'id'>
@@ -131,4 +132,47 @@ export async function deleteLocalShoppingItem(id: number): Promise<void> {
 
 export async function clearBoughtShoppingItems(): Promise<void> {
   await db.shoppingList.filter((item) => item.isBought).delete()
+}
+
+export async function syncServerShoppingList(
+  serverItems: ShoppingItemResponse[]
+): Promise<LocalShoppingItem[]> {
+  const localItems = await db.shoppingList.toArray()
+  const serverMap = new Map(serverItems.map((s) => [s.id, s]))
+
+  for (const local of localItems) {
+    if (local.serverId) {
+      if (serverMap.has(local.serverId)) {
+        const s = serverMap.get(local.serverId)!
+        await db.shoppingList.update(local.id!, {
+          name: s.name,
+          category: s.category,
+          amount: s.amount,
+          unit: s.unit,
+          isBought: s.is_bought,
+          synced: 1,
+          updatedAt: s.updated_at
+        })
+        serverMap.delete(local.serverId)
+      } else if (local.synced === 1) {
+        await db.shoppingList.delete(local.id!)
+      }
+    }
+  }
+
+  for (const s of serverMap.values()) {
+    await db.shoppingList.add({
+      serverId: s.id,
+      ingredientId: s.ingredient_id,
+      name: s.name,
+      category: s.category,
+      amount: s.amount,
+      unit: s.unit,
+      isBought: s.is_bought,
+      synced: 1,
+      updatedAt: s.updated_at
+    })
+  }
+
+  return await db.shoppingList.toArray()
 }
