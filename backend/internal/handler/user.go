@@ -84,3 +84,59 @@ func (h *UserHandler) UpdateAllergens(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
+
+// @Summary Update user pantry essentials
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.UpdatePantryRequest true "Pantry ingredients list"
+// @Success 200 {object} dto.UserResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/me/pantry [put]
+func (h *UserHandler) UpdatePantry(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req dto.UpdatePantryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := h.userService.UpdatePantry(c.Request.Context(), userID, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update pantry"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+// @Summary Get current user pantry essentials
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.UserResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/me/pantry [get]
+func (h *UserHandler) GetPantry(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	user, err := h.userService.GetMe(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get pantry"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"pantry_ingredient_ids": user.PantryIngredientIDs})
+}

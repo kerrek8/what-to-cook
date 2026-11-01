@@ -91,4 +91,5 @@ type User struct {
 	ExcludedIngredientIds []int32            `json:"excluded_ingredient_ids"`
 	CreatedAt             pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+	PantryIngredientIds   []int32            `json:"pantry_ingredient_ids"`
 }

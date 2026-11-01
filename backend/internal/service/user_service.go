@@ -42,6 +42,36 @@ func (s *UserService) GetMe(ctx context.Context, userIDStr string) (*dto.UserRes
 	return &resp, nil
 }
 
+func (s *UserService) UpdatePantry(ctx context.Context, userIDStr string, req dto.UpdatePantryRequest) (*dto.UserResponse, error) {
+	parsedUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
+
+	pantryIDs := req.PantryIngredientIDs
+	if pantryIDs == nil {
+		pantryIDs = []int32{}
+	}
+
+	err = s.queries.UpdateUserPantryIngredients(ctx, store.UpdateUserPantryIngredientsParams{
+		ID:                  pgUUID,
+		PantryIngredientIds: pantryIDs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update pantry: %w", err)
+	}
+
+	user, err := s.queries.GetUserByID(ctx, pgUUID)
+	if err != nil {
+		return nil, fmt.Errorf("get updated user: %w", err)
+	}
+
+	resp := MapUserToDTO(user)
+	return &resp, nil
+}
+
 func (s *UserService) UpdateAllergens(ctx context.Context, userIDStr string, req dto.UpdateAllergensRequest) (*dto.UserResponse, error) {
 	if len(req.ExcludedIngredientIDs) > 1 {
 		return nil, ErrMaxAllergensExceeded
@@ -70,3 +100,4 @@ func (s *UserService) UpdateAllergens(ctx context.Context, userIDStr string, req
 	resp := MapUserToDTO(user)
 	return &resp, nil
 }
+

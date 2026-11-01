@@ -48,6 +48,7 @@ type Querier interface {
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
+	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
 	UpsertPushSubscription(ctx context.Context, arg UpsertPushSubscriptionParams) (PushSubscription, error)
 	UpsertRecipe(ctx context.Context, arg UpsertRecipeParams) (Recipe, error)

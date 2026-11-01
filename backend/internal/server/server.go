@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/kerrek8/what-to-cook/backend/docs"
 	"github.com/kerrek8/what-to-cook/backend/internal/config"
+	"github.com/kerrek8/what-to-cook/backend/internal/dto"
 	"github.com/kerrek8/what-to-cook/backend/internal/handler"
 	"github.com/kerrek8/what-to-cook/backend/internal/middleware"
 	"github.com/kerrek8/what-to-cook/backend/internal/provider"
@@ -22,6 +23,7 @@ type Server struct {
 	httpServer       *http.Server
 	db               *pgxpool.Pool
 	expirationWorker *service.ExpirationWorker
+	recipeService    service.RecipeService
 	router           *gin.Engine
 }
 
@@ -92,6 +94,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 			{
 				users.GET("/me", userHandler.GetMe)
 				users.PUT("/me/allergens", userHandler.UpdateAllergens)
+				users.PUT("/me/pantry", userHandler.UpdatePantry)
+				users.GET("/me/pantry", userHandler.GetPantry)
 			}
 
 			inventory := protected.Group("/inventory")
@@ -141,6 +145,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	return &Server{
 		httpServer:       httpServer,
 		expirationWorker: expirationWorker,
+		recipeService:    recipeService,
 		router:           router,
 	}
 }
@@ -164,7 +169,25 @@ func (s *Server) Start() error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Start()
 	}
+	if s.recipeService != nil {
+		go s.syncInitialRecipesIfEmpty()
+	}
 	return s.httpServer.ListenAndServe()
+}
+
+func (s *Server) syncInitialRecipesIfEmpty() {
+	time.Sleep(1 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	list, err := s.recipeService.List(ctx, nil, dto.RecipeQuery{Limit: 1})
+	if err != nil || list.Total > 0 {
+		return
+	}
+
+	for _, query := range []string{"chicken", "pasta", "salad", "beef"} {
+		_, _ = s.recipeService.SyncFromProvider(ctx, query)
+	}
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

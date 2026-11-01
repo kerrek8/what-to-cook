@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash, name)
 VALUES ($1, $2, $3)
-RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at
+RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids
 `
 
 type CreateUserParams struct {
@@ -35,12 +35,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.ExcludedIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PantryIngredientIds,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at FROM users
+SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -56,12 +57,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.ExcludedIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PantryIngredientIds,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at FROM users
+SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -77,6 +79,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.ExcludedIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PantryIngredientIds,
 	)
 	return i, err
 }
@@ -94,6 +97,22 @@ type UpdateUserExcludedIngredientsParams struct {
 
 func (q *Queries) UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error {
 	_, err := q.db.Exec(ctx, updateUserExcludedIngredients, arg.ID, arg.ExcludedIngredientIds)
+	return err
+}
+
+const updateUserPantryIngredients = `-- name: UpdateUserPantryIngredients :exec
+UPDATE users
+SET pantry_ingredient_ids = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateUserPantryIngredientsParams struct {
+	ID                  pgtype.UUID `json:"id"`
+	PantryIngredientIds []int32     `json:"pantry_ingredient_ids"`
+}
+
+func (q *Queries) UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error {
+	_, err := q.db.Exec(ctx, updateUserPantryIngredients, arg.ID, arg.PantryIngredientIds)
 	return err
 }
 
