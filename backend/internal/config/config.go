@@ -29,12 +29,20 @@ type CORSConfig struct {
 	AllowedOrigins []string
 }
 
+// VAPIDConfig contains Web Push VAPID keys and subject.
+type VAPIDConfig struct {
+	PublicKey  string
+	PrivateKey string
+	Subject    string
+}
+
 // Config aggregates all application configuration sections.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Auth     AuthConfig
 	CORS     CORSConfig
+	VAPID    VAPIDConfig
 }
 
 // Load reads configuration from environment variables and performs strict validation.
@@ -53,6 +61,11 @@ func Load() (*Config, error) {
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: parseCommaSeparated(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")),
+		},
+		VAPID: VAPIDConfig{
+			PublicKey:  getEnv("VAPID_PUBLIC_KEY", ""),
+			PrivateKey: getEnv("VAPID_PRIVATE_KEY", ""),
+			Subject:    getEnv("VAPID_SUBJECT", "mailto:admin@whatcook.app"),
 		},
 	}
 

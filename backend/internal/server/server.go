@@ -16,8 +16,9 @@ import (
 )
 
 type Server struct {
-	httpServer *http.Server
-	db         *pgxpool.Pool
+	httpServer       *http.Server
+	db               *pgxpool.Pool
+	expirationWorker *service.ExpirationWorker
 }
 
 func New(cfg *config.Config, db *pgxpool.Pool) *Server {
@@ -41,6 +42,10 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
 
+	pushSender := service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
+	notificationService := service.NewNotificationService(queries, pushSender)
+	expirationWorker := service.NewExpirationWorker(notificationService, 24*time.Hour)
+
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
 	userHandler := handler.NewUserHandler(userService)
@@ -48,6 +53,7 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	inventoryHandler := handler.NewInventoryHandler(inventoryService)
 	recipeHandler := handler.NewRecipeHandler(recipeService)
 	shoppingHandler := handler.NewShoppingHandler(shoppingService)
+	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	router.GET("/health", healthHandler.Health)
 
@@ -107,6 +113,12 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 				shopping.DELETE("/:id", shoppingHandler.Delete)
 				shopping.POST("/transfer-to-inventory", shoppingHandler.TransferToInventory)
 			}
+
+			notifications := protected.Group("/notifications")
+			{
+				notifications.POST("/subscribe", notificationHandler.Subscribe)
+				notifications.GET("/subscriptions", notificationHandler.ListSubscriptions)
+			}
 		}
 
 		v1.GET("/recipes/:id", recipeHandler.GetByID)
@@ -121,16 +133,23 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 	}
 
 	return &Server{
-		httpServer: httpServer,
-		db:         db,
+		httpServer:       httpServer,
+		db:               db,
+		expirationWorker: expirationWorker,
 	}
 }
 
 func (s *Server) Start() error {
+	if s.expirationWorker != nil {
+		s.expirationWorker.Start()
+	}
 	return s.httpServer.ListenAndServe()
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
+	if s.expirationWorker != nil {
+		s.expirationWorker.Stop()
+	}
 	if s.db != nil {
 		s.db.Close()
 	}

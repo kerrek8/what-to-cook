@@ -20,6 +20,8 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBoughtShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) error
 	DeleteInventoryItem(ctx context.Context, arg DeleteInventoryItemParams) error
+	DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error
+	DeletePushSubscriptionByID(ctx context.Context, arg DeletePushSubscriptionByIDParams) error
 	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
 	DeleteShoppingItem(ctx context.Context, arg DeleteShoppingItemParams) error
 	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
@@ -32,8 +34,10 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
+	ListExpiringInventoryItems(ctx context.Context, arg ListExpiringInventoryItemsParams) ([]ListExpiringInventoryItemsRow, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)
 	ListInventoryItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListInventoryItemsByUserIDRow, error)
+	ListPushSubscriptionsByUserID(ctx context.Context, userID pgtype.UUID) ([]PushSubscription, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
@@ -45,6 +49,7 @@ type Querier interface {
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
+	UpsertPushSubscription(ctx context.Context, arg UpsertPushSubscriptionParams) (PushSubscription, error)
 	UpsertRecipe(ctx context.Context, arg UpsertRecipeParams) (Recipe, error)
 }
 
