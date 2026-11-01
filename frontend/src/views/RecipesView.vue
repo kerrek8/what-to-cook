@@ -11,11 +11,11 @@ const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
 const isRefreshing = ref(false)
-const isAtTop = ref(true)
+const refreshAllowedForGesture = ref(false)
 let scrollContainer: HTMLElement | null = null
 
-function updateScrollPosition() {
-  isAtTop.value = !scrollContainer || scrollContainer.scrollTop <= 0
+function onRefreshTouchStart() {
+  refreshAllowedForGesture.value = !scrollContainer || scrollContainer.scrollTop <= 0
 }
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
@@ -35,8 +35,6 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 
 onMounted(async () => {
   scrollContainer = document.querySelector('.content-wrapper')
-  scrollContainer?.addEventListener('scroll', updateScrollPosition, { passive: true })
-  updateScrollPosition()
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -45,8 +43,6 @@ onMounted(async () => {
     recipeStore.loadAllRecipes()
   ])
 })
-
-onUnmounted(() => scrollContainer?.removeEventListener('scroll', updateScrollPosition))
 
 async function onRefresh() {
   isRefreshing.value = true
@@ -157,7 +153,7 @@ async function onRefresh() {
     </div>
 
     <!-- Pull Refresh Content -->
-    <van-pull-refresh v-model="isRefreshing" :disabled="!isAtTop" pulling-text="Потяните вниз для обновления" loosing-text="Отпустите, чтобы обновить" loading-text="Обновление…" success-text="Обновлено" class="recipes-content" @refresh="onRefresh">
+    <van-pull-refresh v-model="isRefreshing" :disabled="!refreshAllowedForGesture" pulling-text="Потяните вниз для обновления" loosing-text="Отпустите, чтобы обновить" loading-text="Обновление…" success-text="Обновлено" class="recipes-content" @touchstart.capture="onRefreshTouchStart" @refresh="onRefresh">
       <!-- Skeletons while loading -->
       <div
         v-if="recipeStore.isMatching || recipeStore.isLoading"
