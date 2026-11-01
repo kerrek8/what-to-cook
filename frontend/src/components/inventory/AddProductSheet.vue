@@ -300,6 +300,9 @@ watch(() => props.editItem, (item) => {
       <van-popup v-model:show="showCalendar" round position="bottom">
         <van-date-picker
           title="Срок годности"
+          confirm-button-text="Готово"
+          cancel-button-text="Отмена"
+          :columns-type="['year', 'month', 'day']"
           :min-date="new Date()"
           @confirm="onDateConfirm"
           @cancel="showCalendar = false"

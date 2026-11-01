@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { showToast } from 'vant'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
@@ -11,6 +11,12 @@ const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
 const isRefreshing = ref(false)
+const isAtTop = ref(true)
+let scrollContainer: HTMLElement | null = null
+
+function updateScrollPosition() {
+  isAtTop.value = !scrollContainer || scrollContainer.scrollTop <= 0
+}
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
   { label: 'Любое время', value: 0 },
@@ -28,6 +34,9 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 ]
 
 onMounted(async () => {
+  scrollContainer = document.querySelector('.content-wrapper')
+  scrollContainer?.addEventListener('scroll', updateScrollPosition, { passive: true })
+  updateScrollPosition()
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -36,6 +45,8 @@ onMounted(async () => {
     recipeStore.loadAllRecipes()
   ])
 })
+
+onUnmounted(() => scrollContainer?.removeEventListener('scroll', updateScrollPosition))
 
 async function onRefresh() {
   isRefreshing.value = true
@@ -146,7 +157,7 @@ async function onRefresh() {
     </div>
 
     <!-- Pull Refresh Content -->
-    <van-pull-refresh v-model="isRefreshing" class="recipes-content" @refresh="onRefresh">
+    <van-pull-refresh v-model="isRefreshing" :disabled="!isAtTop" pulling-text="Потяните вниз для обновления" loosing-text="Отпустите, чтобы обновить" loading-text="Обновление…" success-text="Обновлено" class="recipes-content" @refresh="onRefresh">
       <!-- Skeletons while loading -->
       <div
         v-if="recipeStore.isMatching || recipeStore.isLoading"
@@ -224,6 +235,8 @@ async function onRefresh() {
           :model-value="recipeStore.page"
           :total-items="recipeStore.recipeTotal"
           :items-per-page="recipeStore.pageSize"
+          prev-text="Назад"
+          next-text="Далее"
           mode="simple"
           @change="recipeStore.setPage"
         />

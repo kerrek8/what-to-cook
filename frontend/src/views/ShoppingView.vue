@@ -169,7 +169,7 @@ async function onTransferToInventory() {
       <!-- Empty State -->
       <div v-else class="empty-state">
         <van-empty
-          image="cart-o"
+          image="default"
           description="Список покупок пуст. Добавляйте недостающие продукты из рецептов или вручную!"
         >
           <van-button
