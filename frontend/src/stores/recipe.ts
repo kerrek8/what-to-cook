@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
 import { getFreshnessInfo } from '@/utils/freshness'
+import { translateSearchQuery } from '@/i18n/translation'
 import {
   cacheFavoriteRecipe,
   cacheFavoriteRecipes,
@@ -41,6 +42,7 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   const activeTab = ref<'match' | 'all' | 'favorites'>('match')
   const searchQuery = ref('')
+  const translatedSearchQuery = ref('')
   const timeFilter = ref<CookingTimeFilter>(0)
   const difficultyFilter = ref<string>('all')
   const saveExpiringOnly = ref(false)
@@ -85,7 +87,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
       const text = `${recipe.title} ${recipe.description ?? ''} ${recipe.localized_title ?? ''} ${recipe.localized_description ?? ''}`.toLowerCase()
-      if (!text.includes(q)) return false
+      const translatedQuery = translatedSearchQuery.value.trim().toLowerCase()
+      if (!text.includes(q) && (!translatedQuery || !text.includes(translatedQuery))) return false
     }
 
     if (difficultyFilter.value !== 'all' && recipe.difficulty !== difficultyFilter.value) {
@@ -117,6 +120,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   const totalPages = computed(() => Math.max(1, Math.ceil(filteredAllRecipes.value.length / pageSize)))
   watch([searchQuery, timeFilter, difficultyFilter, saveExpiringOnly], () => {
     page.value = 1
+    translatedSearchQuery.value = ''
   })
 
   const favoriteRecipes = computed(() => {
@@ -265,7 +269,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   async function searchExternalRecipes(query: string): Promise<number> {
-    const count = await syncRecipesApi(query.trim())
+    const translated = await translateSearchQuery(query)
+    translatedSearchQuery.value = translated
+    const count = await syncRecipesApi(translated.trim())
     if (count > 0) {
       page.value = 1
       await loadAllRecipes(true)
@@ -287,6 +293,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     isDetailLoading,
     activeTab,
     searchQuery,
+    translatedSearchQuery,
     timeFilter,
     difficultyFilter,
     saveExpiringOnly,

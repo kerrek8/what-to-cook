@@ -39,7 +39,7 @@ const missingPreview = computed(() => {
   if (!props.matchItem || props.matchItem.missing_ingredients.length === 0) return null
   return props.matchItem.missing_ingredients
     .slice(0, 2)
-    .map((m) => m.localized_name ?? m.name)
+    .map((m) => displayText(m.name))
     .join(', ')
 })
 
@@ -59,7 +59,7 @@ function onFavoriteClick(e: MouseEvent) {
       <img
         v-if="recipe.image_url"
         :src="recipe.image_url"
-        :alt="recipe.localized_title ?? recipe.title"
+        :alt="displayText(recipe.title)"
         class="card-img"
         loading="lazy"
       />
@@ -97,7 +97,7 @@ function onFavoriteClick(e: MouseEvent) {
     </div>
 
     <div class="card-body">
-      <h3 class="card-title">{{ recipe.localized_title ?? recipe.title }}</h3>
+      <h3 class="card-title">{{ displayText(recipe.title) }}</h3>
 
       <div class="card-meta">
         <span class="meta-item">

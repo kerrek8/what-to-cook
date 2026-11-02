@@ -4,7 +4,7 @@ import { showToast } from 'vant'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddShoppingItemPayload } from '@/stores/shopping'
-import { displayIngredientName, displayText } from '@/i18n/translation'
+import { displayIngredientName, displayText, translateTexts } from '@/i18n/translation'
 
 const props = defineProps<{
   show: boolean
@@ -55,6 +55,7 @@ async function loadCatalog() {
   try {
     const list = await getIngredientsApi()
     catalog.value = list
+    void translateTexts(list.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     catalog.value = []
   } finally {

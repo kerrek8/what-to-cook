@@ -65,17 +65,6 @@ services:
       - ./backend/uploads:/app/uploads
     restart: unless-stopped
 
-  libretranslate:
-    profiles: [translation]
-    image: libretranslate/libretranslate:latest
-    container_name: whatcook-libretranslate
-    command: ["--load-only", "en,ru", "--disable-web-ui", "--req-limit", "30", "--translation-cache", "all"]
-    ports:
-      - "127.0.0.1:${LIBRETRANSLATE_PORT:-5000}:5000"
-    volumes:
-      - libretranslate_data:/home/libretranslate/.local
-    restart: unless-stopped
-
   # ----------------------------------------------------------------------------
   # 4. Vue 3 Frontend (PWA)
   # ----------------------------------------------------------------------------
@@ -94,4 +83,3 @@ services:
 
 volumes:
   postgres_data:
-  libretranslate_data:

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useAuthStore } from '@/stores/auth'
@@ -9,7 +9,11 @@ import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import {
   displayIngredientName,
-  displayText
+  displayText,
+  checkTranslationService,
+  translateSearchQuery,
+  translateTexts,
+  translationServiceStatus
 } from '@/i18n/translation'
 
 const router = useRouter()
@@ -22,6 +26,25 @@ const showPantrySheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
+const translatedSearch = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(searchQuery, query => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(async () => {
+    translatedSearch.value = await translateSearchQuery(query)
+  }, 250)
+})
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
+
+const translationStatusText = computed(() => ({
+  checking: 'Проверяется…',
+  connected: 'Подключён',
+  unavailable: 'Нет соединения'
+})[translationServiceStatus.value])
 
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
@@ -34,7 +57,8 @@ const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?
 const filteredIngredients = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return ingredients.value
-  return ingredients.value.filter((item) => [item.name, item.nameEn ?? '', displayIngredientName(item.name, item.nameEn), item.category, displayText(item.category)].some(value => value.toLowerCase().includes(q)))
+  const terms = [q, translatedSearch.value.toLowerCase()]
+  return ingredients.value.filter((item) => [item.name, item.nameEn ?? '', displayIngredientName(item.name, item.nameEn), item.category, displayText(item.category)].some(value => terms.some(term => term && value.toLowerCase().includes(term))))
 })
 
 async function loadIngredients() {
@@ -42,6 +66,7 @@ async function loadIngredients() {
   isLoadingIngredients.value = true
   try {
     ingredients.value = await getIngredientsApi()
+    void translateTexts(ingredients.value.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     // Fallback if offline
     ingredients.value = [
@@ -140,6 +165,7 @@ async function handleLogout() {
 
 onMounted(() => {
   loadIngredients()
+  void checkTranslationService()
   notificationStore.checkSubscription()
 })
 </script>
@@ -216,7 +242,8 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="О приложении" value="WhatCook v0.1.10" />
+      <van-cell title="Перевод рецептов и продуктов" :value="translationStatusText" />
+      <van-cell title="О приложении" value="WhatCook v0.1.11" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

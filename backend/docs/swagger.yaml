@@ -306,6 +306,36 @@ definitions:
       transferred_count:
         type: integer
     type: object
+  dto.TranslateRequest:
+    properties:
+      source:
+        enum:
+        - en
+        - ru
+        type: string
+      target:
+        enum:
+        - en
+        - ru
+        type: string
+      texts:
+        items:
+          type: string
+        maxItems: 10
+        minItems: 1
+        type: array
+    required:
+    - source
+    - target
+    - texts
+    type: object
+  dto.TranslateResponse:
+    properties:
+      translations:
+        items:
+          type: string
+        type: array
+    type: object
   dto.UpdateAllergensRequest:
     properties:
       excluded_ingredient_ids:
@@ -337,6 +367,13 @@ definitions:
       unit:
         type: string
     type: object
+  dto.UpdatePantryRequest:
+    properties:
+      pantry_ingredient_ids:
+        items:
+          type: integer
+        type: array
+    type: object
   dto.UpdateShoppingItemRequest:
     properties:
       amount:
@@ -364,6 +401,10 @@ definitions:
         type: string
       name:
         type: string
+      pantry_ingredient_ids:
+        items:
+          type: integer
+        type: array
     type: object
 info:
   contact: {}
@@ -1255,6 +1296,39 @@ paths:
       summary: Transfer bought shopping list items to inventory
       tags:
       - shopping-list
+  /api/v1/translations:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Text and language pair
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TranslateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TranslateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "502":
+          description: Bad Gateway
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Translate a batch of text between English and Russian
+      tags:
+      - translations
   /api/v1/users/me:
     get:
       produces:
@@ -1320,6 +1394,72 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user allergens / excluded ingredients
+      tags:
+      - users
+  /api/v1/users/me/pantry:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user pantry essentials
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Pantry ingredients list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePantryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user pantry essentials
       tags:
       - users
   /health:

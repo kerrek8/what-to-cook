@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
+import { translateTexts } from '@/i18n/translation'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
@@ -12,6 +13,18 @@ const isSearchingExternal = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 let externalSearchSequence = 0
 const requestedExternalQueries = new Set<string>()
+const visibleRecipeTexts = computed(() => {
+  const recipes = recipeStore.activeTab === 'match'
+    ? recipeStore.filteredMatchedRecipes.map(item => item.recipe)
+    : recipeStore.activeTab === 'favorites'
+      ? recipeStore.favoriteRecipes
+      : recipeStore.visibleAllRecipes
+  return recipes.flatMap(recipe => [recipe.title, ...(recipe.description ? [recipe.description] : [])])
+})
+
+watch(visibleRecipeTexts, texts => {
+  if (texts.length > 0) void translateTexts(texts)
+}, { immediate: true })
 watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
   if (searchTimer) clearTimeout(searchTimer)
   const term = query.trim()

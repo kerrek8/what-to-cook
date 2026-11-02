@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
-import { displayText, displayUnit } from '@/i18n/translation'
+import { displayText, displayUnit, translateTexts } from '@/i18n/translation'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +20,16 @@ const completedSteps = ref<Record<number, boolean>>({})
 const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
+
+watch(() => recipeStore.currentRecipe, recipe => {
+  if (!recipe) return
+  void translateTexts([
+    recipe.title,
+    recipe.description ?? '',
+    ...recipe.instructions,
+    ...(recipe.ingredients ?? []).flatMap(ingredient => [ingredient.name, ingredient.display_text ?? ''])
+  ])
+}, { immediate: true })
 
 onMounted(async () => {
   if (inventoryStore.items.length === 0) {
@@ -69,7 +79,7 @@ const difficultyLabel = computed(() => {
 })
 
 function formatIngredientAmount(ing: RecipeIngredientResponse): string {
-  if (ing.localized_display_text || ing.display_text) return ing.localized_display_text || ing.display_text || ''
+  if (ing.localized_display_text || ing.display_text) return displayText(ing.localized_display_text || ing.display_text)
   if (ing.amount != null) {
     return `${ing.amount} ${displayUnit(ing.unit)}`.trim()
   }
@@ -173,7 +183,7 @@ function onFavoriteToggle() {
       </div>
 
       <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ recipe.localized_title ?? recipe.title }}</h1>
+        <h1 class="recipe-title">{{ displayText(recipe.title) }}</h1>
 
         <!-- Saving banner -->
         <div v-if="savingProducts.length > 0" class="saving-banner">
@@ -202,7 +212,7 @@ function onFavoriteToggle() {
         </div>
 
         <p v-if="recipe.description" class="recipe-desc">
-          {{ recipe.localized_description ?? recipe.description }}
+          {{ displayText(recipe.description) }}
         </p>
 
         <!-- Ingredients Section -->
@@ -228,7 +238,7 @@ function onFavoriteToggle() {
               >
                 <div class="ing-left">
                   <van-icon name="passed" color="#2e7d32" size="16" />
-                  <span class="ing-name">{{ ing.localized_name ?? ing.name }}</span>
+                  <span class="ing-name">{{ displayText(ing.name) }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -254,7 +264,7 @@ function onFavoriteToggle() {
                   >
                     {{ getCriticalityBadge(ing.criticality).label }}
                   </span>
-                  <span class="ing-name">{{ ing.localized_name ?? ing.name }}</span>
+                  <span class="ing-name">{{ displayText(ing.name) }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -308,7 +318,7 @@ function onFavoriteToggle() {
 
           <div class="steps-list">
             <div
-              v-for="(step, idx) in recipe.localized_instructions ?? recipe.instructions"
+              v-for="(step, idx) in recipe.instructions"
               :key="idx"
               class="step-item"
               :class="{ completed: completedSteps[idx] }"
@@ -319,7 +329,7 @@ function onFavoriteToggle() {
                 <span v-else>{{ idx + 1 }}</span>
               </div>
               <div class="step-body">
-                <p class="step-text">{{ step }}</p>
+                <p class="step-text">{{ displayText(step) }}</p>
                 <div
                   v-if="extractTimerMinutes(recipe.instructions[idx] ?? step)"
                   class="step-timer-row"

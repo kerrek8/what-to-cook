@@ -44,6 +44,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	inventoryService := service.NewInventoryService(queries)
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
+	translationHandler := handler.NewTranslationHandler(service.NewTranslationService())
 
 	if pushSender == nil {
 		pushSender = service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
@@ -65,6 +66,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 
 	v1 := router.Group("/api/v1")
 	{
+		v1.POST("/translations", translationHandler.Translate)
+
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)
@@ -138,7 +141,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 		Addr:         ":" + cfg.Server.Port,
 		Handler:      router,
 		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 50 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
