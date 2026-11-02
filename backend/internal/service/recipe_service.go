@@ -294,16 +294,7 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 
 	synced := 0
 	for _, ext := range externalRecipes {
-		localized := ext
-		ext.Title = translateRecipeText(ext.Title)
-		ext.Category = translateRecipeText(ext.Category)
-		localized.Title = ext.Title
-		localized.Category = ext.Category
-		localized.Instructions = make([]string, len(ext.Instructions))
-		for i, instruction := range ext.Instructions {
-			localized.Instructions[i] = translateRecipeText(instruction)
-		}
-		instructionsJSON, _ := json.Marshal(localized.Instructions)
+		instructionsJSON, _ := json.Marshal(ext.Instructions)
 
 		var extID pgtype.Text
 		if ext.ExternalID != "" {
@@ -334,7 +325,7 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 		}
 
 		for _, ing := range ext.Ingredients {
-			trimmedName := translateRecipeText(strings.TrimSpace(ing.Name))
+			trimmedName := strings.TrimSpace(ing.Name)
 			if trimmedName == "" {
 				continue
 			}
@@ -362,7 +353,7 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 
 			var displayTxt pgtype.Text
 			if ing.Measure != "" {
-				displayTxt = pgtype.Text{String: translateMeasures(ing.Measure) + " " + trimmedName, Valid: true}
+				displayTxt = pgtype.Text{String: ing.Measure + " " + trimmedName, Valid: true}
 			}
 
 			_, _ = s.store.AddRecipeIngredient(ctx, store.AddRecipeIngredientParams{
@@ -379,11 +370,6 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 	return dto.RecipeSyncResponse{SyncedCount: synced}, nil
 }
 
-func translateMeasures(text string) string {
-	replacer := strings.NewReplacer("tbsp", "ст. л.", "tablespoon", "столовая ложка", "tsp", "ч. л.", "teaspoon", "чайная ложка", "cup", "стакан", "cups", "стакана", "oz", "унц.", "lb", "фунт", "pinch", "щепотка")
-	return replacer.Replace(text)
-}
-
 func recipeDifficulty(steps, ingredients int) string {
 	if steps >= 9 || ingredients >= 12 {
 		return "hard"
@@ -392,20 +378,6 @@ func recipeDifficulty(steps, ingredients int) string {
 		return "easy"
 	}
 	return "medium"
-}
-
-func translateRecipeText(text string) string {
-	translations := map[string]string{
-		"chicken": "курица", "beef": "говядина", "pork": "свинина", "salmon": "лосось", "egg": "яйцо", "eggs": "яйца",
-		"potato": "картофель", "potatoes": "картофель", "tomato": "помидор", "tomatoes": "помидоры", "onion": "лук", "garlic": "чеснок",
-		"milk": "молоко", "cheese": "сыр", "butter": "сливочное масло", "flour": "мука", "sugar": "сахар", "salt": "соль",
-		"pepper": "перец", "olive oil": "оливковое масло", "lemon": "лимон", "rice": "рис", "pasta": "паста", "carrot": "морковь",
-		"dessert": "десерт", "side": "гарнир", "starter": "закуска", "vegetarian": "вегетарианское",
-	}
-	if translated, ok := translations[strings.ToLower(strings.TrimSpace(text))]; ok {
-		return translated
-	}
-	return text
 }
 
 func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredientResponse) dto.RecipeResponse {

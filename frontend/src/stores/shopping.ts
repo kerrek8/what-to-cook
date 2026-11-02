@@ -18,7 +18,7 @@ import {
 } from '@/api/shopping'
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
-import { displayText, translateTexts } from '@/i18n/translation'
+import { displayText } from '@/i18n/translation'
 
 export interface AddShoppingItemPayload {
   ingredientId?: number | null
@@ -113,7 +113,6 @@ export const useShoppingStore = defineStore('shopping', () => {
     try {
       const local = await getLocalShoppingList()
       items.value = local
-      void translateTexts(local.flatMap(item => [item.name, item.category]))
 
       if (authStore.isAuthenticated) {
         syncWithServer(force)
@@ -130,7 +129,6 @@ export const useShoppingStore = defineStore('shopping', () => {
       const serverItems = await getShoppingListApi()
       const merged = await syncServerShoppingList(serverItems)
       items.value = merged
-      void translateTexts(merged.flatMap(item => [item.name, item.category]))
     } catch {
       // Offline fallback
     } finally {

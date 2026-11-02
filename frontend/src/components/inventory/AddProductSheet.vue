@@ -5,7 +5,7 @@ import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddItemData } from '@/stores/inventory'
 import type { LocalInventoryItem } from '@/db/types'
-import { displayIngredientName, displayText, translateTexts } from '@/i18n/translation'
+import { displayIngredientName, displayText } from '@/i18n/translation'
 
 const props = defineProps<{
   show: boolean
@@ -53,7 +53,6 @@ async function loadCatalog() {
   isSearching.value = true
   try {
     catalog.value = await getIngredientsApi()
-    void translateTexts(catalog.value.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     // Local fallback
     catalog.value = [

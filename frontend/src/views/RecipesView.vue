@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
-import { checkTranslationService, translationServiceStatus } from '@/i18n/translation'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
@@ -13,13 +12,6 @@ const isSearchingExternal = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 let externalSearchSequence = 0
 const requestedExternalQueries = new Set<string>()
-const translationHint = computed(() => {
-  if (translationServiceStatus.value === 'not-configured') return 'Переводчик не задан. Настройте LibreTranslate в профиле.'
-  if (translationServiceStatus.value === 'unavailable') return 'LibreTranslate недоступен. Проверьте адрес и подключение.'
-  if (translationServiceStatus.value === 'unsupported') return 'В LibreTranslate не включён перевод между английским и русским.'
-  return ''
-})
-
 watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
   if (searchTimer) clearTimeout(searchTimer)
   const term = query.trim()
@@ -61,7 +53,6 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 ]
 
 onMounted(async () => {
-  void checkTranslationService()
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -89,11 +80,6 @@ onMounted(async () => {
       <van-loading size="16px" color="#2e7d32" />
       <span>Ищем в TheMealDB…</span>
     </div>
-    <div v-if="translationHint" class="translation-hint" role="status">
-      <span>{{ translationHint }}</span>
-      <router-link to="/profile">Проверить</router-link>
-    </div>
-
     <!-- Navigation Tabs -->
     <div class="tabs-nav">
       <button
@@ -354,28 +340,6 @@ onMounted(async () => {
   min-height: 28px;
   color: #68706b;
   font-size: 12px;
-}
-
-.translation-hint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 8px 16px 0;
-  padding: 9px 12px;
-  border-radius: 10px;
-  background-color: #fff7e8;
-  color: #704b16;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.translation-hint a {
-  flex: 0 0 auto;
-  color: #2e7d32;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 .tabs-nav {

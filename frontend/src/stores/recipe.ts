@@ -17,7 +17,6 @@ import {
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
 import { getFreshnessInfo } from '@/utils/freshness'
-import { translateSearchQuery, translateTexts } from '@/i18n/translation'
 import {
   cacheFavoriteRecipe,
   cacheFavoriteRecipes,
@@ -42,7 +41,6 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   const activeTab = ref<'match' | 'all' | 'favorites'>('match')
   const searchQuery = ref('')
-  const translatedSearchQuery = ref('')
   const timeFilter = ref<CookingTimeFilter>(0)
   const difficultyFilter = ref<string>('all')
   const saveExpiringOnly = ref(false)
@@ -86,10 +84,8 @@ export const useRecipeStore = defineStore('recipe', () => {
   ): boolean {
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
-      const alias = recipeSearchAliases[q] ?? q
       const text = `${recipe.title} ${recipe.description ?? ''} ${recipe.localized_title ?? ''} ${recipe.localized_description ?? ''}`.toLowerCase()
-      const translatedQuery = translatedSearchQuery.value.trim().toLowerCase()
-      if (!text.includes(q) && !text.includes(alias) && (!translatedQuery || !text.includes(translatedQuery))) return false
+      if (!text.includes(q)) return false
     }
 
     if (difficultyFilter.value !== 'all' && recipe.difficulty !== difficultyFilter.value) {
@@ -110,17 +106,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     return true
   }
 
-  const recipeSearchAliases: Record<string, string> = {
-    десерт: 'dessert',
-    десерты: 'dessert',
-    курица: 'chicken',
-    говядина: 'beef',
-    салат: 'salad',
-    паста: 'pasta',
-    суп: 'soup',
-    рыба: 'fish'
-  }
-
   const filteredMatchedRecipes = computed(() => {
     return matchedRecipes.value.filter((item) => filterRecipe(item.recipe, item.used_ingredients))
   })
@@ -132,45 +117,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   const totalPages = computed(() => Math.max(1, Math.ceil(filteredAllRecipes.value.length / pageSize)))
   watch([searchQuery, timeFilter, difficultyFilter, saveExpiringOnly], () => {
     page.value = 1
-    translatedSearchQuery.value = ''
   })
-
-  async function localizeRecipes(recipes: RecipeResponse[], includeInstructions = false): Promise<RecipeResponse[]> {
-    const texts = recipes.flatMap(recipe => [
-      recipe.title,
-      ...(recipe.description ? [recipe.description] : []),
-      ...(includeInstructions ? recipe.instructions : []),
-      ...(recipe.ingredients ?? []).flatMap(ingredient => [ingredient.name, ...(ingredient.display_text ? [ingredient.display_text] : [])])
-    ])
-    const localized = await translateTexts(texts)
-    const translations = new Map(texts.map((text, index) => [text, localized[index] ?? text]))
-    return recipes.map(recipe => ({
-      ...recipe,
-      localized_title: translations.get(recipe.title) ?? recipe.title,
-      localized_description: recipe.description ? translations.get(recipe.description) ?? recipe.description : recipe.description,
-      localized_instructions: includeInstructions
-        ? recipe.instructions.map(step => translations.get(step) ?? step)
-        : undefined,
-      ingredients: recipe.ingredients?.map(ingredient => ({
-        ...ingredient,
-        localized_name: translations.get(ingredient.name) ?? ingredient.name,
-        localized_display_text: ingredient.display_text ? translations.get(ingredient.display_text) ?? ingredient.display_text : ingredient.display_text
-      }))
-    }))
-  }
-
-  async function localizeMatches(items: RecipeMatchItem[]): Promise<RecipeMatchItem[]> {
-    const localizedRecipes = await localizeRecipes(items.map(item => item.recipe))
-    const ingredients = items.flatMap(item => [...item.used_ingredients, ...item.missing_ingredients])
-    const names = await translateTexts(ingredients.map(ingredient => ingredient.name))
-    const localizedNames = new Map(ingredients.map((ingredient, index) => [ingredient.name, names[index] ?? ingredient.name]))
-    return items.map((item, index) => ({
-      ...item,
-      recipe: localizedRecipes[index] ?? item.recipe,
-      used_ingredients: item.used_ingredients.map(ingredient => ({ ...ingredient, localized_name: localizedNames.get(ingredient.name) ?? ingredient.name })),
-      missing_ingredients: item.missing_ingredients.map(ingredient => ({ ...ingredient, localized_name: localizedNames.get(ingredient.name) ?? ingredient.name }))
-    }))
-  }
 
   const favoriteRecipes = computed(() => {
     return favoriteCatalog.value.filter((r) => r.is_favorite && filterRecipe(r))
@@ -187,7 +134,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     isMatching.value = true
     try {
       const resp = await matchRecipesApi()
-      matchedRecipes.value = await localizeMatches(resp.items)
+      matchedRecipes.value = resp.items
     } catch {
       matchedRecipes.value = []
     } finally {
@@ -202,7 +149,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       const first = await getRecipesApi({ limit: 100, offset: 0 })
       const remaining = await Promise.all(Array.from({ length: Math.ceil(first.total / 100) - 1 }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
-      allRecipes.value = await localizeRecipes([...first.items, ...remaining.flatMap(response => response.items)])
+      allRecipes.value = [...first.items, ...remaining.flatMap(response => response.items)]
     } catch {
       allRecipes.value = []
     } finally {
@@ -226,10 +173,10 @@ export const useRecipeStore = defineStore('recipe', () => {
         const details = await Promise.all(chunk.map(recipe => getRecipeByIdApi(recipe.id).catch(() => recipe)))
         detailed.push(...details.map(recipe => ({ ...recipe, is_favorite: true })))
       }
-      favoriteCatalog.value = await localizeRecipes(detailed)
+      favoriteCatalog.value = detailed
       await cacheFavoriteRecipes(detailed)
     } catch {
-      favoriteCatalog.value = await localizeRecipes(await getCachedFavoriteRecipes())
+      favoriteCatalog.value = await getCachedFavoriteRecipes()
     } finally { isLoading.value = false }
   }
 
@@ -243,16 +190,16 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       if (!navigator.onLine) {
         const cached = await getCachedFavoriteRecipe(id)
-        currentRecipe.value = cached ? (await localizeRecipes([cached], true))[0] ?? null : null
+        currentRecipe.value = cached
         return currentRecipe.value
       }
       const recipe = await getRecipeByIdApi(id)
-      currentRecipe.value = (await localizeRecipes([recipe], true))[0] ?? recipe
+      currentRecipe.value = recipe
       if (currentRecipe.value.is_favorite) await cacheFavoriteRecipe(recipe)
       return currentRecipe.value
     } catch {
       const cached = await getCachedFavoriteRecipe(id)
-      currentRecipe.value = cached ? (await localizeRecipes([cached], true))[0] ?? null : null
+      currentRecipe.value = cached
       return currentRecipe.value
     } finally {
       isDetailLoading.value = false
@@ -318,12 +265,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   async function searchExternalRecipes(query: string): Promise<number> {
-    const translated = await translateSearchQuery(query)
-    translatedSearchQuery.value = translated
-    const normalized = translated === query.trim()
-      ? recipeSearchAliases[query.trim().toLowerCase()] ?? query.trim()
-      : translated
-    const count = await syncRecipesApi(normalized)
+    const count = await syncRecipesApi(query.trim())
     if (count > 0) {
       page.value = 1
       await loadAllRecipes(true)
@@ -345,7 +287,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     isDetailLoading,
     activeTab,
     searchQuery,
-    translatedSearchQuery,
     timeFilter,
     difficultyFilter,
     saveExpiringOnly,

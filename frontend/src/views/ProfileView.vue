@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useAuthStore } from '@/stores/auth'
@@ -8,12 +8,8 @@ import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import {
-  checkTranslationService,
   displayIngredientName,
-  displayText,
-  translateSearchQuery,
-  translateTexts,
-  translationServiceStatus
+  displayText
 } from '@/i18n/translation'
 
 const router = useRouter()
@@ -26,7 +22,6 @@ const showPantrySheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
-const translatedSearch = ref('')
 
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
@@ -39,20 +34,7 @@ const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?
 const filteredIngredients = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return ingredients.value
-  const terms = [q, translatedSearch.value.toLowerCase()]
-  return ingredients.value.filter((item) => [item.name, item.nameEn ?? '', displayIngredientName(item.name, item.nameEn), item.category, displayText(item.category)].some(value => terms.some(term => term && value.toLowerCase().includes(term))))
-})
-
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(searchQuery, (query) => {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(async () => {
-    translatedSearch.value = await translateSearchQuery(query)
-  }, 250)
-})
-
-onUnmounted(() => {
-  if (searchTimer) clearTimeout(searchTimer)
+  return ingredients.value.filter((item) => [item.name, item.nameEn ?? '', displayIngredientName(item.name, item.nameEn), item.category, displayText(item.category)].some(value => value.toLowerCase().includes(q)))
 })
 
 async function loadIngredients() {
@@ -60,7 +42,6 @@ async function loadIngredients() {
   isLoadingIngredients.value = true
   try {
     ingredients.value = await getIngredientsApi()
-    void translateTexts(ingredients.value.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     // Fallback if offline
     ingredients.value = [
@@ -159,29 +140,8 @@ async function handleLogout() {
 
 onMounted(() => {
   loadIngredients()
-  void checkTranslationService()
   notificationStore.checkSubscription()
 })
-
-const translationStatusText = computed(() => ({
-  checking: 'Проверка…',
-  connected: 'Подключён',
-  'not-configured': 'Адрес не задан',
-  unavailable: 'Нет соединения',
-  unsupported: 'Нет пары en ↔ ru'
-})[translationServiceStatus.value])
-
-const translationStatusHint = computed(() => ({
-  checking: 'Проверяется доступность сервиса перевода',
-  connected: 'LibreTranslate доступен, русский и английский включены',
-  'not-configured': 'Задайте VITE_LIBRETRANSLATE_URL и пересоберите фронтенд',
-  unavailable: 'Проверьте URL сервиса и доступность адреса /languages',
-  unsupported: 'Включите языковые модели английского и русского'
-})[translationServiceStatus.value])
-
-async function refreshTranslationStatus() {
-  await checkTranslationService()
-}
 </script>
 
 <template>
@@ -256,14 +216,7 @@ async function refreshTranslationStatus() {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell
-        title="Перевод рецептов"
-        :value="translationStatusText"
-        :label="translationStatusHint"
-        is-link
-        @click="refreshTranslationStatus"
-      />
-      <van-cell title="О приложении" value="WhatCook v0.1.8" />
+      <van-cell title="О приложении" value="WhatCook v0.1.9" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

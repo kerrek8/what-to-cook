@@ -66,6 +66,7 @@ services:
     restart: unless-stopped
 
   libretranslate:
+    profiles: [translation]
     image: libretranslate/libretranslate:latest
     container_name: whatcook-libretranslate
     command: ["--load-only", "en,ru", "--disable-web-ui", "--req-limit", "30", "--translation-cache", "all"]
@@ -84,7 +85,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:?Set public HTTPS VITE_API_URL in .env}
-        VITE_LIBRETRANSLATE_URL: ${VITE_LIBRETRANSLATE_URL:?Set public HTTPS VITE_LIBRETRANSLATE_URL in .env}
     container_name: whatcook-frontend
     depends_on:
       - backend
