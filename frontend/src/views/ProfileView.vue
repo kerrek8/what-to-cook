@@ -216,7 +216,7 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="О приложении" value="WhatCook v0.1.9" />
+      <van-cell title="О приложении" value="WhatCook v0.1.10" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

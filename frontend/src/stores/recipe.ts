@@ -190,7 +190,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       if (!navigator.onLine) {
         const cached = await getCachedFavoriteRecipe(id)
-        currentRecipe.value = cached
+        currentRecipe.value = cached ?? null
         return currentRecipe.value
       }
       const recipe = await getRecipeByIdApi(id)
@@ -199,7 +199,7 @@ export const useRecipeStore = defineStore('recipe', () => {
       return currentRecipe.value
     } catch {
       const cached = await getCachedFavoriteRecipe(id)
-      currentRecipe.value = cached
+      currentRecipe.value = cached ?? null
       return currentRecipe.value
     } finally {
       isDetailLoading.value = false
