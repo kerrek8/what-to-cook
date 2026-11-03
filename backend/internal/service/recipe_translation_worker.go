@@ -40,6 +40,7 @@ func (w *RecipeTranslationWorker) Start() {
 		initCancel()
 
 		wasIdle := false
+		batchCount := 0
 		for {
 			select {
 			case <-w.stop:
@@ -58,6 +59,7 @@ func (w *RecipeTranslationWorker) Start() {
 						log.Println("[RecipeTranslationWorker] All recipes translated. Worker idle and waiting for new recipes...")
 						wasIdle = true
 					}
+					batchCount = 0
 					select {
 					case <-w.stop:
 						return
@@ -67,21 +69,48 @@ func (w *RecipeTranslationWorker) Start() {
 				}
 
 				wasIdle = false
-				log.Printf("[RecipeTranslationWorker] Translation error: %v. Pausing queue for 15s before next attempt...", err)
+				batchCount = 0
+
+				if isDaily, waitDuration := ParseDailyLimitError(err); isDaily {
+					log.Printf("[RecipeTranslationWorker] ⚠️ Groq daily quota reached (TPD/RPD). Pausing worker for %v (resuming at %s)...",
+						waitDuration.Round(time.Second),
+						time.Now().Add(waitDuration).Format("15:04:05"),
+					)
+					select {
+					case <-w.stop:
+						return
+					case <-time.After(waitDuration):
+					}
+					continue
+				}
+
+				log.Printf("[RecipeTranslationWorker] Translation error: %v. Pausing queue for 80s before next attempt...", err)
 				select {
 				case <-w.stop:
 					return
-				case <-time.After(15 * time.Second):
+				case <-time.After(80 * time.Second):
 				}
 				continue
 			}
 
 			wasIdle = false
-			// Small 300ms pause between recipes to be gentle on CPU and network
-			select {
-			case <-w.stop:
-				return
-			case <-time.After(300 * time.Millisecond):
+			batchCount++
+
+			if batchCount >= 3 {
+				log.Println("[RecipeTranslationWorker] 3 recipes processed. Pausing for 80 seconds to respect Groq rate limits (8K TPM)...")
+				batchCount = 0
+				select {
+				case <-w.stop:
+					return
+				case <-time.After(80 * time.Second):
+				}
+			} else {
+				// 2s pause between recipes inside the batch
+				select {
+				case <-w.stop:
+					return
+				case <-time.After(2 * time.Second):
+				}
 			}
 		}
 	}()

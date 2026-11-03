@@ -232,7 +232,7 @@ onMounted(() => {
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
       <van-cell title="Перевод рецептов и продуктов" value="Переводится на сервере" />
-      <van-cell title="О приложении" value="WhatCook v0.1.12" />
+      <van-cell title="О приложении" value="WhatCook v0.1.13" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

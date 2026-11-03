@@ -321,8 +321,8 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 			Title:              ext.Title,
 			Description:        desc,
 			Instructions:       instructionsJSON,
-			CookingTimeMinutes: int32(max(5, len(ext.Instructions)*5+len(ext.Ingredients)*2)),
-			Difficulty:         recipeDifficulty(len(ext.Instructions), len(ext.Ingredients)),
+			CookingTimeMinutes: 0,
+			Difficulty:         "medium",
 			ImageUrl:           imgURL,
 		})
 		if err != nil {
@@ -375,15 +375,6 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 	return dto.RecipeSyncResponse{SyncedCount: synced}, nil
 }
 
-func recipeDifficulty(steps, ingredients int) string {
-	if steps >= 9 || ingredients >= 12 {
-		return "hard"
-	}
-	if steps <= 4 && ingredients <= 6 {
-		return "easy"
-	}
-	return "medium"
-}
 
 func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredientResponse) dto.RecipeResponse {
 	var extID *string

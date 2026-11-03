@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -62,7 +63,7 @@ type translationService struct {
 
 func NewTranslationService(groqAPIKey, groqModel string) TranslationService {
 	if groqModel == "" {
-		groqModel = "llama-3.3-70b-versatile"
+		groqModel = "openai/gpt-oss-20b"
 	}
 	return &translationService{
 		cache:      make(map[string]string),
@@ -308,6 +309,7 @@ type groqChatRequest struct {
 	Model          string              `json:"model"`
 	Messages       []groqMessage       `json:"messages"`
 	Temperature    float32             `json:"temperature"`
+	MaxTokens      int                 `json:"max_tokens,omitempty"`
 	ResponseFormat *groqResponseFormat `json:"response_format,omitempty"`
 }
 
@@ -340,6 +342,7 @@ func (s *translationService) translateGroqTexts(texts []string, source, target s
 			}()},
 		},
 		Temperature:    0.1,
+		MaxTokens:      2500,
 		ResponseFormat: &groqResponseFormat{Type: "json_object"},
 	}
 
@@ -427,6 +430,7 @@ Output MUST be a valid JSON object matching this structure with no markdown code
 			{Role: "user", Content: string(inputJSON)},
 		},
 		Temperature:    0.2,
+		MaxTokens:      2500,
 		ResponseFormat: &groqResponseFormat{Type: "json_object"},
 	}
 
@@ -483,7 +487,7 @@ Output MUST be a valid JSON object matching this structure with no markdown code
 		translated.LocalizedInstructions = req.Instructions
 	}
 	if translated.CookingTimeMinutes <= 0 {
-		translated.CookingTimeMinutes = int32(max(15, len(req.Instructions)*5+len(req.Ingredients)*2))
+		translated.CookingTimeMinutes = 0
 	}
 	switch translated.Difficulty {
 	case "easy", "medium", "hard":
@@ -619,4 +623,38 @@ func hasRussianChars(s string) bool {
 		}
 	}
 	return false
+}
+
+
+var dailyLimitRegex = regexp.MustCompile(`(?i)Please try again in\s+([0-9hms\.]+)`)
+
+// ParseDailyLimitError checks if an error indicates that Groq's daily rate limit (TPD or RPD)
+// has been reached. If so, it returns true and the duration to wait before retrying.
+func ParseDailyLimitError(err error) (bool, time.Duration) {
+	if err == nil {
+		return false, 0
+	}
+	msg := err.Error()
+	msgLower := strings.ToLower(msg)
+
+	isDaily := strings.Contains(msgLower, "tokens per day") ||
+		strings.Contains(msgLower, "(tpd)") ||
+		strings.Contains(msgLower, "requests per day") ||
+		strings.Contains(msgLower, "(rpd)")
+
+	if !isDaily {
+		return false, 0
+	}
+
+	matches := dailyLimitRegex.FindStringSubmatch(msg)
+	if len(matches) > 1 {
+		durStr := strings.TrimRight(matches[1], ".")
+		if d, parseErr := time.ParseDuration(durStr); parseErr == nil && d > 0 {
+			// Add 10s safety buffer against server clock skew
+			return true, d + 10*time.Second
+		}
+	}
+
+	// Default fallback wait time if exact duration cannot be parsed: 15 minutes
+	return true, 15 * time.Minute
 }

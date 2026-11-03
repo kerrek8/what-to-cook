@@ -76,7 +76,7 @@ func Load() (*Config, error) {
 		},
 		Groq: GroqConfig{
 			APIKey: getEnv("GROQ_API_KEY", ""),
-			Model:  getEnv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+			Model:  getEnv("GROQ_MODEL", "openai/gpt-oss-20b"),
 		},
 	}
 
