@@ -13,6 +13,8 @@ import (
 type Querier interface {
 	AddRecipeFavorite(ctx context.Context, arg AddRecipeFavoriteParams) error
 	AddRecipeIngredient(ctx context.Context, arg AddRecipeIngredientParams) (RecipeIngredient, error)
+	ClaimPendingRecipeTranslation(ctx context.Context) (ClaimPendingRecipeTranslationRow, error)
+	CountPendingRecipeTranslations(ctx context.Context) (int64, error)
 	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
 	CreateInventoryItem(ctx context.Context, arg CreateInventoryItemParams) (InventoryItem, error)
@@ -29,6 +31,7 @@ type Querier interface {
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
+	GetRecipeTranslationIngredients(ctx context.Context, recipeID int32) ([]GetRecipeTranslationIngredientsRow, error)
 	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
 	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
@@ -42,10 +45,14 @@ type Querier interface {
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
+	RetryRecipeTranslation(ctx context.Context, id int32) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
 	TransferBoughtItemsToInventory(ctx context.Context, userID pgtype.UUID) ([]InventoryItem, error)
+	UpdateIngredientRussianName(ctx context.Context, arg UpdateIngredientRussianNameParams) error
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
+	UpdateRecipeIngredientTranslation(ctx context.Context, arg UpdateRecipeIngredientTranslationParams) error
+	UpdateRecipeTranslation(ctx context.Context, arg UpdateRecipeTranslationParams) error
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error
