@@ -36,6 +36,7 @@ export interface RecipeResponse {
 export interface RecipeListResponse {
   items: RecipeResponse[]
   total: number
+  pending_translations?: number
 }
 
 export interface RecipeQuery {

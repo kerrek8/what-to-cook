@@ -32,11 +32,13 @@ export const useRecipeStore = defineStore('recipe', () => {
   const matchedRecipes = ref<RecipeMatchItem[]>([])
   const allRecipes = ref<RecipeResponse[]>([])
   const favoriteCatalog = ref<RecipeResponse[]>([])
+  const pendingTranslations = ref(0)
   const page = ref(1)
   const pageSize = 20
   const currentRecipe = ref<RecipeResponse | null>(null)
 
   const isLoading = ref(false)
+  const isFavoritesLoading = ref(false)
   const isMatching = ref(false)
   const isDetailLoading = ref(false)
 
@@ -139,7 +141,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       const resp = await matchRecipesApi()
       matchedRecipes.value = resp.items
-    } catch {
+    } catch (err) {
+      console.error("TOGGLE_ERR:", err);
       matchedRecipes.value = []
     } finally {
       isMatching.value = false
@@ -147,6 +150,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   async function loadAllRecipes(force = false) {
+    if (isLoading.value) return
     if (allRecipes.value.length > 0 && !force) return
 
     isLoading.value = true
@@ -154,7 +158,9 @@ export const useRecipeStore = defineStore('recipe', () => {
       const first = await getRecipesApi({ limit: 100, offset: 0 })
       const remaining = await Promise.all(Array.from({ length: Math.ceil(first.total / 100) - 1 }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
       allRecipes.value = [...first.items, ...remaining.flatMap(response => response.items)]
-    } catch {
+      pendingTranslations.value = first.pending_translations ?? 0
+    } catch (err) {
+      console.log("ERR_IN_CATCH:", err);
       allRecipes.value = []
     } finally {
       isLoading.value = false
@@ -164,10 +170,11 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function loadFavorites(force = false) {
     if (!authStore.isAuthenticated) { favoriteCatalog.value = []; return }
     if (favoriteCatalog.value.length && !force && !navigator.onLine) return
-    isLoading.value = true
+    isFavoritesLoading.value = true
     try {
       if (!navigator.onLine) throw new Error('offline')
       const first = await getRecipesApi({ limit: 100, offset: 0 })
+      pendingTranslations.value = first.pending_translations ?? 0
       const pages = Math.ceil(first.total / 100)
       const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
       const favorites = [...first.items, ...rest.flatMap(result => result.items)].filter(recipe => recipe.is_favorite)
@@ -181,7 +188,7 @@ export const useRecipeStore = defineStore('recipe', () => {
       await cacheFavoriteRecipes(detailed)
     } catch {
       favoriteCatalog.value = await getCachedFavoriteRecipes()
-    } finally { isLoading.value = false }
+    } finally { isFavoritesLoading.value = false }
   }
 
   async function setPage(value: number) {
@@ -230,17 +237,22 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       if (newState) {
         await addFavoriteApi(recipeId)
-        const fullRecipe = currentRecipe.value?.id === recipeId
-          ? currentRecipe.value
-          : await getRecipeByIdApi(recipeId).catch(() => target)
+        let fullRecipe = currentRecipe.value?.id === recipeId ? currentRecipe.value : null
+        if (!fullRecipe) {
+          try {
+            fullRecipe = (await getRecipeByIdApi(recipeId)) ?? target
+          } catch {
+            fullRecipe = target
+          }
+        }
         if (fullRecipe) {
           fullRecipe.is_favorite = true
           updateFavoriteState(recipeId, true)
-          await cacheFavoriteRecipe(fullRecipe)
+          await cacheFavoriteRecipe(fullRecipe).catch(() => {})
         }
       } else {
         await removeFavoriteApi(recipeId)
-        await removeCachedFavoriteRecipe(recipeId)
+        await removeCachedFavoriteRecipe(recipeId).catch(() => {})
       }
     } catch {
       updateFavoriteState(recipeId, previousState)
@@ -284,11 +296,13 @@ export const useRecipeStore = defineStore('recipe', () => {
     matchedRecipes,
     allRecipes,
     favoriteCatalog,
+    pendingTranslations,
     page,
     pageSize,
     totalPages,
     currentRecipe,
     isLoading,
+    isFavoritesLoading,
     isMatching,
     isDetailLoading,
     activeTab,

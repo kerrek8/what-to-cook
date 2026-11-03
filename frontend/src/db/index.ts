@@ -32,14 +32,16 @@ export async function getCachedFavoriteRecipes(): Promise<RecipeResponse[]> {
 
 export async function cacheFavoriteRecipes(recipes: RecipeResponse[]): Promise<void> {
   const now = new Date().toISOString()
-  await db.transaction('rw', db.favoriteRecipes, async () => {
+  const plain = JSON.parse(JSON.stringify(recipes))
+  await db.transaction("rw", db.favoriteRecipes, async () => {
     await db.favoriteRecipes.clear()
-    await db.favoriteRecipes.bulkPut(recipes.map(recipe => ({ id: recipe.id, recipe, updatedAt: now })))
+    await db.favoriteRecipes.bulkPut(plain.map((recipe: RecipeResponse) => ({ id: recipe.id, recipe, updatedAt: now })))
   })
 }
 
 export async function cacheFavoriteRecipe(recipe: RecipeResponse): Promise<void> {
-  await db.favoriteRecipes.put({ id: recipe.id, recipe, updatedAt: new Date().toISOString() })
+  const plain = JSON.parse(JSON.stringify(recipe))
+  await db.favoriteRecipes.put({ id: recipe.id, recipe: plain, updatedAt: new Date().toISOString() })
 }
 
 export async function removeCachedFavoriteRecipe(id: number): Promise<void> {
