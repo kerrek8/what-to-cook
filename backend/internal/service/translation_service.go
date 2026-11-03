@@ -14,9 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bregydoc/gtranslate"
 	"github.com/kerrek8/what-to-cook/backend/internal/dto"
-	"golang.org/x/text/language"
 )
 
 type GroqRecipeIngredient struct {
@@ -505,22 +503,7 @@ func (s *translationService) translateSafely(text, source, target string) (strin
 		return translated, nil
 	}
 
-	var fallbackTrans string
-	var fallbackErr error
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fallbackTrans = ""
-				fallbackErr = fmt.Errorf("gtranslate panic: %v", r)
-			}
-		}()
-		fallbackTrans, fallbackErr = gtranslate.Translate(text, language.Make(source), language.Make(target))
-	}()
-	if fallbackErr == nil && fallbackTrans != "" {
-		return fallbackTrans, nil
-	}
-
-	return "", fmt.Errorf("all translation providers failed: %w", fallbackErr)
+	return "", errors.New("all fallback translation providers failed")
 }
 
 func (s *translationService) translateGoogleDirect(text, source, target string) (string, error) {
