@@ -28,9 +28,22 @@ func NewRecipeTranslationWorker(queries store.Querier, translator TranslationSer
 
 func (w *RecipeTranslationWorker) Start() {
 	go func() {
+		log.Printf("[RecipeTranslationWorker] Starting translation worker (Groq enabled: %v)...", w.translator.IsGroqEnabled())
+
+		// Reset any previously postponed retries and stalled translations so pending queue runs immediately
+		initCtx, initCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		_ = w.queries.ResetStaleTranslationRetries(initCtx)
+		_ = w.queries.ResetStalledTranslatingRecipes(initCtx)
+		if pending, err := w.queries.CountPendingRecipeTranslations(initCtx); err == nil {
+			log.Printf("[RecipeTranslationWorker] Queue status: %d recipe(s) waiting for translation", pending)
+		}
+		initCancel()
+
+		wasIdle := false
 		for {
 			select {
 			case <-w.stop:
+				log.Println("[RecipeTranslationWorker] Stopping translation worker...")
 				return
 			default:
 			}
@@ -38,19 +51,37 @@ func (w *RecipeTranslationWorker) Start() {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			err := w.translateNext(ctx)
 			cancel()
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				log.Printf("recipe translation worker: %v", err)
-			}
+
 			if err != nil {
-				delay := 5 * time.Second
-				if !errors.Is(err, pgx.ErrNoRows) {
-					delay = 30 * time.Second
+				if errors.Is(err, pgx.ErrNoRows) {
+					if !wasIdle {
+						log.Println("[RecipeTranslationWorker] All recipes translated. Worker idle and waiting for new recipes...")
+						wasIdle = true
+					}
+					select {
+					case <-w.stop:
+						return
+					case <-time.After(10 * time.Second):
+					}
+					continue
 				}
+
+				wasIdle = false
+				log.Printf("[RecipeTranslationWorker] Translation error: %v. Pausing queue for 15s before next attempt...", err)
 				select {
 				case <-w.stop:
 					return
-				case <-time.After(delay):
+				case <-time.After(15 * time.Second):
 				}
+				continue
+			}
+
+			wasIdle = false
+			// Small 300ms pause between recipes to be gentle on CPU and network
+			select {
+			case <-w.stop:
+				return
+			case <-time.After(300 * time.Millisecond):
 			}
 		}
 	}()
@@ -65,18 +96,138 @@ func (w *RecipeTranslationWorker) translateNext(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	startTime := time.Now()
+	log.Printf("[RecipeTranslationWorker] Claimed recipe #%d: %q", recipe.ID, recipe.Title)
+
 	ingredients, err := w.queries.GetRecipeTranslationIngredients(ctx, recipe.ID)
 	if err != nil {
 		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		log.Printf("[RecipeTranslationWorker] Recipe #%d: failed to fetch ingredients: %v", recipe.ID, err)
 		return err
 	}
 
 	instructions := make([]string, 0)
 	if err := json.Unmarshal(recipe.Instructions, &instructions); err != nil {
 		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		log.Printf("[RecipeTranslationWorker] Recipe #%d: invalid instructions JSON: %v", recipe.ID, err)
 		return err
 	}
 
+	if w.translator.IsGroqEnabled() {
+		err := w.translateViaGroq(ctx, recipe, instructions, ingredients, startTime)
+		if err == nil {
+			return nil
+		}
+		log.Printf("[RecipeTranslationWorker] Recipe #%d: Groq translation failed (%v), falling back to standard providers", recipe.ID, err)
+	}
+
+	return w.translateViaFallback(ctx, recipe, instructions, ingredients, startTime)
+}
+
+func (w *RecipeTranslationWorker) translateViaGroq(
+	ctx context.Context,
+	recipe store.ClaimPendingRecipeTranslationRow,
+	instructions []string,
+	ingredients []store.GetRecipeTranslationIngredientsRow,
+	startTime time.Time,
+) error {
+	groqIngredients := make([]GroqRecipeIngredient, len(ingredients))
+	for i, ing := range ingredients {
+		name := ing.Name
+		if !hasRussian(name) && ing.NameEn.Valid && ing.NameEn.String != "" {
+			name = ing.NameEn.String
+		}
+		displayTxt := ""
+		if ing.DisplayText.Valid {
+			displayTxt = ing.DisplayText.String
+		}
+		groqIngredients[i] = GroqRecipeIngredient{
+			ID:          ing.IngredientID,
+			Name:        name,
+			DisplayText: displayTxt,
+		}
+	}
+
+	var descStr string
+	if recipe.Description.Valid {
+		descStr = recipe.Description.String
+	}
+
+	translated, err := w.translator.TranslateRecipeGroq(ctx, GroqRecipeTranslateRequest{
+		Title:        recipe.Title,
+		Description:  descStr,
+		Instructions: instructions,
+		Ingredients:  groqIngredients,
+	})
+	if err != nil {
+		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		return err
+	}
+
+	instructionsJSON, err := json.Marshal(translated.LocalizedInstructions)
+	if err != nil {
+		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		return err
+	}
+
+	var localizedDesc pgtype.Text
+	if translated.LocalizedDescription != "" {
+		localizedDesc = pgtype.Text{String: translated.LocalizedDescription, Valid: true}
+	}
+
+	// Update translated ingredients
+	for _, ing := range translated.Ingredients {
+		if ing.RussianName != "" {
+			_ = w.queries.UpdateIngredientRussianName(ctx, store.UpdateIngredientRussianNameParams{
+				ID: ing.ID, Name: strings.ToLower(strings.TrimSpace(ing.RussianName)),
+			})
+		}
+		if ing.LocalizedDisplayText != "" {
+			_ = w.queries.UpdateRecipeIngredientTranslation(ctx, store.UpdateRecipeIngredientTranslationParams{
+				RecipeID:             recipe.ID,
+				IngredientID:         ing.ID,
+				LocalizedDisplayText: pgtype.Text{String: ing.LocalizedDisplayText, Valid: true},
+			})
+		}
+	}
+
+	err = w.queries.UpdateRecipeTranslationWithDetails(ctx, store.UpdateRecipeTranslationWithDetailsParams{
+		ID:                    recipe.ID,
+		LocalizedTitle:        pgtype.Text{String: translated.LocalizedTitle, Valid: true},
+		LocalizedDescription:  localizedDesc,
+		LocalizedInstructions: instructionsJSON,
+		CookingTimeMinutes:    translated.CookingTimeMinutes,
+		Difficulty:            translated.Difficulty,
+	})
+	if err != nil {
+		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		return err
+	}
+
+	pendingCount, _ := w.queries.CountPendingRecipeTranslations(ctx)
+	log.Printf("[RecipeTranslationWorker] Successfully translated recipe #%d in %v via Groq: %q -> %q (time: %dm, diff: %s, steps: %d, ingredients: %d). Remaining: %d",
+		recipe.ID,
+		time.Since(startTime).Round(time.Millisecond),
+		recipe.Title,
+		translated.LocalizedTitle,
+		translated.CookingTimeMinutes,
+		translated.Difficulty,
+		len(translated.LocalizedInstructions),
+		len(translated.Ingredients),
+		pendingCount,
+	)
+
+	return nil
+}
+
+func (w *RecipeTranslationWorker) translateViaFallback(
+	ctx context.Context,
+	recipe store.ClaimPendingRecipeTranslationRow,
+	instructions []string,
+	ingredients []store.GetRecipeTranslationIngredientsRow,
+	startTime time.Time,
+) error {
 	texts := []string{recipe.Title}
 	descriptionIndex := -1
 	if recipe.Description.Valid && strings.TrimSpace(recipe.Description.String) != "" {
@@ -130,28 +281,37 @@ func (w *RecipeTranslationWorker) translateNext(ctx context.Context) error {
 
 	for i, ingredient := range ingredients {
 		if ingredientNames[i] >= 0 {
-			if err := w.queries.UpdateIngredientRussianName(ctx, store.UpdateIngredientRussianNameParams{
+			_ = w.queries.UpdateIngredientRussianName(ctx, store.UpdateIngredientRussianNameParams{
 				ID: ingredient.IngredientID, Name: translated[ingredientNames[i]],
-			}); err != nil {
-				_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
-				return err
-			}
+			})
 		}
 		if displayTexts[i] >= 0 {
-			if err := w.queries.UpdateRecipeIngredientTranslation(ctx, store.UpdateRecipeIngredientTranslationParams{
+			_ = w.queries.UpdateRecipeIngredientTranslation(ctx, store.UpdateRecipeIngredientTranslationParams{
 				RecipeID: recipe.ID, IngredientID: ingredient.IngredientID,
 				LocalizedDisplayText: pgtype.Text{String: translated[displayTexts[i]], Valid: true},
-			}); err != nil {
-				_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
-				return err
-			}
+			})
 		}
 	}
 
-	return w.queries.UpdateRecipeTranslation(ctx, store.UpdateRecipeTranslationParams{
+	err = w.queries.UpdateRecipeTranslation(ctx, store.UpdateRecipeTranslationParams{
 		ID: recipe.ID, LocalizedTitle: pgtype.Text{String: title, Valid: true},
 		LocalizedDescription: description, LocalizedInstructions: instructionsJSON,
 	})
+	if err != nil {
+		_ = w.queries.RetryRecipeTranslation(ctx, recipe.ID)
+		return err
+	}
+
+	pendingCount, _ := w.queries.CountPendingRecipeTranslations(ctx)
+	log.Printf("[RecipeTranslationWorker] Successfully translated recipe #%d in %v via fallback: %q -> %q. Remaining: %d",
+		recipe.ID,
+		time.Since(startTime).Round(time.Millisecond),
+		recipe.Title,
+		title,
+		pendingCount,
+	)
+
+	return nil
 }
 
 func (w *RecipeTranslationWorker) translateAll(texts []string) ([]string, error) {

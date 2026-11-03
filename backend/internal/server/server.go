@@ -45,7 +45,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	inventoryService := service.NewInventoryService(queries)
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
-	translationService := service.NewTranslationService()
+	translationService := service.NewTranslationService(cfg.Groq.APIKey, cfg.Groq.Model)
 	translationHandler := handler.NewTranslationHandler(translationService)
 
 	if pushSender == nil {

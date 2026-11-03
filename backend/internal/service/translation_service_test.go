@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kerrek8/what-to-cook/backend/internal/dto"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestTranslationService_SourceEqualsTarget(t *testing.T) {
-	svc := service.NewTranslationService()
+	svc := service.NewTranslationService("", "")
 	res, err := svc.Translate(dto.TranslateRequest{
 		Texts:  []string{"Hello", "World"},
 		Source: "en",
@@ -21,7 +22,7 @@ func TestTranslationService_SourceEqualsTarget(t *testing.T) {
 }
 
 func TestTranslationService_DictionaryTranslations(t *testing.T) {
-	svc := service.NewTranslationService()
+	svc := service.NewTranslationService("", "")
 
 	t.Run("EN to RU culinary terms", func(t *testing.T) {
 		res, err := svc.Translate(dto.TranslateRequest{
@@ -45,7 +46,7 @@ func TestTranslationService_DictionaryTranslations(t *testing.T) {
 }
 
 func TestTranslationService_AlreadyInTargetLanguage(t *testing.T) {
-	svc := service.NewTranslationService()
+	svc := service.NewTranslationService("", "")
 
 	res, err := svc.Translate(dto.TranslateRequest{
 		Texts:  []string{"Соль поваренная", "100г", "1/2 ч. л."},
@@ -57,7 +58,7 @@ func TestTranslationService_AlreadyInTargetLanguage(t *testing.T) {
 }
 
 func TestTranslationService_EmptyStrings(t *testing.T) {
-	svc := service.NewTranslationService()
+	svc := service.NewTranslationService("", "")
 
 	res, err := svc.Translate(dto.TranslateRequest{
 		Texts:  []string{"", "   ", "salt"},
@@ -69,7 +70,7 @@ func TestTranslationService_EmptyStrings(t *testing.T) {
 }
 
 func TestTranslationService_Caching(t *testing.T) {
-	svc := service.NewTranslationService()
+	svc := service.NewTranslationService("", "")
 
 	req := dto.TranslateRequest{
 		Texts:  []string{"water", "garlic"},
@@ -84,4 +85,19 @@ func TestTranslationService_Caching(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, first.Translations, second.Translations)
+}
+
+func TestTranslationService_GroqDisabled(t *testing.T) {
+	svc := service.NewTranslationService("", "")
+	assert.False(t, svc.IsGroqEnabled())
+
+	_, err := svc.TranslateRecipeGroq(context.Background(), service.GroqRecipeTranslateRequest{
+		Title: "Test",
+	})
+	assert.Error(t, err)
+}
+
+func TestTranslationService_GroqEnabled(t *testing.T) {
+	svc := service.NewTranslationService("test_key", "llama-3.3-70b-versatile")
+	assert.True(t, svc.IsGroqEnabled())
 }
