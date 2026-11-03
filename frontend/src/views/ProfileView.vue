@@ -10,10 +10,7 @@ import type { Ingredient } from '@/types/api'
 import {
   displayIngredientName,
   displayText,
-  checkTranslationService,
   translateSearchQuery,
-  translateTexts,
-  translationServiceStatus
 } from '@/i18n/translation'
 
 const router = useRouter()
@@ -40,12 +37,6 @@ onUnmounted(() => {
   if (searchTimer) clearTimeout(searchTimer)
 })
 
-const translationStatusText = computed(() => ({
-  checking: 'Проверяется…',
-  connected: 'Подключён',
-  unavailable: 'Нет соединения'
-})[translationServiceStatus.value])
-
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
   if (!allergenId) return 'Не выбрано'
@@ -66,7 +57,6 @@ async function loadIngredients() {
   isLoadingIngredients.value = true
   try {
     ingredients.value = await getIngredientsApi()
-    void translateTexts(ingredients.value.flatMap(item => [item.nameEn || item.name, item.category]))
   } catch {
     // Fallback if offline
     ingredients.value = [
@@ -165,7 +155,6 @@ async function handleLogout() {
 
 onMounted(() => {
   loadIngredients()
-  void checkTranslationService()
   notificationStore.checkSubscription()
 })
 </script>
@@ -242,8 +231,8 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="Перевод рецептов и продуктов" :value="translationStatusText" />
-      <van-cell title="О приложении" value="WhatCook v0.1.11" />
+      <van-cell title="Перевод рецептов и продуктов" value="Переводится на сервере" />
+      <van-cell title="О приложении" value="WhatCook v0.1.12" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->
