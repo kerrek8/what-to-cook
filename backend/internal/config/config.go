@@ -36,6 +36,12 @@ type VAPIDConfig struct {
 	Subject    string
 }
 
+// GroqConfig contains Groq LLM translation settings.
+type GroqConfig struct {
+	APIKey string
+	Model  string
+}
+
 // Config aggregates all application configuration sections.
 type Config struct {
 	Server   ServerConfig
@@ -43,6 +49,7 @@ type Config struct {
 	Auth     AuthConfig
 	CORS     CORSConfig
 	VAPID    VAPIDConfig
+	Groq     GroqConfig
 }
 
 // Load reads configuration from environment variables and performs strict validation.
@@ -66,6 +73,10 @@ func Load() (*Config, error) {
 			PublicKey:  getEnv("VAPID_PUBLIC_KEY", ""),
 			PrivateKey: getEnv("VAPID_PRIVATE_KEY", ""),
 			Subject:    getEnv("VAPID_SUBJECT", "mailto:admin@whatcook.app"),
+		},
+		Groq: GroqConfig{
+			APIKey: getEnv("GROQ_API_KEY", ""),
+			Model:  getEnv("GROQ_MODEL", "llama-3.3-70b-versatile"),
 		},
 	}
 
