@@ -4,8 +4,6 @@ import { translateApi } from '@/api/translation'
 const cacheKey = 'whatcook:translations:en-ru-v2'
 const translations = new Map<string, string>()
 export const translationRevision = ref(0)
-export type TranslationServiceStatus = 'checking' | 'connected' | 'unavailable'
-export const translationServiceStatus = ref<TranslationServiceStatus>('checking')
 
 readCache()
 
@@ -34,7 +32,6 @@ export async function translateTexts(texts: string[], source: 'en' | 'ru' = 'en'
   if (unique.length === 0) return texts
   const missing = unique.filter(text => !isAlreadyTarget(text, target) && !translations.has(cacheId(text, source, target)))
 
-  translationServiceStatus.value = 'checking'
   for (let offset = 0; offset < missing.length; offset += 10) {
     const batch = missing.slice(offset, offset + 10)
     try {
@@ -45,14 +42,11 @@ export async function translateTexts(texts: string[], source: 'en' | 'ru' = 'en'
       })
       saveCache()
       translationRevision.value++
-      translationServiceStatus.value = 'connected'
     } catch {
-      translationServiceStatus.value = 'unavailable'
       break
     }
   }
 
-  if (missing.length === 0) translationServiceStatus.value = 'connected'
   return texts.map(text => translations.get(cacheId(text, source, target)) ?? text)
 }
 
@@ -60,11 +54,6 @@ export async function translateSearchQuery(query: string): Promise<string> {
   if (!/[А-Яа-яЁё]/.test(query)) return query.trim()
   const result = await translateTexts([query], 'ru', 'en')
   return result[0] ?? query
-}
-
-export async function checkTranslationService(): Promise<TranslationServiceStatus> {
-  await translateTexts([`WhatCook ${Date.now()}`], 'en', 'ru')
-  return translationServiceStatus.value
 }
 
 function cacheId(text: string, source: string, target: string): string {

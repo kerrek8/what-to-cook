@@ -59,7 +59,7 @@ function onFavoriteClick(e: MouseEvent) {
       <img
         v-if="recipe.image_url"
         :src="recipe.image_url"
-        :alt="displayText(recipe.title)"
+        :alt="recipe.localized_title || displayText(recipe.title)"
         class="card-img"
         loading="lazy"
       />
@@ -97,7 +97,7 @@ function onFavoriteClick(e: MouseEvent) {
     </div>
 
     <div class="card-body">
-      <h3 class="card-title">{{ displayText(recipe.title) }}</h3>
+      <h3 class="card-title">{{ recipe.localized_title || displayText(recipe.title) }}</h3>
 
       <div class="card-meta">
         <span class="meta-item">

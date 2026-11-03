@@ -4,27 +4,16 @@ import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
-import { translateTexts } from '@/i18n/translation'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 const isSearchingExternal = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
+let translationPollTimer: ReturnType<typeof setInterval> | undefined
+let translationPollAttempts = 0
 let externalSearchSequence = 0
 const requestedExternalQueries = new Set<string>()
-const visibleRecipeTexts = computed(() => {
-  const recipes = recipeStore.activeTab === 'match'
-    ? recipeStore.filteredMatchedRecipes.map(item => item.recipe)
-    : recipeStore.activeTab === 'favorites'
-      ? recipeStore.favoriteRecipes
-      : recipeStore.visibleAllRecipes
-  return recipes.flatMap(recipe => [recipe.title, ...(recipe.description ? [recipe.description] : [])])
-})
-
-watch(visibleRecipeTexts, texts => {
-  if (texts.length > 0) void translateTexts(texts)
-}, { immediate: true })
 watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
   if (searchTimer) clearTimeout(searchTimer)
   const term = query.trim()
@@ -47,6 +36,29 @@ watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab
 
 onUnmounted(() => {
   if (searchTimer) clearTimeout(searchTimer)
+  if (translationPollTimer) clearInterval(translationPollTimer)
+})
+
+function startTranslationPolling() {
+  if (translationPollTimer) return
+  translationPollAttempts = 0
+  translationPollTimer = setInterval(async () => {
+    if (document.visibilityState !== 'visible' || recipeStore.isLoading) return
+    translationPollAttempts++
+    await recipeStore.loadAllRecipes(true)
+    if ((recipeStore.pendingTranslations === 0 && recipeStore.allRecipes.length > 0) || (recipeStore.pendingTranslations === 0 && translationPollAttempts >= 60)) {
+      clearInterval(translationPollTimer)
+      translationPollTimer = undefined
+    }
+  }, 10000)
+}
+
+watch(() => recipeStore.pendingTranslations, pending => {
+  if (pending > 0) startTranslationPolling()
+  else if (recipeStore.allRecipes.length > 0 && translationPollTimer) {
+    clearInterval(translationPollTimer)
+    translationPollTimer = undefined
+  }
 })
 
 
@@ -74,6 +86,7 @@ onMounted(async () => {
     recipeStore.loadAllRecipes(),
     recipeStore.loadFavorites()
   ])
+  if (recipeStore.pendingTranslations > 0 || recipeStore.allRecipes.length === 0) startTranslationPolling()
 })
 
 </script>
@@ -175,7 +188,7 @@ onMounted(async () => {
     <!-- Pull Refresh Content -->
       <!-- Skeletons while loading -->
       <div
-        v-if="recipeStore.isMatching || recipeStore.isLoading"
+        v-if="(recipeStore.activeTab === 'match' && recipeStore.isMatching && recipeStore.allRecipes.length === 0) || (recipeStore.activeTab === 'all' && recipeStore.isLoading) || (recipeStore.activeTab === 'favorites' && recipeStore.isFavoritesLoading)"
         class="loading-skeletons"
       >
         <van-skeleton title avatar :row="3" class="skeleton-card" />
@@ -213,7 +226,7 @@ onMounted(async () => {
         <div v-else class="empty-state">
           <van-empty
             image="search"
-            description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
+            :description="recipeStore.pendingTranslations > 0 ? `Переводим рецепты: ${recipeStore.pendingTranslations} в очереди` : 'В каталоге пока нет рецептов. Попробуйте обновить список позже.'"
           >
             <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
               <van-button round type="primary" color="#2e7d32" class="action-btn">
@@ -260,7 +273,7 @@ onMounted(async () => {
         />
 
         <div v-if="recipeStore.filteredAllRecipes.length === 0" class="empty-state">
-          <van-empty image="search" description="Рецепты не найдены">
+          <van-empty image="search" :description="recipeStore.pendingTranslations > 0 ? `Переводим рецепты: ${recipeStore.pendingTranslations} в очереди` : 'Рецепты не найдены'">
             <van-button
               round
               plain

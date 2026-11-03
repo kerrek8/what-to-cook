@@ -8,7 +8,7 @@ export interface TranslateRequest {
 
 export async function translateApi(request: TranslateRequest): Promise<string[]> {
   const { data } = await apiClient.post<{ translations: string[] }>('/api/v1/translations', request, {
-    timeout: 50000
+    timeout: 12000
   })
   return data.translations
 }

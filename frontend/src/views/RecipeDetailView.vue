@@ -6,7 +6,7 @@ import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
-import { displayText, displayUnit, translateTexts } from '@/i18n/translation'
+import { displayText, displayUnit } from '@/i18n/translation'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,16 +20,6 @@ const completedSteps = ref<Record<number, boolean>>({})
 const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
-
-watch(() => recipeStore.currentRecipe, recipe => {
-  if (!recipe) return
-  void translateTexts([
-    recipe.title,
-    recipe.description ?? '',
-    ...recipe.instructions,
-    ...(recipe.ingredients ?? []).flatMap(ingredient => [ingredient.name, ingredient.display_text ?? ''])
-  ])
-}, { immediate: true })
 
 onMounted(async () => {
   if (inventoryStore.items.length === 0) {
@@ -183,7 +173,7 @@ function onFavoriteToggle() {
       </div>
 
       <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ displayText(recipe.title) }}</h1>
+        <h1 class="recipe-title">{{ recipe.localized_title || displayText(recipe.title) }}</h1>
 
         <!-- Saving banner -->
         <div v-if="savingProducts.length > 0" class="saving-banner">
@@ -212,7 +202,7 @@ function onFavoriteToggle() {
         </div>
 
         <p v-if="recipe.description" class="recipe-desc">
-          {{ displayText(recipe.description) }}
+          {{ recipe.localized_description || displayText(recipe.description) }}
         </p>
 
         <!-- Ingredients Section -->
@@ -238,7 +228,7 @@ function onFavoriteToggle() {
               >
                 <div class="ing-left">
                   <van-icon name="passed" color="#2e7d32" size="16" />
-                  <span class="ing-name">{{ displayText(ing.name) }}</span>
+                  <span class="ing-name">{{ ing.localized_name || displayText(ing.name) }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -264,7 +254,7 @@ function onFavoriteToggle() {
                   >
                     {{ getCriticalityBadge(ing.criticality).label }}
                   </span>
-                  <span class="ing-name">{{ displayText(ing.name) }}</span>
+                  <span class="ing-name">{{ ing.localized_name || displayText(ing.name) }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -329,7 +319,7 @@ function onFavoriteToggle() {
                 <span v-else>{{ idx + 1 }}</span>
               </div>
               <div class="step-body">
-                <p class="step-text">{{ displayText(step) }}</p>
+                <p class="step-text">{{ recipe.localized_instructions?.[idx] || displayText(step) }}</p>
                 <div
                   v-if="extractTimerMinutes(recipe.instructions[idx] ?? step)"
                   class="step-timer-row"
