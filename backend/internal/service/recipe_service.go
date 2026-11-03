@@ -97,10 +97,15 @@ func (s *recipeService) List(ctx context.Context, userID *uuid.UUID, q dto.Recip
 	for i, r := range recipes {
 		responses[i] = mapStoreRecipeToDTO(r, favMap[r.ID], nil)
 	}
+	pendingTranslations, err := s.store.CountPendingRecipeTranslations(ctx)
+	if err != nil {
+		return dto.RecipeListResponse{}, err
+	}
 
 	return dto.RecipeListResponse{
-		Items: responses,
-		Total: int(total),
+		Items:               responses,
+		Total:               int(total),
+		PendingTranslations: int(pendingTranslations),
 	}, nil
 }
 
@@ -403,20 +408,35 @@ func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredient
 	if instructions == nil {
 		instructions = []string{}
 	}
+	var localizedInstructions []string
+	if len(r.LocalizedInstructions) > 0 {
+		_ = json.Unmarshal(r.LocalizedInstructions, &localizedInstructions)
+	}
+	var localizedTitle *string
+	if r.LocalizedTitle.Valid {
+		localizedTitle = &r.LocalizedTitle.String
+	}
+	var localizedDescription *string
+	if r.LocalizedDescription.Valid {
+		localizedDescription = &r.LocalizedDescription.String
+	}
 
 	return dto.RecipeResponse{
-		ID:                 r.ID,
-		ExternalID:         extID,
-		Title:              r.Title,
-		Description:        desc,
-		Instructions:       instructions,
-		CookingTimeMinutes: r.CookingTimeMinutes,
-		Difficulty:         r.Difficulty,
-		ImageURL:           imgURL,
-		IsFavorite:         isFav,
-		Ingredients:        ings,
-		CreatedAt:          r.CreatedAt.Time,
-		UpdatedAt:          r.UpdatedAt.Time,
+		ID:                    r.ID,
+		ExternalID:            extID,
+		Title:                 r.Title,
+		Description:           desc,
+		Instructions:          instructions,
+		LocalizedTitle:        localizedTitle,
+		LocalizedDescription:  localizedDescription,
+		LocalizedInstructions: localizedInstructions,
+		CookingTimeMinutes:    r.CookingTimeMinutes,
+		Difficulty:            r.Difficulty,
+		ImageURL:              imgURL,
+		IsFavorite:            isFav,
+		Ingredients:           ings,
+		CreatedAt:             r.CreatedAt.Time,
+		UpdatedAt:             r.UpdatedAt.Time,
 	}
 }
 
@@ -437,17 +457,23 @@ func mapRecipeIngredientToDTO(ing store.GetRecipeIngredientsRow) dto.RecipeIngre
 	if ing.DisplayText.Valid {
 		dispText = &ing.DisplayText.String
 	}
+	var localizedDispText *string
+	if ing.LocalizedDisplayText.Valid {
+		localizedDispText = &ing.LocalizedDisplayText.String
+	}
 
 	return dto.RecipeIngredientResponse{
-		IngredientID:      ing.IngredientID,
-		Name:              ing.IngredientName,
-		NameEn:            nameEn,
-		Category:          ing.IngredientCategory,
-		Amount:            numericToFloat(ing.Amount),
-		Unit:              unit,
-		DisplayText:       dispText,
-		Criticality:       ing.Criticality,
-		IsPantryEssential: ing.IsPantryEssential,
+		IngredientID:         ing.IngredientID,
+		Name:                 ing.IngredientName,
+		NameEn:               nameEn,
+		Category:             ing.IngredientCategory,
+		Amount:               numericToFloat(ing.Amount),
+		Unit:                 unit,
+		DisplayText:          dispText,
+		LocalizedName:        &ing.IngredientName,
+		LocalizedDisplayText: localizedDispText,
+		Criticality:          ing.Criticality,
+		IsPantryEssential:    ing.IsPantryEssential,
 	}
 }
 
@@ -468,16 +494,22 @@ func mapAllDetailsIngredientToDTO(ing store.GetAllRecipeIngredientsWithDetailsRo
 	if ing.DisplayText.Valid {
 		dispText = &ing.DisplayText.String
 	}
+	var localizedDispText *string
+	if ing.LocalizedDisplayText.Valid {
+		localizedDispText = &ing.LocalizedDisplayText.String
+	}
 
 	return dto.RecipeIngredientResponse{
-		IngredientID:      ing.IngredientID,
-		Name:              ing.IngredientName,
-		NameEn:            nameEn,
-		Category:          ing.IngredientCategory,
-		Amount:            numericToFloat(ing.Amount),
-		Unit:              unit,
-		DisplayText:       dispText,
-		Criticality:       ing.Criticality,
-		IsPantryEssential: ing.IsPantryEssential,
+		IngredientID:         ing.IngredientID,
+		Name:                 ing.IngredientName,
+		NameEn:               nameEn,
+		Category:             ing.IngredientCategory,
+		Amount:               numericToFloat(ing.Amount),
+		Unit:                 unit,
+		DisplayText:          dispText,
+		LocalizedName:        &ing.IngredientName,
+		LocalizedDisplayText: localizedDispText,
+		Criticality:          ing.Criticality,
+		IsPantryEssential:    ing.IsPantryEssential,
 	}
 }

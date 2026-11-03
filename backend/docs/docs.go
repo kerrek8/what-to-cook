@@ -1924,6 +1924,12 @@ const docTemplate = `{
                 "is_pantry_essential": {
                     "type": "boolean"
                 },
+                "localized_display_text": {
+                    "type": "string"
+                },
+                "localized_name": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1943,6 +1949,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.RecipeResponse"
                     }
+                },
+                "pending_translations": {
+                    "type": "integer"
                 },
                 "total": {
                     "type": "integer"
@@ -2033,6 +2042,18 @@ const docTemplate = `{
                 },
                 "is_favorite": {
                     "type": "boolean"
+                },
+                "localized_description": {
+                    "type": "string"
+                },
+                "localized_instructions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "localized_title": {
+                    "type": "string"
                 },
                 "title": {
                     "type": "string"

@@ -20,11 +20,12 @@ import (
 )
 
 type Server struct {
-	httpServer       *http.Server
-	db               *pgxpool.Pool
-	expirationWorker *service.ExpirationWorker
-	recipeService    service.RecipeService
-	router           *gin.Engine
+	httpServer        *http.Server
+	db                *pgxpool.Pool
+	expirationWorker  *service.ExpirationWorker
+	recipeService     service.RecipeService
+	translationWorker *service.RecipeTranslationWorker
+	router            *gin.Engine
 }
 
 func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider provider.RecipeProvider, pushSender service.PushSender) *Server {
@@ -44,7 +45,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	inventoryService := service.NewInventoryService(queries)
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
-	translationHandler := handler.NewTranslationHandler(service.NewTranslationService())
+	translationService := service.NewTranslationService()
+	translationHandler := handler.NewTranslationHandler(translationService)
 
 	if pushSender == nil {
 		pushSender = service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
@@ -149,7 +151,13 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 		httpServer:       httpServer,
 		expirationWorker: expirationWorker,
 		recipeService:    recipeService,
-		router:           router,
+		translationWorker: func() *service.RecipeTranslationWorker {
+			if queries == nil {
+				return nil
+			}
+			return service.NewRecipeTranslationWorker(queries, translationService)
+		}(),
+		router: router,
 	}
 }
 
@@ -172,6 +180,9 @@ func (s *Server) Start() error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Start()
 	}
+	if s.translationWorker != nil {
+		s.translationWorker.Start()
+	}
 	if s.recipeService != nil {
 		go s.syncInitialRecipesIfEmpty()
 	}
@@ -180,15 +191,15 @@ func (s *Server) Start() error {
 
 func (s *Server) syncInitialRecipesIfEmpty() {
 	time.Sleep(1 * time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	list, err := s.recipeService.List(ctx, nil, dto.RecipeQuery{Limit: 1})
-	if err != nil || list.Total > 0 {
+	if err != nil || list.Total+list.PendingTranslations >= 120 {
 		return
 	}
 
-	for _, query := range []string{"chicken", "pasta", "salad", "beef"} {
+	for _, query := range []string{"chicken", "beef", "pasta", "salad", "pork", "lamb", "fish", "seafood", "curry", "soup", "rice", "dessert", "breakfast", "vegetarian"} {
 		_, _ = s.recipeService.SyncFromProvider(ctx, query)
 	}
 }
@@ -196,6 +207,9 @@ func (s *Server) syncInitialRecipesIfEmpty() {
 func (s *Server) Shutdown(ctx context.Context) error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Stop()
+	}
+	if s.translationWorker != nil {
+		s.translationWorker.Stop()
 	}
 	if s.db != nil {
 		s.db.Close()

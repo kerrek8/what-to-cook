@@ -157,6 +157,10 @@ definitions:
         type: integer
       is_pantry_essential:
         type: boolean
+      localized_display_text:
+        type: string
+      localized_name:
+        type: string
       name:
         type: string
       name_en:
@@ -170,6 +174,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.RecipeResponse'
         type: array
+      pending_translations:
+        type: integer
       total:
         type: integer
     type: object
@@ -229,6 +235,14 @@ definitions:
         type: array
       is_favorite:
         type: boolean
+      localized_description:
+        type: string
+      localized_instructions:
+        items:
+          type: string
+        type: array
+      localized_title:
+        type: string
       title:
         type: string
       updated_at:

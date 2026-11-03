@@ -64,6 +64,10 @@ func (m *mockRecipeQuerier) CountRecipes(ctx context.Context, arg store.CountRec
 	return 0, nil
 }
 
+func (m *mockRecipeQuerier) CountPendingRecipeTranslations(ctx context.Context) (int64, error) {
+	return 0, nil
+}
+
 func (m *mockRecipeQuerier) GetRecipeByID(ctx context.Context, id int32) (store.Recipe, error) {
 	if m.getRecipeFunc != nil {
 		return m.getRecipeFunc(ctx, id)
@@ -272,7 +276,7 @@ func TestRecipeService_Match(t *testing.T) {
 				{RecipeID: 1, IngredientID: 10, IngredientName: "Курица", IsPantryEssential: false},
 				{RecipeID: 1, IngredientID: 11, IngredientName: "Соль", IsPantryEssential: true}, // Pantry essential!
 				{RecipeID: 2, IngredientID: 10, IngredientName: "Курица", IsPantryEssential: false},
-				{RecipeID: 2, IngredientID: 12, IngredientName: "Сыр", IsPantryEssential: false}, // Missing!
+				{RecipeID: 2, IngredientID: 12, IngredientName: "Сыр", IsPantryEssential: false},   // Missing!
 				{RecipeID: 3, IngredientID: 99, IngredientName: "Грибы", IsPantryEssential: false}, // Allergen!
 				{RecipeID: 3, IngredientID: 13, IngredientName: "Сливки", IsPantryEssential: false},
 			}, nil

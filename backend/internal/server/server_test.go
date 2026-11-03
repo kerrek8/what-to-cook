@@ -298,6 +298,10 @@ func (m *e2eMockStore) CountRecipes(ctx context.Context, arg store.CountRecipesP
 	return int64(len(m.recipes)), nil
 }
 
+func (m *e2eMockStore) CountPendingRecipeTranslations(ctx context.Context) (int64, error) {
+	return 0, nil
+}
+
 func (m *e2eMockStore) GetRecipeByID(ctx context.Context, id int32) (store.Recipe, error) {
 	r, ok := m.recipes[id]
 	if !ok {
