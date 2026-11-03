@@ -41,7 +41,11 @@ INSERT INTO recipe_ingredients (
 ON CONFLICT (recipe_id, ingredient_id) DO UPDATE SET
     amount = EXCLUDED.amount,
     unit = EXCLUDED.unit,
-    localized_display_text = CASE WHEN recipe_ingredients.display_text IS DISTINCT FROM EXCLUDED.display_text THEN NULL ELSE recipe_ingredients.localized_display_text END,
+    localized_display_text = CASE 
+        WHEN recipe_ingredients.localized_display_text IS NOT NULL THEN recipe_ingredients.localized_display_text
+        WHEN recipe_ingredients.display_text IS DISTINCT FROM EXCLUDED.display_text THEN NULL 
+        ELSE recipe_ingredients.localized_display_text 
+    END,
     display_text = EXCLUDED.display_text,
     criticality = EXCLUDED.criticality
 RETURNING id, recipe_id, ingredient_id, amount, unit, display_text, criticality, localized_display_text
@@ -492,6 +496,29 @@ func (q *Queries) RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavo
 	return err
 }
 
+const resetStaleTranslationRetries = `-- name: ResetStaleTranslationRetries :exec
+UPDATE recipes
+SET translation_retry_after = NOW()
+WHERE translation_status = 'pending' AND translation_retry_after > NOW()
+`
+
+func (q *Queries) ResetStaleTranslationRetries(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, resetStaleTranslationRetries)
+	return err
+}
+
+const resetStalledTranslatingRecipes = `-- name: ResetStalledTranslatingRecipes :exec
+UPDATE recipes
+SET translation_status = 'pending',
+    translation_retry_after = NOW()
+WHERE translation_status = 'translating' AND updated_at < NOW() - INTERVAL '5 minutes'
+`
+
+func (q *Queries) ResetStalledTranslatingRecipes(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, resetStalledTranslatingRecipes)
+	return err
+}
+
 const retryRecipeTranslation = `-- name: RetryRecipeTranslation :exec
 UPDATE recipes
 SET translation_status = 'pending',
@@ -568,6 +595,41 @@ func (q *Queries) UpdateRecipeTranslation(ctx context.Context, arg UpdateRecipeT
 	return err
 }
 
+const updateRecipeTranslationWithDetails = `-- name: UpdateRecipeTranslationWithDetails :exec
+UPDATE recipes
+SET localized_title = $2,
+    localized_description = $3,
+    localized_instructions = $4,
+    cooking_time_minutes = CASE WHEN $5::int > 0 THEN $5::int ELSE cooking_time_minutes END,
+    difficulty = CASE WHEN $6::text <> '' THEN $6::text ELSE difficulty END,
+    translation_status = 'translated',
+    translation_attempts = 0,
+    translation_retry_after = NOW(),
+    updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateRecipeTranslationWithDetailsParams struct {
+	ID                    int32       `json:"id"`
+	LocalizedTitle        pgtype.Text `json:"localized_title"`
+	LocalizedDescription  pgtype.Text `json:"localized_description"`
+	LocalizedInstructions []byte      `json:"localized_instructions"`
+	CookingTimeMinutes    int32       `json:"cooking_time_minutes"`
+	Difficulty            string      `json:"difficulty"`
+}
+
+func (q *Queries) UpdateRecipeTranslationWithDetails(ctx context.Context, arg UpdateRecipeTranslationWithDetailsParams) error {
+	_, err := q.db.Exec(ctx, updateRecipeTranslationWithDetails,
+		arg.ID,
+		arg.LocalizedTitle,
+		arg.LocalizedDescription,
+		arg.LocalizedInstructions,
+		arg.CookingTimeMinutes,
+		arg.Difficulty,
+	)
+	return err
+}
+
 const upsertRecipe = `-- name: UpsertRecipe :one
 INSERT INTO recipes (
     external_id,
@@ -581,17 +643,37 @@ INSERT INTO recipes (
     $1, $2, $3, $4, $5, $6, $7
 )
 ON CONFLICT (external_id) DO UPDATE SET
-    localized_title = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL ELSE recipes.localized_title END,
-    localized_description = CASE WHEN recipes.description IS DISTINCT FROM EXCLUDED.description THEN NULL ELSE recipes.localized_description END,
-    localized_instructions = CASE WHEN recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN NULL ELSE recipes.localized_instructions END,
-    translation_status = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title OR recipes.description IS DISTINCT FROM EXCLUDED.description OR recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN 'pending' ELSE recipes.translation_status END,
-    translation_retry_after = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title OR recipes.description IS DISTINCT FROM EXCLUDED.description OR recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN NOW() ELSE recipes.translation_retry_after END,
+    localized_title = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_title IS NOT NULL THEN recipes.localized_title
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_title 
+    END,
+    localized_description = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_description IS NOT NULL THEN recipes.localized_description
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_description 
+    END,
+    localized_instructions = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_instructions IS NOT NULL THEN recipes.localized_instructions
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_instructions 
+    END,
+    translation_status = CASE 
+        WHEN recipes.translation_status = 'translated' THEN 'translated'
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN 'pending' 
+        ELSE recipes.translation_status 
+    END,
+    translation_retry_after = CASE 
+        WHEN recipes.translation_status = 'translated' THEN recipes.translation_retry_after
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NOW() 
+        ELSE recipes.translation_retry_after 
+    END,
     title = EXCLUDED.title,
-    description = EXCLUDED.description,
+    description = COALESCE(recipes.description, EXCLUDED.description),
     instructions = EXCLUDED.instructions,
-    cooking_time_minutes = EXCLUDED.cooking_time_minutes,
-    difficulty = EXCLUDED.difficulty,
-    image_url = EXCLUDED.image_url,
+    cooking_time_minutes = CASE WHEN recipes.cooking_time_minutes > 0 THEN recipes.cooking_time_minutes ELSE EXCLUDED.cooking_time_minutes END,
+    difficulty = CASE WHEN recipes.difficulty <> '' THEN recipes.difficulty ELSE EXCLUDED.difficulty END,
+    image_url = COALESCE(EXCLUDED.image_url, recipes.image_url),
     updated_at = NOW()
 RETURNING id, external_id, title, description, instructions, cooking_time_minutes, difficulty, image_url, created_at, updated_at, localized_title, localized_description, localized_instructions, translation_status, translation_attempts, translation_retry_after
 `

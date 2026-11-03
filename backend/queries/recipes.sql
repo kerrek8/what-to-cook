@@ -75,17 +75,37 @@ INSERT INTO recipes (
     $1, $2, $3, $4, $5, $6, $7
 )
 ON CONFLICT (external_id) DO UPDATE SET
-    localized_title = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL ELSE recipes.localized_title END,
-    localized_description = CASE WHEN recipes.description IS DISTINCT FROM EXCLUDED.description THEN NULL ELSE recipes.localized_description END,
-    localized_instructions = CASE WHEN recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN NULL ELSE recipes.localized_instructions END,
-    translation_status = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title OR recipes.description IS DISTINCT FROM EXCLUDED.description OR recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN 'pending' ELSE recipes.translation_status END,
-    translation_retry_after = CASE WHEN recipes.title IS DISTINCT FROM EXCLUDED.title OR recipes.description IS DISTINCT FROM EXCLUDED.description OR recipes.instructions IS DISTINCT FROM EXCLUDED.instructions THEN NOW() ELSE recipes.translation_retry_after END,
+    localized_title = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_title IS NOT NULL THEN recipes.localized_title
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_title 
+    END,
+    localized_description = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_description IS NOT NULL THEN recipes.localized_description
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_description 
+    END,
+    localized_instructions = CASE 
+        WHEN recipes.translation_status = 'translated' AND recipes.localized_instructions IS NOT NULL THEN recipes.localized_instructions
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NULL 
+        ELSE recipes.localized_instructions 
+    END,
+    translation_status = CASE 
+        WHEN recipes.translation_status = 'translated' THEN 'translated'
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN 'pending' 
+        ELSE recipes.translation_status 
+    END,
+    translation_retry_after = CASE 
+        WHEN recipes.translation_status = 'translated' THEN recipes.translation_retry_after
+        WHEN recipes.title IS DISTINCT FROM EXCLUDED.title THEN NOW() 
+        ELSE recipes.translation_retry_after 
+    END,
     title = EXCLUDED.title,
-    description = EXCLUDED.description,
+    description = COALESCE(recipes.description, EXCLUDED.description),
     instructions = EXCLUDED.instructions,
-    cooking_time_minutes = EXCLUDED.cooking_time_minutes,
-    difficulty = EXCLUDED.difficulty,
-    image_url = EXCLUDED.image_url,
+    cooking_time_minutes = CASE WHEN recipes.cooking_time_minutes > 0 THEN recipes.cooking_time_minutes ELSE EXCLUDED.cooking_time_minutes END,
+    difficulty = CASE WHEN recipes.difficulty <> '' THEN recipes.difficulty ELSE EXCLUDED.difficulty END,
+    image_url = COALESCE(EXCLUDED.image_url, recipes.image_url),
     updated_at = NOW()
 RETURNING *;
 
@@ -123,6 +143,19 @@ SET localized_title = $2,
     updated_at = NOW()
 WHERE id = $1;
 
+-- name: UpdateRecipeTranslationWithDetails :exec
+UPDATE recipes
+SET localized_title = $2,
+    localized_description = $3,
+    localized_instructions = $4,
+    cooking_time_minutes = CASE WHEN @cooking_time_minutes::int > 0 THEN @cooking_time_minutes::int ELSE cooking_time_minutes END,
+    difficulty = CASE WHEN @difficulty::text <> '' THEN @difficulty::text ELSE difficulty END,
+    translation_status = 'translated',
+    translation_attempts = 0,
+    translation_retry_after = NOW(),
+    updated_at = NOW()
+WHERE id = $1;
+
 -- name: UpdateIngredientRussianName :exec
 UPDATE ingredients
 SET name = $2
@@ -144,6 +177,17 @@ WHERE id = $1;
 -- name: CountPendingRecipeTranslations :one
 SELECT COUNT(*) FROM recipes WHERE translation_status <> 'translated';
 
+-- name: ResetStaleTranslationRetries :exec
+UPDATE recipes
+SET translation_retry_after = NOW()
+WHERE translation_status = 'pending' AND translation_retry_after > NOW();
+
+-- name: ResetStalledTranslatingRecipes :exec
+UPDATE recipes
+SET translation_status = 'pending',
+    translation_retry_after = NOW()
+WHERE translation_status = 'translating' AND updated_at < NOW() - INTERVAL '5 minutes';
+
 -- name: AddRecipeIngredient :one
 INSERT INTO recipe_ingredients (
     recipe_id,
@@ -158,7 +202,11 @@ INSERT INTO recipe_ingredients (
 ON CONFLICT (recipe_id, ingredient_id) DO UPDATE SET
     amount = EXCLUDED.amount,
     unit = EXCLUDED.unit,
-    localized_display_text = CASE WHEN recipe_ingredients.display_text IS DISTINCT FROM EXCLUDED.display_text THEN NULL ELSE recipe_ingredients.localized_display_text END,
+    localized_display_text = CASE 
+        WHEN recipe_ingredients.localized_display_text IS NOT NULL THEN recipe_ingredients.localized_display_text
+        WHEN recipe_ingredients.display_text IS DISTINCT FROM EXCLUDED.display_text THEN NULL 
+        ELSE recipe_ingredients.localized_display_text 
+    END,
     display_text = EXCLUDED.display_text,
     criticality = EXCLUDED.criticality
 RETURNING *;

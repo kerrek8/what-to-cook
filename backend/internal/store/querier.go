@@ -45,6 +45,8 @@ type Querier interface {
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
+	ResetStaleTranslationRetries(ctx context.Context) error
+	ResetStalledTranslatingRecipes(ctx context.Context) error
 	RetryRecipeTranslation(ctx context.Context, id int32) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
@@ -53,6 +55,7 @@ type Querier interface {
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateRecipeIngredientTranslation(ctx context.Context, arg UpdateRecipeIngredientTranslationParams) error
 	UpdateRecipeTranslation(ctx context.Context, arg UpdateRecipeTranslationParams) error
+	UpdateRecipeTranslationWithDetails(ctx context.Context, arg UpdateRecipeTranslationWithDetailsParams) error
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error
