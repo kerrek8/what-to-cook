@@ -10,6 +10,27 @@ const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
+const matchPage = ref(1)
+const matchPageSize = 15
+
+const visibleMatchedRecipes = computed(() => {
+  const start = (matchPage.value - 1) * matchPageSize
+  return recipeStore.filteredMatchedRecipes.slice(start, start + matchPageSize)
+})
+
+watch(
+  [
+    () => recipeStore.searchQuery,
+    () => recipeStore.difficultyFilter,
+    () => recipeStore.timeFilter,
+    () => recipeStore.saveExpiringOnly,
+    () => recipeStore.activeTab
+  ],
+  () => {
+    matchPage.value = 1
+  }
+)
+
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 let translationPollTimer: ReturnType<typeof setInterval> | undefined
 let translationPollAttempts = 0
@@ -199,13 +220,24 @@ onMounted(async () => {
           class="recipes-list"
         >
           <RecipeCard
-            v-for="item in recipeStore.filteredMatchedRecipes"
+            v-for="item in visibleMatchedRecipes"
             :key="item.recipe.id"
             :recipe="item.recipe"
             :match-item="item"
             :saving-ingredients="recipeStore.getSavingIngredients(item.used_ingredients)"
           />
         </div>
+
+        <van-pagination
+          v-if="recipeStore.filteredMatchedRecipes.length > matchPageSize"
+          :model-value="matchPage"
+          :total-items="recipeStore.filteredMatchedRecipes.length"
+          :items-per-page="matchPageSize"
+          prev-text="Назад"
+          next-text="Далее"
+          mode="simple"
+          @change="(val: number) => { matchPage = val }"
+        />
 
         <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
           <div class="fallback-note">
@@ -240,6 +272,7 @@ onMounted(async () => {
                 recipeStore.timeFilter = 0;
                 recipeStore.difficultyFilter = 'all';
                 recipeStore.saveExpiringOnly = false;
+                matchPage = 1;
               "
             >
               Сбросить фильтры
