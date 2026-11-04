@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"sort"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kerrek8/what-to-cook/backend/internal/dto"
-	"github.com/kerrek8/what-to-cook/backend/internal/provider"
 	"github.com/kerrek8/what-to-cook/backend/internal/store"
 )
 
@@ -25,19 +23,14 @@ type RecipeService interface {
 	GetByID(ctx context.Context, userID *uuid.UUID, id int32) (*dto.RecipeResponse, error)
 	Match(ctx context.Context, userID uuid.UUID) (dto.RecipeMatchResponse, error)
 	SetFavorite(ctx context.Context, userID uuid.UUID, recipeID int32, isFav bool) error
-	SyncFromProvider(ctx context.Context, query string) (dto.RecipeSyncResponse, error)
 }
 
 type recipeService struct {
-	store    store.Querier
-	provider provider.RecipeProvider
+	store store.Querier
 }
 
-func NewRecipeService(st store.Querier, prov provider.RecipeProvider) RecipeService {
-	return &recipeService{
-		store:    st,
-		provider: prov,
-	}
+func NewRecipeService(st store.Querier) RecipeService {
+	return &recipeService{store: st}
 }
 
 func (s *recipeService) List(ctx context.Context, userID *uuid.UUID, q dto.RecipeQuery) (dto.RecipeListResponse, error) {
@@ -98,15 +91,10 @@ func (s *recipeService) List(ctx context.Context, userID *uuid.UUID, q dto.Recip
 	for i, r := range recipes {
 		responses[i] = mapStoreRecipeToDTO(r, favMap[r.ID], nil)
 	}
-	pendingTranslations, err := s.store.CountPendingRecipeTranslations(ctx)
-	if err != nil {
-		return dto.RecipeListResponse{}, err
-	}
 
 	return dto.RecipeListResponse{
-		Items:               responses,
-		Total:               int(total),
-		PendingTranslations: int(pendingTranslations),
+		Items: responses,
+		Total: int(total),
 	}, nil
 }
 
@@ -191,12 +179,12 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		return dto.RecipeMatchResponse{}, err
 	}
 
-	allIngredients, err := s.store.GetTranslatedRecipeIngredientsWithDetails(ctx)
+	allIngredients, err := s.store.GetAllRecipeIngredientsWithDetails(ctx)
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
 	}
 
-	recipeIngMap := make(map[int32][]store.GetTranslatedRecipeIngredientsWithDetailsRow)
+	recipeIngMap := make(map[int32][]store.GetAllRecipeIngredientsWithDetailsRow)
 	for _, ing := range allIngredients {
 		recipeIngMap[ing.RecipeID] = append(recipeIngMap[ing.RecipeID], ing)
 	}
@@ -300,101 +288,7 @@ func (s *recipeService) SetFavorite(ctx context.Context, userID uuid.UUID, recip
 	})
 }
 
-func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto.RecipeSyncResponse, error) {
-	if s.provider == nil {
-		return dto.RecipeSyncResponse{}, errors.New("no recipe provider configured")
-	}
-
-	externalRecipes, err := s.provider.SearchRecipes(ctx, query)
-	if err != nil {
-		return dto.RecipeSyncResponse{}, err
-	}
-
-	synced := 0
-	for _, ext := range externalRecipes {
-		instructionsJSON, _ := json.Marshal(ext.Instructions)
-
-		var extID pgtype.Text
-		if ext.ExternalID != "" {
-			extID = pgtype.Text{String: ext.ExternalID, Valid: true}
-		}
-
-		var imgURL pgtype.Text
-		if ext.ImageURL != "" {
-			imgURL = pgtype.Text{String: ext.ImageURL, Valid: true}
-		}
-
-		var desc pgtype.Text
-		if ext.Category != "" {
-			desc = pgtype.Text{String: ext.Category, Valid: true}
-		}
-
-		recipe, err := s.store.UpsertRecipe(ctx, store.UpsertRecipeParams{
-			ExternalID:         extID,
-			Title:              ext.Title,
-			Description:        desc,
-			Instructions:       instructionsJSON,
-			CookingTimeMinutes: 0,
-			Difficulty:         "medium",
-			ImageUrl:           imgURL,
-		})
-		if err != nil {
-			continue
-		}
-
-		for _, ing := range ext.Ingredients {
-			trimmedName := strings.TrimSpace(ing.Name)
-			if trimmedName == "" {
-				continue
-			}
-
-			found, err := s.store.SearchIngredients(ctx, store.SearchIngredientsParams{
-				Query: pgtype.Text{String: trimmedName, Valid: true},
-			})
-
-			var ingredientID int32
-			if err == nil && len(found) > 0 {
-				ingredientID = found[0].ID
-			} else {
-				created, err := s.store.CreateIngredient(ctx, store.CreateIngredientParams{
-					Name:              trimmedName,
-					NameEn:            pgtype.Text{String: ing.Name, Valid: true},
-					Category:          "Другое",
-					DefaultUnit:       "г",
-					IsPantryEssential: false,
-				})
-				if err != nil {
-					continue
-				}
-				ingredientID = created.ID
-			}
-
-			var displayTxt pgtype.Text
-			if ing.Measure != "" {
-				displayTxt = pgtype.Text{String: ing.Measure + " " + trimmedName, Valid: true}
-			}
-
-			_, _ = s.store.AddRecipeIngredient(ctx, store.AddRecipeIngredientParams{
-				RecipeID:     recipe.ID,
-				IngredientID: ingredientID,
-				DisplayText:  displayTxt,
-				Criticality:  "critical",
-			})
-		}
-
-		synced++
-	}
-
-	return dto.RecipeSyncResponse{SyncedCount: synced}, nil
-}
-
-
 func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredientResponse) dto.RecipeResponse {
-	var extID *string
-	if r.ExternalID.Valid {
-		extID = &r.ExternalID.String
-	}
-
 	var desc *string
 	if r.Description.Valid {
 		desc = &r.Description.String
@@ -412,44 +306,23 @@ func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredient
 	if instructions == nil {
 		instructions = []string{}
 	}
-	var localizedInstructions []string
-	if len(r.LocalizedInstructions) > 0 {
-		_ = json.Unmarshal(r.LocalizedInstructions, &localizedInstructions)
-	}
-	var localizedTitle *string
-	if r.LocalizedTitle.Valid {
-		localizedTitle = &r.LocalizedTitle.String
-	}
-	var localizedDescription *string
-	if r.LocalizedDescription.Valid {
-		localizedDescription = &r.LocalizedDescription.String
-	}
 
 	return dto.RecipeResponse{
-		ID:                    r.ID,
-		ExternalID:            extID,
-		Title:                 r.Title,
-		Description:           desc,
-		Instructions:          instructions,
-		LocalizedTitle:        localizedTitle,
-		LocalizedDescription:  localizedDescription,
-		LocalizedInstructions: localizedInstructions,
-		CookingTimeMinutes:    r.CookingTimeMinutes,
-		Difficulty:            r.Difficulty,
-		ImageURL:              imgURL,
-		IsFavorite:            isFav,
-		Ingredients:           ings,
-		CreatedAt:             r.CreatedAt.Time,
-		UpdatedAt:             r.UpdatedAt.Time,
+		ID:                 r.ID,
+		Title:              r.Title,
+		Description:        desc,
+		Instructions:       instructions,
+		CookingTimeMinutes: r.CookingTimeMinutes,
+		Difficulty:         r.Difficulty,
+		ImageURL:           imgURL,
+		IsFavorite:         isFav,
+		Ingredients:        ings,
+		CreatedAt:          r.CreatedAt.Time,
+		UpdatedAt:          r.UpdatedAt.Time,
 	}
 }
 
 func mapRecipeIngredientToDTO(ing store.GetRecipeIngredientsRow) dto.RecipeIngredientResponse {
-	var nameEn *string
-	if ing.IngredientNameEn.Valid {
-		nameEn = &ing.IngredientNameEn.String
-	}
-
 	var unit *string
 	if ing.Unit.Valid && ing.Unit.String != "" {
 		unit = &ing.Unit.String
@@ -461,32 +334,20 @@ func mapRecipeIngredientToDTO(ing store.GetRecipeIngredientsRow) dto.RecipeIngre
 	if ing.DisplayText.Valid {
 		dispText = &ing.DisplayText.String
 	}
-	var localizedDispText *string
-	if ing.LocalizedDisplayText.Valid {
-		localizedDispText = &ing.LocalizedDisplayText.String
-	}
 
 	return dto.RecipeIngredientResponse{
-		IngredientID:         ing.IngredientID,
-		Name:                 ing.IngredientName,
-		NameEn:               nameEn,
-		Category:             ing.IngredientCategory,
-		Amount:               numericToFloat(ing.Amount),
-		Unit:                 unit,
-		DisplayText:          dispText,
-		LocalizedName:        &ing.IngredientName,
-		LocalizedDisplayText: localizedDispText,
-		Criticality:          ing.Criticality,
-		IsPantryEssential:    ing.IsPantryEssential,
+		IngredientID:      ing.IngredientID,
+		Name:              ing.IngredientName,
+		Category:          ing.IngredientCategory,
+		Amount:            numericToFloat(ing.Amount),
+		Unit:              unit,
+		DisplayText:       dispText,
+		Criticality:       ing.Criticality,
+		IsPantryEssential: ing.IsPantryEssential,
 	}
 }
 
-func mapAllDetailsIngredientToDTO(ing store.GetTranslatedRecipeIngredientsWithDetailsRow) dto.RecipeIngredientResponse {
-	var nameEn *string
-	if ing.IngredientNameEn.Valid {
-		nameEn = &ing.IngredientNameEn.String
-	}
-
+func mapAllDetailsIngredientToDTO(ing store.GetAllRecipeIngredientsWithDetailsRow) dto.RecipeIngredientResponse {
 	var unit *string
 	if ing.Unit.Valid && ing.Unit.String != "" {
 		unit = &ing.Unit.String
@@ -498,22 +359,15 @@ func mapAllDetailsIngredientToDTO(ing store.GetTranslatedRecipeIngredientsWithDe
 	if ing.DisplayText.Valid {
 		dispText = &ing.DisplayText.String
 	}
-	var localizedDispText *string
-	if ing.LocalizedDisplayText.Valid {
-		localizedDispText = &ing.LocalizedDisplayText.String
-	}
 
 	return dto.RecipeIngredientResponse{
-		IngredientID:         ing.IngredientID,
-		Name:                 ing.IngredientName,
-		NameEn:               nameEn,
-		Category:             ing.IngredientCategory,
-		Amount:               numericToFloat(ing.Amount),
-		Unit:                 unit,
-		DisplayText:          dispText,
-		LocalizedName:        &ing.IngredientName,
-		LocalizedDisplayText: localizedDispText,
-		Criticality:          ing.Criticality,
-		IsPantryEssential:    ing.IsPantryEssential,
+		IngredientID:      ing.IngredientID,
+		Name:              ing.IngredientName,
+		Category:          ing.IngredientCategory,
+		Amount:            numericToFloat(ing.Amount),
+		Unit:              unit,
+		DisplayText:       dispText,
+		Criticality:       ing.Criticality,
+		IsPantryEssential: ing.IsPantryEssential,
 	}
 }

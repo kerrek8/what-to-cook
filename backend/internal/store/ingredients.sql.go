@@ -12,23 +12,21 @@ import (
 )
 
 const createIngredient = `-- name: CreateIngredient :one
-INSERT INTO ingredients (name, name_en, category, default_unit, is_pantry_essential)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, name, name_en, category, default_unit, is_pantry_essential, created_at
+INSERT INTO ingredients (name, category, default_unit, is_pantry_essential)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, category, default_unit, is_pantry_essential, created_at
 `
 
 type CreateIngredientParams struct {
-	Name              string      `json:"name"`
-	NameEn            pgtype.Text `json:"name_en"`
-	Category          string      `json:"category"`
-	DefaultUnit       string      `json:"default_unit"`
-	IsPantryEssential bool        `json:"is_pantry_essential"`
+	Name              string `json:"name"`
+	Category          string `json:"category"`
+	DefaultUnit       string `json:"default_unit"`
+	IsPantryEssential bool   `json:"is_pantry_essential"`
 }
 
 func (q *Queries) CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error) {
 	row := q.db.QueryRow(ctx, createIngredient,
 		arg.Name,
-		arg.NameEn,
 		arg.Category,
 		arg.DefaultUnit,
 		arg.IsPantryEssential,
@@ -37,7 +35,6 @@ func (q *Queries) CreateIngredient(ctx context.Context, arg CreateIngredientPara
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.NameEn,
 		&i.Category,
 		&i.DefaultUnit,
 		&i.IsPantryEssential,
@@ -47,7 +44,7 @@ func (q *Queries) CreateIngredient(ctx context.Context, arg CreateIngredientPara
 }
 
 const getIngredientByID = `-- name: GetIngredientByID :one
-SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
+SELECT id, name, category, default_unit, is_pantry_essential, created_at FROM ingredients
 WHERE id = $1 LIMIT 1
 `
 
@@ -57,7 +54,6 @@ func (q *Queries) GetIngredientByID(ctx context.Context, id int32) (Ingredient, 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.NameEn,
 		&i.Category,
 		&i.DefaultUnit,
 		&i.IsPantryEssential,
@@ -67,7 +63,7 @@ func (q *Queries) GetIngredientByID(ctx context.Context, id int32) (Ingredient, 
 }
 
 const getIngredientByNameCaseInsensitive = `-- name: GetIngredientByNameCaseInsensitive :one
-SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
+SELECT id, name, category, default_unit, is_pantry_essential, created_at FROM ingredients
 WHERE LOWER(name) = LOWER($1)
 LIMIT 1
 `
@@ -78,7 +74,6 @@ func (q *Queries) GetIngredientByNameCaseInsensitive(ctx context.Context, lower 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.NameEn,
 		&i.Category,
 		&i.DefaultUnit,
 		&i.IsPantryEssential,
@@ -88,7 +83,7 @@ func (q *Queries) GetIngredientByNameCaseInsensitive(ctx context.Context, lower 
 }
 
 const listIngredients = `-- name: ListIngredients :many
-SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
+SELECT id, name, category, default_unit, is_pantry_essential, created_at FROM ingredients
 ORDER BY category, name
 `
 
@@ -104,7 +99,6 @@ func (q *Queries) ListIngredients(ctx context.Context) ([]Ingredient, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.NameEn,
 			&i.Category,
 			&i.DefaultUnit,
 			&i.IsPantryEssential,
@@ -121,9 +115,9 @@ func (q *Queries) ListIngredients(ctx context.Context) ([]Ingredient, error) {
 }
 
 const searchIngredients = `-- name: SearchIngredients :many
-SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
+SELECT id, name, category, default_unit, is_pantry_essential, created_at FROM ingredients
 WHERE 
-    ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR (name_en IS NOT NULL AND name_en ILIKE '%' || $1 || '%'))
+    ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%')
     AND ($2::text IS NULL OR $2::text = '' OR category = $2)
 ORDER BY 
     CASE WHEN $1::text IS NOT NULL AND $1::text != '' AND name ILIKE $1 || '%' THEN 0 ELSE 1 END,
@@ -148,7 +142,6 @@ func (q *Queries) SearchIngredients(ctx context.Context, arg SearchIngredientsPa
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.NameEn,
 			&i.Category,
 			&i.DefaultUnit,
 			&i.IsPantryEssential,

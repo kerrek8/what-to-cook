@@ -22,13 +22,6 @@ export async function matchRecipesApi(): Promise<RecipeMatchResponse> {
   return data
 }
 
-export async function syncRecipesApi(query: string): Promise<number> {
-  const { data } = await apiClient.post<{ synced_count: number }>('/api/v1/recipes/sync', null, {
-    params: { q: query }
-  })
-  return data.synced_count
-}
-
 export async function getFavoriteRecipesApi(): Promise<RecipeResponse[]> {
   const { data } = await apiClient.get<RecipeResponse[]>('/api/v1/recipes/favorites')
   return data

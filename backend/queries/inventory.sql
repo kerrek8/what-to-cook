@@ -12,7 +12,6 @@ SELECT
     i.created_at,
     i.updated_at,
     ing.name AS ingredient_name,
-    ing.name_en AS ingredient_name_en,
     ing.category AS ingredient_category,
     ing.default_unit AS ingredient_default_unit
 FROM inventory_items i
@@ -36,7 +35,6 @@ SELECT
     i.created_at,
     i.updated_at,
     ing.name AS ingredient_name,
-    ing.name_en AS ingredient_name_en,
     ing.category AS ingredient_category,
     ing.default_unit AS ingredient_default_unit
 FROM inventory_items i

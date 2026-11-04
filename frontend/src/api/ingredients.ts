@@ -12,7 +12,6 @@ export async function getIngredientsApi(params?: {
   return data.items.map((item) => ({
     id: item.id,
     name: item.name,
-    nameEn: item.name_en,
     category: item.category,
     defaultUnit: item.default_unit,
     isPantryEssential: item.is_pantry_essential

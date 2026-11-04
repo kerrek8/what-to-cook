@@ -349,3 +349,41 @@ flowchart TD
 - [x] **Версионирование и тесты**:
   - Версия WhatCook обновлена до `v0.1.15` (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Успешно пройдены тесты бэкенда (`go test ./...`), линтер `go vet ./...`, модульные тесты фронтенда (33 теста).
+
+
+---
+
+## ✅ Завершен: Переход на русскоязычный датасет рецептов, нормализация через GigaChat, моноязычная схема и автосоздание ингредиентов
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/b12-russian-recipes-gigachat`.
+- **Цель**: Полный отказ от англоязычных рецептов (TheMealDB) и API перевода (Groq). Переход на аутентичный русскоязычный датасет кулинарных рецептов (`russian-recipes-parser`). Интеграция Sber GigaChat строго в роли интеллектуального нормализатора сложности, времени готовки, канонических названий ингредиентов и их критичности. Консолидация схемы БД в чистый моноязычный вид без полей `name_en` и `localized_*`. Реализация автосоздания кастомных продуктов в таблице `ingredients` при добавлении в холодильник или список покупок, чтобы они полноценно участвовали в подборе рецептов. Оптимизация загрузки конфигурации (`PORT` / `BACKEND_PORT`, GigaChat-переменные).
+
+### Выполнено
+
+- [x] **Консолидация схемы и миграций**:
+  - Полностью удалены старые миграции 3, 4, 5, 6, промежуточные таблицы очередей переводов и дублирующие английские поля (`name_en`, `localized_*`).
+  - Миграция `000001_init_schema`: русскоязычные таблицы `ingredients`, `recipes`, `recipe_ingredients`, `inventory_items`, `shopping_list_items`, `users`, `user_favorites`, `push_subscriptions`. Автоматически генерируемый вектор полнотекстового поиска `search_vector tsvector GENERATED ALWAYS AS (to_tsvector('russian', coalesce(title, '') || ' ' || coalesce(description, ''))) STORED` с GIN-индексом.
+  - Миграция `000002_seed_ingredients`: 75 базовых продуктов на русском языке в нижнем регистре с пометкой `is_pantry_essential`.
+  - Миграция `000003_seed_recipes`: стартовые аутентичные русские рецепты с полной структурой ингредиентов и корректной критичностью.
+- [x] **Автосоздание кастомных продуктов в `ingredients`**:
+  - В `inventory_service.go` и `shopping_service.go`: если передан `custom_name` без `ingredient_id`, сервис проверяет наличие ингредиента регистронезависимо (`GetIngredientByNameCaseInsensitive`).
+  - Если ингредиент отсутствует, он автоматически создается в таблице `ingredients` и привязывается к `inventory_items.ingredient_id` / `shopping_list_items.ingredient_id`, гарантируя немедленное участие кастомного продукта в алгоритме умного сопоставления рецептов (`availableSet`).
+- [x] **Интеграция Sber GigaChat и оптимизация конфигурации**:
+  - Переменные окружения обновлены в `.env` и `.env.example` (`GIGACHAT_AUTH_KEY`, `GIGACHAT_SCOPE`, `GIGACHAT_MODEL`, `GIGACHAT_VERIFY_SSL`). Удалены устаревшие переменные Groq.
+  - Конфигурация в `backend/internal/config/config.go` оптимизирована: поддержан fallback `getEnvWithFallback("PORT", "BACKEND_PORT", "8080")` для бесшовной работы локально и в Docker, добавлены валидаторы и модульные тесты `config_test.go`.
+- [x] **Очистка бэкенда**:
+  - Удалены устаревшие пакеты `provider/` (TheMealDB), `translation_service`, `recipe_translation_worker`, эндпоинт `/api/v1/recipes/sync`.
+  - Удалены все временные тестовые скрипты и артефакты.
+  - SQLC-запросы и DTO очищены от английских полей и приведены к русским типам сложности (`легко`, `средне`, `сложно`) и критичности (`основной`, `важный`, `опциональный`).
+  - Swagger-спецификация API актуализирована (`swag init`).
+- [x] **Синхронизация клиентской части (Frontend PWA)**:
+  - Удалены все упоминания `name_en`, `nameEn`, `localized_*` из TypeScript-интерфейсов (`api.ts`, `recipe.ts`, `inventory.ts`, `shopping.ts`) и компонентов (`RecipeCard.vue`, `RecipeDetailView.vue`, `AddProductSheet.vue`, `AddShoppingItemSheet.vue`, `ProfileView.vue`).
+  - Убран поллинг переводов рецептов из `RecipesView.vue`.
+  - Значения сложности приведены к русскому формату (`легко`, `средне`, `сложно`), а критичности — к `основной`, `важный`, `опциональный`.
+  - Исправлен расчёт сроков годности в `freshness.ts` с учетом часовых поясов.
+  - Синхронно обновлена версия WhatCook по SemVer до **v0.2.0** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+- [x] **Верификация**:
+  - Все тесты бэкенда (`go test -count=1 ./...`) и линтер `go vet ./...` пройдены успешно (100%).
+  - Все модульные тесты фронтенда (`pnpm test`) пройдены успешно (8 тестовых файлов, 33 теста).
+  - Проверка типов фронтенда `vue-tsc --noEmit` пройдена без ошибок.

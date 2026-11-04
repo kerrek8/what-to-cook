@@ -743,13 +743,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search query by title",
+                        "description": "Search query by title or description",
                         "name": "q",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by difficulty (easy, medium, hard)",
+                        "description": "Filter by difficulty (легко, средне, сложно)",
                         "name": "difficulty",
                         "in": "query"
                     },
@@ -864,42 +864,6 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/recipes/sync": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "recipes"
-                ],
-                "summary": "Sync recipes from TheMealDB",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Search query for external API",
-                        "name": "q",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.RecipeSyncResponse"
                         }
                     },
                     "500": {
@@ -1796,9 +1760,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "name_en": {
-                    "type": "string"
                 }
             }
         },
@@ -1830,9 +1791,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "name_en": {
                     "type": "string"
                 },
                 "unit": {
@@ -1918,16 +1876,7 @@ const docTemplate = `{
                 "is_pantry_essential": {
                     "type": "boolean"
                 },
-                "localized_display_text": {
-                    "type": "string"
-                },
-                "localized_name": {
-                    "type": "string"
-                },
                 "name": {
-                    "type": "string"
-                },
-                "name_en": {
                     "type": "string"
                 },
                 "unit": {
@@ -1943,9 +1892,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.RecipeResponse"
                     }
-                },
-                "pending_translations": {
-                    "type": "integer"
                 },
                 "total": {
                     "type": "integer"
@@ -2013,9 +1959,6 @@ const docTemplate = `{
                 "difficulty": {
                     "type": "string"
                 },
-                "external_id": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -2037,31 +1980,11 @@ const docTemplate = `{
                 "is_favorite": {
                     "type": "boolean"
                 },
-                "localized_description": {
-                    "type": "string"
-                },
-                "localized_instructions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "localized_title": {
-                    "type": "string"
-                },
                 "title": {
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.RecipeSyncResponse": {
-            "type": "object",
-            "properties": {
-                "synced_count": {
-                    "type": "integer"
                 }
             }
         },
@@ -2110,9 +2033,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "name_en": {
                     "type": "string"
                 },
                 "unit": {

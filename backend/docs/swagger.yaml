@@ -78,8 +78,6 @@ definitions:
         type: boolean
       name:
         type: string
-      name_en:
-        type: string
     type: object
   dto.InventoryItemResponse:
     properties:
@@ -100,8 +98,6 @@ definitions:
       ingredient_id:
         type: integer
       name:
-        type: string
-      name_en:
         type: string
       unit:
         type: string
@@ -157,13 +153,7 @@ definitions:
         type: integer
       is_pantry_essential:
         type: boolean
-      localized_display_text:
-        type: string
-      localized_name:
-        type: string
       name:
-        type: string
-      name_en:
         type: string
       unit:
         type: string
@@ -174,8 +164,6 @@ definitions:
         items:
           $ref: '#/definitions/dto.RecipeResponse'
         type: array
-      pending_translations:
-        type: integer
       total:
         type: integer
     type: object
@@ -219,8 +207,6 @@ definitions:
         type: string
       difficulty:
         type: string
-      external_id:
-        type: string
       id:
         type: integer
       image_url:
@@ -235,23 +221,10 @@ definitions:
         type: array
       is_favorite:
         type: boolean
-      localized_description:
-        type: string
-      localized_instructions:
-        items:
-          type: string
-        type: array
-      localized_title:
-        type: string
       title:
         type: string
       updated_at:
         type: string
-    type: object
-  dto.RecipeSyncResponse:
-    properties:
-      synced_count:
-        type: integer
     type: object
   dto.RegisterRequest:
     properties:
@@ -285,8 +258,6 @@ definitions:
       is_bought:
         type: boolean
       name:
-        type: string
-      name_en:
         type: string
       unit:
         type: string
@@ -857,11 +828,11 @@ paths:
   /api/v1/recipes:
     get:
       parameters:
-      - description: Search query by title
+      - description: Search query by title or description
         in: query
         name: q
         type: string
-      - description: Filter by difficulty (easy, medium, hard)
+      - description: Filter by difficulty (легко, средне, сложно)
         in: query
         name: difficulty
         type: string
@@ -1054,29 +1025,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Match recipes against user inventory
-      tags:
-      - recipes
-  /api/v1/recipes/sync:
-    post:
-      parameters:
-      - description: Search query for external API
-        in: query
-        name: q
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.RecipeSyncResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Sync recipes from TheMealDB
       tags:
       - recipes
   /api/v1/shopping-list:

@@ -4,7 +4,6 @@ export interface InventoryItemResponse {
   id: string
   ingredient_id?: number | null
   name: string
-  name_en?: string | null
   category: string
   amount?: number | null
   unit?: string | null

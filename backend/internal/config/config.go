@@ -8,56 +8,49 @@ import (
 	"strings"
 )
 
-// ServerConfig contains HTTP server configuration parameters.
 type ServerConfig struct {
 	Port string
 	Mode string
 }
 
-// DatabaseConfig contains PostgreSQL database connection parameters.
 type DatabaseConfig struct {
 	URL string
 }
 
-// AuthConfig contains authentication and security token settings.
 type AuthConfig struct {
 	JWTSecret string
 }
 
-// CORSConfig contains Cross-Origin Resource Sharing settings.
 type CORSConfig struct {
 	AllowedOrigins []string
 }
 
-// VAPIDConfig contains Web Push VAPID keys and subject.
 type VAPIDConfig struct {
 	PublicKey  string
 	PrivateKey string
 	Subject    string
 }
 
-// GroqConfig contains Groq LLM translation settings.
-type GroqConfig struct {
-	APIKey string
-	Model  string
+type GigaChatConfig struct {
+	AuthKey   string
+	Scope     string
+	Model     string
+	VerifySSL bool
 }
 
-// Config aggregates all application configuration sections.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Auth     AuthConfig
 	CORS     CORSConfig
 	VAPID    VAPIDConfig
-	Groq     GroqConfig
+	GigaChat GigaChatConfig
 }
 
-// Load reads configuration from environment variables and performs strict validation.
-// If any required parameter is missing or invalid, an error is returned to prevent startup.
 func Load() (*Config, error) {
 	cfg := &Config{
 		Server: ServerConfig{
-			Port: getEnv("PORT", "8080"),
+			Port: getEnvWithFallback("PORT", "BACKEND_PORT", "8080"),
 			Mode: getEnv("GIN_MODE", "debug"),
 		},
 		Database: DatabaseConfig{
@@ -74,9 +67,11 @@ func Load() (*Config, error) {
 			PrivateKey: getEnv("VAPID_PRIVATE_KEY", ""),
 			Subject:    getEnv("VAPID_SUBJECT", "mailto:admin@whatcook.app"),
 		},
-		Groq: GroqConfig{
-			APIKey: getEnv("GROQ_API_KEY", ""),
-			Model:  getEnv("GROQ_MODEL", "openai/gpt-oss-20b"),
+		GigaChat: GigaChatConfig{
+			AuthKey:   getEnv("GIGACHAT_AUTH_KEY", "MDFhMWE3YjctZDY3MC03NTU3LWI1ZjctZGM1NTkxZDk0MjhhOjNjZTRkM2FjLTA0ODctNGZjOC04YWQyLWE1NmFlMjdiMDYyYQ=="),
+			Scope:     getEnv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS"),
+			Model:     getEnv("GIGACHAT_MODEL", "GigaChat"),
+			VerifySSL: getEnvBool("GIGACHAT_VERIFY_SSL", false),
 		},
 	}
 
@@ -87,11 +82,9 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-// Validate checks all mandatory configuration parameters for correctness.
 func (c *Config) Validate() error {
 	var errs []string
 
-	// Server validation
 	if c.Server.Port == "" {
 		errs = append(errs, "server port cannot be empty")
 	} else {
@@ -106,12 +99,10 @@ func (c *Config) Validate() error {
 		errs = append(errs, fmt.Sprintf("invalid GIN_MODE %q, allowed values: debug, release, test", c.Server.Mode))
 	}
 
-	// Database validation
 	if strings.TrimSpace(c.Database.URL) == "" {
 		errs = append(errs, "DATABASE_URL is required and cannot be empty")
 	}
 
-	// Auth validation
 	if strings.TrimSpace(c.Auth.JWTSecret) == "" {
 		errs = append(errs, "JWT_SECRET is required and cannot be empty")
 	} else if len(c.Auth.JWTSecret) < 16 {
@@ -131,6 +122,28 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return strings.TrimSpace(val)
+}
+
+func getEnvWithFallback(primaryKey, fallbackKey, defaultValue string) string {
+	if val, ok := os.LookupEnv(primaryKey); ok && strings.TrimSpace(val) != "" {
+		return strings.TrimSpace(val)
+	}
+	if val, ok := os.LookupEnv(fallbackKey); ok && strings.TrimSpace(val) != "" {
+		return strings.TrimSpace(val)
+	}
+	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	val, ok := os.LookupEnv(key)
+	if !ok || strings.TrimSpace(val) == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.ParseBool(strings.TrimSpace(val))
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
 }
 
 func parseCommaSeparated(raw string) []string {

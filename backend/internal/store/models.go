@@ -11,7 +11,6 @@ import (
 type Ingredient struct {
 	ID                int32              `json:"id"`
 	Name              string             `json:"name"`
-	NameEn            pgtype.Text        `json:"name_en"`
 	Category          string             `json:"category"`
 	DefaultUnit       string             `json:"default_unit"`
 	IsPantryEssential bool               `json:"is_pantry_essential"`
@@ -42,22 +41,16 @@ type PushSubscription struct {
 }
 
 type Recipe struct {
-	ID                    int32              `json:"id"`
-	ExternalID            pgtype.Text        `json:"external_id"`
-	Title                 string             `json:"title"`
-	Description           pgtype.Text        `json:"description"`
-	Instructions          []byte             `json:"instructions"`
-	CookingTimeMinutes    int32              `json:"cooking_time_minutes"`
-	Difficulty            string             `json:"difficulty"`
-	ImageUrl              pgtype.Text        `json:"image_url"`
-	CreatedAt             pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
-	LocalizedTitle        pgtype.Text        `json:"localized_title"`
-	LocalizedDescription  pgtype.Text        `json:"localized_description"`
-	LocalizedInstructions []byte             `json:"localized_instructions"`
-	TranslationStatus     string             `json:"translation_status"`
-	TranslationAttempts   int32              `json:"translation_attempts"`
-	TranslationRetryAfter pgtype.Timestamptz `json:"translation_retry_after"`
+	ID                 int32              `json:"id"`
+	Title              string             `json:"title"`
+	Description        pgtype.Text        `json:"description"`
+	Instructions       []byte             `json:"instructions"`
+	CookingTimeMinutes int32              `json:"cooking_time_minutes"`
+	Difficulty         string             `json:"difficulty"`
+	ImageUrl           pgtype.Text        `json:"image_url"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	SearchVector       interface{}        `json:"search_vector"`
 }
 
 type RecipeFavorite struct {
@@ -67,14 +60,13 @@ type RecipeFavorite struct {
 }
 
 type RecipeIngredient struct {
-	ID                   int32          `json:"id"`
-	RecipeID             int32          `json:"recipe_id"`
-	IngredientID         int32          `json:"ingredient_id"`
-	Amount               pgtype.Numeric `json:"amount"`
-	Unit                 pgtype.Text    `json:"unit"`
-	DisplayText          pgtype.Text    `json:"display_text"`
-	Criticality          string         `json:"criticality"`
-	LocalizedDisplayText pgtype.Text    `json:"localized_display_text"`
+	ID           int32          `json:"id"`
+	RecipeID     int32          `json:"recipe_id"`
+	IngredientID int32          `json:"ingredient_id"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Unit         pgtype.Text    `json:"unit"`
+	DisplayText  pgtype.Text    `json:"display_text"`
+	Criticality  string         `json:"criticality"`
 }
 
 type ShoppingListItem struct {
@@ -96,7 +88,7 @@ type User struct {
 	Name                  string             `json:"name"`
 	TokenVersion          int32              `json:"token_version"`
 	ExcludedIngredientIds []int32            `json:"excluded_ingredient_ids"`
+	PantryIngredientIds   []int32            `json:"pantry_ingredient_ids"`
 	CreatedAt             pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
-	PantryIngredientIds   []int32            `json:"pantry_ingredient_ids"`
 }

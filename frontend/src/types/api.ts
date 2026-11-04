@@ -35,7 +35,6 @@ export interface LoginPayload {
 export interface Ingredient {
   id: number
   name: string
-  nameEn?: string
   category: string
   defaultUnit: string
   isPantryEssential: boolean
@@ -45,7 +44,6 @@ export interface IngredientListResponse {
   items: Array<{
     id: number
     name: string
-    name_en?: string
     category: string
     default_unit: string
     is_pantry_essential: boolean

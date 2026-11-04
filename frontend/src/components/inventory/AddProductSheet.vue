@@ -6,7 +6,6 @@ import type { Ingredient } from '@/types/api'
 import type { AddItemData } from '@/stores/inventory'
 import type { LocalInventoryItem } from '@/db/types'
 
-
 const props = defineProps<{
   show: boolean
   editItem?: LocalInventoryItem | null
@@ -42,7 +41,7 @@ const suggestions = computed(() => {
   const q = productName.value.trim().toLowerCase()
   if (!q) return []
   return catalog.value
-    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q))
+    .filter((item) => item.name.toLowerCase().includes(q))
     .slice(0, 5)
 })
 

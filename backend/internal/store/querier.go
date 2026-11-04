@@ -13,8 +13,6 @@ import (
 type Querier interface {
 	AddRecipeFavorite(ctx context.Context, arg AddRecipeFavoriteParams) error
 	AddRecipeIngredient(ctx context.Context, arg AddRecipeIngredientParams) (RecipeIngredient, error)
-	ClaimPendingRecipeTranslation(ctx context.Context) (ClaimPendingRecipeTranslationRow, error)
-	CountPendingRecipeTranslations(ctx context.Context) (int64, error)
 	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
 	CountTotalRecipes(ctx context.Context) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
@@ -25,20 +23,16 @@ type Querier interface {
 	DeleteInventoryItem(ctx context.Context, arg DeleteInventoryItemParams) error
 	DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error
 	DeletePushSubscriptionByID(ctx context.Context, arg DeletePushSubscriptionByIDParams) error
-	DeleteRecipeIngredientLink(ctx context.Context, arg DeleteRecipeIngredientLinkParams) error
 	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
 	DeleteShoppingItem(ctx context.Context, arg DeleteShoppingItemParams) error
-	DeleteUnusedIngredient(ctx context.Context, id int32) error
 	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
 	GetIngredientByID(ctx context.Context, id int32) (Ingredient, error)
 	GetIngredientByNameCaseInsensitive(ctx context.Context, lower string) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
-	GetRecipeTranslationIngredients(ctx context.Context, recipeID int32) ([]GetRecipeTranslationIngredientsRow, error)
 	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
 	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)
-	GetTranslatedRecipeIngredientsWithDetails(ctx context.Context) ([]GetTranslatedRecipeIngredientsWithDetailsRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
@@ -50,25 +44,16 @@ type Querier interface {
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
-	ReassignRecipeIngredient(ctx context.Context, arg ReassignRecipeIngredientParams) error
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
-	ResetStaleTranslationRetries(ctx context.Context) error
-	ResetStalledTranslatingRecipes(ctx context.Context) error
-	RetryRecipeTranslation(ctx context.Context, id int32) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
 	TransferBoughtItemsToInventory(ctx context.Context, userID pgtype.UUID) ([]InventoryItem, error)
-	UpdateIngredientRussianName(ctx context.Context, arg UpdateIngredientRussianNameParams) error
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
-	UpdateRecipeIngredientTranslation(ctx context.Context, arg UpdateRecipeIngredientTranslationParams) error
-	UpdateRecipeTranslation(ctx context.Context, arg UpdateRecipeTranslationParams) error
-	UpdateRecipeTranslationWithDetails(ctx context.Context, arg UpdateRecipeTranslationWithDetailsParams) error
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
 	UpsertPushSubscription(ctx context.Context, arg UpsertPushSubscriptionParams) (PushSubscription, error)
-	UpsertRecipe(ctx context.Context, arg UpsertRecipeParams) (Recipe, error)
 }
 
 var _ Querier = (*Queries)(nil)

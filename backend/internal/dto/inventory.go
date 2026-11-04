@@ -3,18 +3,17 @@ package dto
 import "time"
 
 type InventoryItemResponse struct {
-	ID                  string     `json:"id"`
-	IngredientID        *int32     `json:"ingredient_id,omitempty"`
-	Name                string     `json:"name"`
-	NameEn              *string    `json:"name_en,omitempty"`
-	Category            string     `json:"category"`
-	Amount              *float64   `json:"amount,omitempty"`
-	Unit                *string    `json:"unit,omitempty"`
-	ApproximateQuantity *string    `json:"approximate_quantity,omitempty"`
-	InStock             bool       `json:"in_stock"`
-	ExpirationDate      *string    `json:"expiration_date,omitempty"`
-	CreatedAt           time.Time  `json:"created_at"`
-	UpdatedAt           time.Time  `json:"updated_at"`
+	ID                  string    `json:"id"`
+	IngredientID        *int32    `json:"ingredient_id,omitempty"`
+	Name                string    `json:"name"`
+	Category            string    `json:"category"`
+	Amount              *float64  `json:"amount,omitempty"`
+	Unit                *string   `json:"unit,omitempty"`
+	ApproximateQuantity *string   `json:"approximate_quantity,omitempty"`
+	InStock             bool      `json:"in_stock"`
+	ExpirationDate      *string   `json:"expiration_date,omitempty"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 type InventoryListResponse struct {

@@ -1,12 +1,11 @@
 package dto
 
 type IngredientResponse struct {
-	ID                int32   `json:"id"`
-	Name              string  `json:"name"`
-	NameEn            *string `json:"name_en,omitempty"`
-	Category          string  `json:"category"`
-	DefaultUnit       string  `json:"default_unit"`
-	IsPantryEssential bool    `json:"is_pantry_essential"`
+	ID                int32  `json:"id"`
+	Name              string `json:"name"`
+	Category          string `json:"category"`
+	DefaultUnit       string `json:"default_unit"`
+	IsPantryEssential bool   `json:"is_pantry_essential"`
 }
 
 type IngredientListResponse struct {

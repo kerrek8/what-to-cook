@@ -87,7 +87,7 @@ func TestConfig_Validate(t *testing.T) {
 			cfg: config.Config{
 				Server: config.ServerConfig{
 					Port: "8080",
-					Mode: "production", // must be release/debug/test
+					Mode: "production",
 				},
 				Database: config.DatabaseConfig{
 					URL: "postgres://user:pass@localhost:5432/db",
@@ -110,24 +110,31 @@ func TestConfig_Validate(t *testing.T) {
 	}
 }
 
-func TestConfig_LoadWithGroq(t *testing.T) {
-	_ = os.Setenv("PORT", "8080")
+func TestConfig_LoadWithGigaChat(t *testing.T) {
+	_ = os.Setenv("BACKEND_PORT", "8085")
 	_ = os.Setenv("GIN_MODE", "debug")
 	_ = os.Setenv("DATABASE_URL", "postgres://user:pass@localhost:5432/db")
 	_ = os.Setenv("JWT_SECRET", "super-secret-key-at-least-16-bytes")
-	_ = os.Setenv("GROQ_API_KEY", "gsk_test_key_123")
-	_ = os.Setenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+	_ = os.Setenv("GIGACHAT_AUTH_KEY", "test-gigachat-auth-key")
+	_ = os.Setenv("GIGACHAT_SCOPE", "GIGACHAT_API_CORP")
+	_ = os.Setenv("GIGACHAT_MODEL", "GigaChat-Pro")
+	_ = os.Setenv("GIGACHAT_VERIFY_SSL", "false")
 	defer func() {
-		_ = os.Unsetenv("PORT")
+		_ = os.Unsetenv("BACKEND_PORT")
 		_ = os.Unsetenv("GIN_MODE")
 		_ = os.Unsetenv("DATABASE_URL")
 		_ = os.Unsetenv("JWT_SECRET")
-		_ = os.Unsetenv("GROQ_API_KEY")
-		_ = os.Unsetenv("GROQ_MODEL")
+		_ = os.Unsetenv("GIGACHAT_AUTH_KEY")
+		_ = os.Unsetenv("GIGACHAT_SCOPE")
+		_ = os.Unsetenv("GIGACHAT_MODEL")
+		_ = os.Unsetenv("GIGACHAT_VERIFY_SSL")
 	}()
 
 	cfg, err := config.Load()
 	require.NoError(t, err)
-	assert.Equal(t, "gsk_test_key_123", cfg.Groq.APIKey)
-	assert.Equal(t, "llama-3.3-70b-versatile", cfg.Groq.Model)
+	assert.Equal(t, "8085", cfg.Server.Port)
+	assert.Equal(t, "test-gigachat-auth-key", cfg.GigaChat.AuthKey)
+	assert.Equal(t, "GIGACHAT_API_CORP", cfg.GigaChat.Scope)
+	assert.Equal(t, "GigaChat-Pro", cfg.GigaChat.Model)
+	assert.False(t, cfg.GigaChat.VerifySSL)
 }

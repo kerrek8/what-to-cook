@@ -23,7 +23,7 @@ const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
   if (!allergenId) return 'Не выбрано'
   const found = ingredients.value.find((item) => item.id === allergenId)
-  return found ? (found.name || found.nameEn || `ID: ${allergenId}`) : `ID: ${allergenId}`
+  return found ? (found.name || `ID: ${allergenId}`) : `ID: ${allergenId}`
 })
 const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?.pantryIngredientIds.includes(i.id)).map(i => i.name))
 
@@ -33,7 +33,6 @@ const filteredIngredients = computed(() => {
   return ingredients.value.filter(
     (item) =>
       item.name.toLowerCase().includes(q) ||
-      (item.nameEn && item.nameEn.toLowerCase().includes(q)) ||
       item.category.toLowerCase().includes(q)
   )
 })
@@ -217,8 +216,8 @@ onMounted(() => {
         :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="Перевод рецептов и продуктов" value="Переводится на сервере" />
-      <van-cell title="О приложении" value="WhatCook v0.1.15" />
+      <van-cell title="Каталог рецептов" value="Русская кухня + Sber GigaChat" />
+      <van-cell title="О приложении" value="WhatCook v0.2.0" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->

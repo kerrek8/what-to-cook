@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import type { RecipeResponse, RecipeMatchItem } from '@/types/recipe'
 import { useRecipeStore } from '@/stores/recipe'
 
-
 const props = defineProps<{
   recipe: RecipeResponse
   matchItem?: RecipeMatchItem
@@ -17,13 +16,32 @@ const recipeStore = useRecipeStore()
 const difficultyLabel = computed(() => {
   switch (props.recipe.difficulty) {
     case 'easy':
+    case 'легко':
       return 'Легко'
     case 'medium':
+    case 'средне':
       return 'Средне'
     case 'hard':
+    case 'сложно':
       return 'Сложно'
     default:
       return props.recipe.difficulty
+  }
+})
+
+const difficultyClass = computed(() => {
+  switch (props.recipe.difficulty) {
+    case 'easy':
+    case 'легко':
+      return 'easy'
+    case 'medium':
+    case 'средне':
+      return 'medium'
+    case 'hard':
+    case 'сложно':
+      return 'hard'
+    default:
+      return 'medium'
   }
 })
 
@@ -59,7 +77,7 @@ function onFavoriteClick(e: MouseEvent) {
       <img
         v-if="recipe.image_url"
         :src="recipe.image_url"
-        :alt="recipe.localized_title || recipe.title"
+        :alt="recipe.title"
         class="card-img"
         loading="lazy"
       />
@@ -97,7 +115,7 @@ function onFavoriteClick(e: MouseEvent) {
     </div>
 
     <div class="card-body">
-      <h3 class="card-title">{{ recipe.localized_title || recipe.title }}</h3>
+      <h3 class="card-title">{{ recipe.title }}</h3>
 
       <div class="card-meta">
         <span class="meta-item">
@@ -105,7 +123,7 @@ function onFavoriteClick(e: MouseEvent) {
           {{ recipe.cooking_time_minutes }} мин
         </span>
         <span class="meta-divider">•</span>
-        <span class="meta-item difficulty-tag" :class="recipe.difficulty">
+        <span class="meta-item difficulty-tag" :class="difficultyClass">
           {{ difficultyLabel }}
         </span>
         <template v-if="matchItem">
@@ -141,16 +159,14 @@ function onFavoriteClick(e: MouseEvent) {
 }
 
 .recipe-card:active {
-  transform: scale(0.985);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transform: scale(0.98);
 }
 
 .card-media {
   position: relative;
   width: 100%;
-  height: 160px;
-  background-color: #eceff1;
-  overflow: hidden;
+  height: 180px;
+  background-color: #f0f0f0;
 }
 
 .card-img {
@@ -164,7 +180,7 @@ function onFavoriteClick(e: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  background-color: #eceff1;
 }
 
 .badge-overlay {
@@ -172,19 +188,19 @@ function onFavoriteClick(e: MouseEvent) {
   top: 10px;
   left: 10px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
+  align-items: flex-start;
   z-index: 2;
-  max-width: calc(100% - 60px);
 }
 
 .match-pill {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .match-perfect {
@@ -192,11 +208,11 @@ function onFavoriteClick(e: MouseEvent) {
 }
 
 .match-high {
-  background-color: #f57c00;
+  background-color: #388e3c;
 }
 
 .match-medium {
-  background-color: #757575;
+  background-color: #f57c00;
 }
 
 .saving-pill {

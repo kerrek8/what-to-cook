@@ -17,18 +17,39 @@ import (
 
 type mockShoppingQuerier struct {
 	store.Querier
-	listFunc                          func(ctx context.Context, userID pgtype.UUID) ([]store.ListShoppingItemsByUserIDRow, error)
-	getFunc                           func(ctx context.Context, arg store.GetShoppingItemByIDAndUserIDParams) (store.GetShoppingItemByIDAndUserIDRow, error)
-	createFunc                        func(ctx context.Context, arg store.CreateShoppingItemParams) (store.ShoppingListItem, error)
-	updateFunc                        func(ctx context.Context, arg store.UpdateShoppingItemParams) (store.ShoppingListItem, error)
-	setStatusFunc                     func(ctx context.Context, arg store.SetShoppingItemBoughtStatusParams) (store.ShoppingListItem, error)
-	deleteFunc                        func(ctx context.Context, arg store.DeleteShoppingItemParams) error
-	getRecipeFunc                     func(ctx context.Context, id int32) (store.Recipe, error)
-	getRecipeIngredientsFunc          func(ctx context.Context, recipeID int32) ([]store.GetRecipeIngredientsRow, error)
-	listInventoryFunc                 func(ctx context.Context, userID pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error)
-	getShoppingByIngredientFunc       func(ctx context.Context, arg store.GetShoppingItemByIngredientAndUserIDParams) (store.ShoppingListItem, error)
-	transferBoughtItemsFunc           func(ctx context.Context, userID pgtype.UUID) ([]store.InventoryItem, error)
-	deleteBoughtShoppingItemsFunc     func(ctx context.Context, userID pgtype.UUID) error
+	listFunc                      func(ctx context.Context, userID pgtype.UUID) ([]store.ListShoppingItemsByUserIDRow, error)
+	getFunc                       func(ctx context.Context, arg store.GetShoppingItemByIDAndUserIDParams) (store.GetShoppingItemByIDAndUserIDRow, error)
+	createFunc                    func(ctx context.Context, arg store.CreateShoppingItemParams) (store.ShoppingListItem, error)
+	updateFunc                    func(ctx context.Context, arg store.UpdateShoppingItemParams) (store.ShoppingListItem, error)
+	setStatusFunc                 func(ctx context.Context, arg store.SetShoppingItemBoughtStatusParams) (store.ShoppingListItem, error)
+	deleteFunc                    func(ctx context.Context, arg store.DeleteShoppingItemParams) error
+	getRecipeFunc                 func(ctx context.Context, id int32) (store.Recipe, error)
+	getRecipeIngredientsFunc      func(ctx context.Context, recipeID int32) ([]store.GetRecipeIngredientsRow, error)
+	listInventoryFunc             func(ctx context.Context, userID pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error)
+	getShoppingByIngredientFunc   func(ctx context.Context, arg store.GetShoppingItemByIngredientAndUserIDParams) (store.ShoppingListItem, error)
+	transferBoughtItemsFunc       func(ctx context.Context, userID pgtype.UUID) ([]store.InventoryItem, error)
+	deleteBoughtShoppingItemsFunc func(ctx context.Context, userID pgtype.UUID) error
+	getIngByNameFunc              func(ctx context.Context, name string) (store.Ingredient, error)
+	createIngFunc                 func(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error)
+}
+
+func (m *mockShoppingQuerier) GetIngredientByNameCaseInsensitive(ctx context.Context, name string) (store.Ingredient, error) {
+	if m.getIngByNameFunc != nil {
+		return m.getIngByNameFunc(ctx, name)
+	}
+	return store.Ingredient{}, pgx.ErrNoRows
+}
+
+func (m *mockShoppingQuerier) CreateIngredient(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error) {
+	if m.createIngFunc != nil {
+		return m.createIngFunc(ctx, arg)
+	}
+	return store.Ingredient{
+		ID:          100,
+		Name:        arg.Name,
+		Category:    arg.Category,
+		DefaultUnit: arg.DefaultUnit,
+	}, nil
 }
 
 func (m *mockShoppingQuerier) ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]store.ListShoppingItemsByUserIDRow, error) {
@@ -198,7 +219,7 @@ func TestShoppingService_Create_Success(t *testing.T) {
 			assert.Equal(t, uid, uuid.UUID(arg.UserID.Bytes))
 			assert.Equal(t, ingID, arg.IngredientID.Int32)
 			return store.ShoppingListItem{
-				ID: arg.UserID, // use valid
+				ID: arg.UserID,
 			}, nil
 		},
 		getFunc: func(ctx context.Context, arg store.GetShoppingItemByIDAndUserIDParams) (store.GetShoppingItemByIDAndUserIDRow, error) {
@@ -222,6 +243,60 @@ func TestShoppingService_Create_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, itemID.String(), res.ID)
 	assert.Equal(t, "Сыр Чеддер", res.Name)
+}
+
+func TestShoppingService_Create_CustomIngredient_AutoCreated(t *testing.T) {
+	uid := uuid.New()
+	itemID := uuid.New()
+	customName := "Кинза свежая"
+	unit := "пучок"
+
+	createdIngCalled := false
+	mockStore := &mockShoppingQuerier{
+		getIngByNameFunc: func(ctx context.Context, name string) (store.Ingredient, error) {
+			assert.Equal(t, "кинза свежая", name)
+			return store.Ingredient{}, pgx.ErrNoRows
+		},
+		createIngFunc: func(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error) {
+			createdIngCalled = true
+			assert.Equal(t, "кинза свежая", arg.Name)
+			return store.Ingredient{
+				ID:          55,
+				Name:        arg.Name,
+				Category:    arg.Category,
+				DefaultUnit: arg.DefaultUnit,
+			}, nil
+		},
+		createFunc: func(ctx context.Context, arg store.CreateShoppingItemParams) (store.ShoppingListItem, error) {
+			assert.True(t, arg.IngredientID.Valid)
+			assert.Equal(t, int32(55), arg.IngredientID.Int32)
+			assert.Equal(t, customName, arg.CustomName.String)
+			return store.ShoppingListItem{
+				ID: pgtype.UUID{Bytes: itemID, Valid: true},
+			}, nil
+		},
+		getFunc: func(ctx context.Context, arg store.GetShoppingItemByIDAndUserIDParams) (store.GetShoppingItemByIDAndUserIDRow, error) {
+			return store.GetShoppingItemByIDAndUserIDRow{
+				ID:             pgtype.UUID{Bytes: itemID, Valid: true},
+				UserID:         arg.UserID,
+				IngredientID:   pgtype.Int4{Int32: 55, Valid: true},
+				IngredientName: pgtype.Text{String: "кинза свежая", Valid: true},
+				CustomName:     pgtype.Text{String: customName, Valid: true},
+			}, nil
+		},
+	}
+
+	svc := service.NewShoppingService(mockStore)
+	res, err := svc.Create(context.Background(), uid, dto.CreateShoppingItemRequest{
+		CustomName: &customName,
+		Unit:       &unit,
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.True(t, createdIngCalled)
+	assert.Equal(t, "кинза свежая", res.Name)
+	assert.Equal(t, int32(55), *res.IngredientID)
 }
 
 func TestShoppingService_Create_ValidationErrors(t *testing.T) {
@@ -343,22 +418,22 @@ func TestShoppingService_AddMissingFromRecipe(t *testing.T) {
 				{
 					IngredientID:      1,
 					IngredientName:    "Соль",
-					IsPantryEssential: true, // should be skipped
+					IsPantryEssential: true,
 				},
 				{
 					IngredientID:      2,
 					IngredientName:    "Спагетти",
-					IsPantryEssential: false, // in inventory -> should be skipped
+					IsPantryEssential: false,
 				},
 				{
 					IngredientID:      3,
 					IngredientName:    "Бекон",
-					IsPantryEssential: false, // NOT in inventory, NOT in shopping list -> should be added
+					IsPantryEssential: false,
 				},
 				{
 					IngredientID:      4,
 					IngredientName:    "Пармезан",
-					IsPantryEssential: false, // NOT in inventory, already in shopping list -> should be skipped
+					IsPantryEssential: false,
 				},
 			}, nil
 		},

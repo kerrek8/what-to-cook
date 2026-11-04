@@ -43,7 +43,7 @@ const mockRecipe: RecipeResponse = {
   description: 'Вкусный быстрый завтрак',
   instructions: ['Взбейте яйца', 'Нарежьте томаты', 'Жарьте 10 минут на сковороде'],
   cooking_time_minutes: 15,
-  difficulty: 'easy',
+  difficulty: 'легко',
   is_favorite: false,
   ingredients: [
     {
@@ -52,7 +52,7 @@ const mockRecipe: RecipeResponse = {
       category: 'Овощи',
       amount: 2,
       unit: 'шт',
-      criticality: 'critical',
+      criticality: 'основной',
       is_pantry_essential: false
     },
     {
@@ -61,7 +61,7 @@ const mockRecipe: RecipeResponse = {
       category: 'Молочные продукты',
       amount: 3,
       unit: 'шт',
-      criticality: 'critical',
+      criticality: 'основной',
       is_pantry_essential: false
     }
   ],
@@ -118,7 +118,7 @@ describe('useRecipeStore', () => {
         id: 2,
         title: 'Борщ домашний',
         cooking_time_minutes: 65,
-        difficulty: 'hard'
+        difficulty: 'сложно'
       }
     ]
 
@@ -134,7 +134,7 @@ describe('useRecipeStore', () => {
     expect(store.filteredAllRecipes[0].id).toBe(1)
 
     store.timeFilter = 0
-    store.difficultyFilter = 'hard'
+    store.difficultyFilter = 'сложно'
     expect(store.filteredAllRecipes).toHaveLength(1)
     expect(store.filteredAllRecipes[0].id).toBe(2)
   })

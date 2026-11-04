@@ -17,11 +17,32 @@ import (
 
 type mockInventoryQuerier struct {
 	store.Querier
-	listFunc   func(ctx context.Context, userID pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error)
-	getFunc    func(ctx context.Context, arg store.GetInventoryItemByIDAndUserIDParams) (store.GetInventoryItemByIDAndUserIDRow, error)
-	createFunc func(ctx context.Context, arg store.CreateInventoryItemParams) (store.InventoryItem, error)
-	updateFunc func(ctx context.Context, arg store.UpdateInventoryItemParams) (store.InventoryItem, error)
-	deleteFunc func(ctx context.Context, arg store.DeleteInventoryItemParams) error
+	listFunc         func(ctx context.Context, userID pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error)
+	getFunc          func(ctx context.Context, arg store.GetInventoryItemByIDAndUserIDParams) (store.GetInventoryItemByIDAndUserIDRow, error)
+	createFunc       func(ctx context.Context, arg store.CreateInventoryItemParams) (store.InventoryItem, error)
+	updateFunc       func(ctx context.Context, arg store.UpdateInventoryItemParams) (store.InventoryItem, error)
+	deleteFunc       func(ctx context.Context, arg store.DeleteInventoryItemParams) error
+	getIngByNameFunc func(ctx context.Context, name string) (store.Ingredient, error)
+	createIngFunc    func(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error)
+}
+
+func (m *mockInventoryQuerier) GetIngredientByNameCaseInsensitive(ctx context.Context, name string) (store.Ingredient, error) {
+	if m.getIngByNameFunc != nil {
+		return m.getIngByNameFunc(ctx, name)
+	}
+	return store.Ingredient{}, pgx.ErrNoRows
+}
+
+func (m *mockInventoryQuerier) CreateIngredient(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error) {
+	if m.createIngFunc != nil {
+		return m.createIngFunc(ctx, arg)
+	}
+	return store.Ingredient{
+		ID:          100,
+		Name:        arg.Name,
+		Category:    arg.Category,
+		DefaultUnit: arg.DefaultUnit,
+	}, nil
 }
 
 func (m *mockInventoryQuerier) ListInventoryItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error) {
@@ -98,12 +119,12 @@ func TestInventoryService_GetByID_Success(t *testing.T) {
 	mockStore := &mockInventoryQuerier{
 		getFunc: func(ctx context.Context, arg store.GetInventoryItemByIDAndUserIDParams) (store.GetInventoryItemByIDAndUserIDRow, error) {
 			return store.GetInventoryItemByIDAndUserIDRow{
-				ID:             pgtype.UUID{Bytes: itemID, Valid: true},
-				UserID:         pgtype.UUID{Bytes: uid, Valid: true},
-				CustomName:     pgtype.Text{String: "Домашний соус", Valid: true},
-				InStock:        true,
-				CreatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
-				UpdatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
+				ID:         pgtype.UUID{Bytes: itemID, Valid: true},
+				UserID:     pgtype.UUID{Bytes: uid, Valid: true},
+				CustomName: pgtype.Text{String: "Домашний соус", Valid: true},
+				InStock:    true,
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
+				UpdatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
 			}, nil
 		},
 	}
@@ -174,6 +195,63 @@ func TestInventoryService_Create_Success(t *testing.T) {
 	assert.Equal(t, "Куриное филе", res.Name)
 }
 
+func TestInventoryService_Create_CustomIngredient_AutoCreated(t *testing.T) {
+	uid := uuid.New()
+	itemID := uuid.New()
+	customName := "Паприка копченая"
+	unit := "ч. л."
+
+	createdIngCalled := false
+	mockStore := &mockInventoryQuerier{
+		getIngByNameFunc: func(ctx context.Context, name string) (store.Ingredient, error) {
+			assert.Equal(t, "паприка копченая", name)
+			return store.Ingredient{}, pgx.ErrNoRows
+		},
+		createIngFunc: func(ctx context.Context, arg store.CreateIngredientParams) (store.Ingredient, error) {
+			createdIngCalled = true
+			assert.Equal(t, "паприка копченая", arg.Name)
+			return store.Ingredient{
+				ID:          42,
+				Name:        arg.Name,
+				Category:    arg.Category,
+				DefaultUnit: arg.DefaultUnit,
+			}, nil
+		},
+		createFunc: func(ctx context.Context, arg store.CreateInventoryItemParams) (store.InventoryItem, error) {
+			assert.True(t, arg.IngredientID.Valid)
+			assert.Equal(t, int32(42), arg.IngredientID.Int32)
+			assert.Equal(t, customName, arg.CustomName.String)
+			return store.InventoryItem{
+				ID: pgtype.UUID{Bytes: itemID, Valid: true},
+			}, nil
+		},
+		getFunc: func(ctx context.Context, arg store.GetInventoryItemByIDAndUserIDParams) (store.GetInventoryItemByIDAndUserIDRow, error) {
+			return store.GetInventoryItemByIDAndUserIDRow{
+				ID:             pgtype.UUID{Bytes: itemID, Valid: true},
+				UserID:         pgtype.UUID{Bytes: uid, Valid: true},
+				IngredientID:   pgtype.Int4{Int32: 42, Valid: true},
+				IngredientName: pgtype.Text{String: "паприка копченая", Valid: true},
+				CustomName:     pgtype.Text{String: customName, Valid: true},
+				InStock:        true,
+				CreatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
+				UpdatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
+			}, nil
+		},
+	}
+
+	svc := service.NewInventoryService(mockStore)
+	res, err := svc.Create(context.Background(), uid, dto.CreateInventoryItemRequest{
+		CustomName: &customName,
+		Unit:       &unit,
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.True(t, createdIngCalled)
+	assert.Equal(t, "паприка копченая", res.Name)
+	assert.Equal(t, int32(42), *res.IngredientID)
+}
+
 func TestInventoryService_Create_ValidationErrors(t *testing.T) {
 	svc := service.NewInventoryService(&mockInventoryQuerier{})
 
@@ -200,12 +278,12 @@ func TestInventoryService_Update_Success(t *testing.T) {
 	mockStore := &mockInventoryQuerier{
 		getFunc: func(ctx context.Context, arg store.GetInventoryItemByIDAndUserIDParams) (store.GetInventoryItemByIDAndUserIDRow, error) {
 			return store.GetInventoryItemByIDAndUserIDRow{
-				ID:             pgtype.UUID{Bytes: itemID, Valid: true},
-				UserID:         pgtype.UUID{Bytes: uid, Valid: true},
-				CustomName:     pgtype.Text{String: "Суп", Valid: true},
-				InStock:        inStock,
-				CreatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
-				UpdatedAt:      pgtype.Timestamptz{Time: time.Now(), Valid: true},
+				ID:         pgtype.UUID{Bytes: itemID, Valid: true},
+				UserID:     pgtype.UUID{Bytes: uid, Valid: true},
+				CustomName: pgtype.Text{String: "Суп", Valid: true},
+				InStock:    inStock,
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
+				UpdatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
 			}, nil
 		},
 		updateFunc: func(ctx context.Context, arg store.UpdateInventoryItemParams) (store.InventoryItem, error) {

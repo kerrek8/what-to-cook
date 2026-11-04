@@ -43,8 +43,8 @@ func (h *RecipeHandler) getOptionalUserID(c *gin.Context) *uuid.UUID {
 // @Summary List recipes
 // @Tags recipes
 // @Produce json
-// @Param q query string false "Search query by title"
-// @Param difficulty query string false "Filter by difficulty (easy, medium, hard)"
+// @Param q query string false "Search query by title or description"
+// @Param difficulty query string false "Filter by difficulty (легко, средне, сложно)"
 // @Param max_time query int false "Max cooking time in minutes"
 // @Param limit query int false "Limit"
 // @Param offset query int false "Offset"
@@ -214,22 +214,4 @@ func (h *RecipeHandler) RemoveFavorite(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "removed"})
-}
-
-// @Summary Sync recipes from TheMealDB
-// @Tags recipes
-// @Produce json
-// @Param q query string false "Search query for external API"
-// @Success 200 {object} dto.RecipeSyncResponse
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/recipes/sync [post]
-func (h *RecipeHandler) Sync(c *gin.Context) {
-	q := c.DefaultQuery("q", "chicken")
-	resp, err := h.recipeService.SyncFromProvider(c.Request.Context(), q)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, resp)
 }

@@ -20,7 +20,15 @@ export function getFreshnessInfo(expirationDate?: string | null): FreshnessInfo 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const exp = new Date(expirationDate)
+  const datePart = expirationDate.split('T')[0]
+  const [yearStr, monthStr, dayStr] = datePart.split('-')
+  const y = Number(yearStr)
+  const m = Number(monthStr)
+  const d = Number(dayStr)
+
+  const exp = !isNaN(y) && !isNaN(m) && !isNaN(d)
+    ? new Date(y, m - 1, d, 0, 0, 0, 0)
+    : new Date(expirationDate)
   exp.setHours(0, 0, 0, 0)
 
   const diffTime = exp.getTime() - today.getTime()

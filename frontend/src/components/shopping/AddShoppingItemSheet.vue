@@ -5,7 +5,6 @@ import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddShoppingItemPayload } from '@/stores/shopping'
 
-
 const props = defineProps<{
   show: boolean
 }>()
@@ -45,7 +44,7 @@ const suggestions = computed(() => {
   const q = itemName.value.trim().toLowerCase()
   if (!q) return []
   return catalog.value
-    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q))
+    .filter((item) => item.name.toLowerCase().includes(q))
     .slice(0, 5)
 })
 

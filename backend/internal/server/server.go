@@ -11,7 +11,6 @@ import (
 	"github.com/kerrek8/what-to-cook/backend/internal/config"
 	"github.com/kerrek8/what-to-cook/backend/internal/handler"
 	"github.com/kerrek8/what-to-cook/backend/internal/middleware"
-	"github.com/kerrek8/what-to-cook/backend/internal/provider"
 	"github.com/kerrek8/what-to-cook/backend/internal/service"
 	"github.com/kerrek8/what-to-cook/backend/internal/store"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,32 +18,26 @@ import (
 )
 
 type Server struct {
-	httpServer        *http.Server
-	db                *pgxpool.Pool
-	expirationWorker  *service.ExpirationWorker
-	recipeService     service.RecipeService
-	translationWorker *service.RecipeTranslationWorker
-	router            *gin.Engine
+	httpServer       *http.Server
+	db               *pgxpool.Pool
+	expirationWorker *service.ExpirationWorker
+	recipeService    service.RecipeService
+	router           *gin.Engine
 }
 
-func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider provider.RecipeProvider, pushSender service.PushSender) *Server {
+func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender service.PushSender) *Server {
 	gin.SetMode(cfg.Server.Mode)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 	router.Use(middleware.CORS(cfg.CORS.AllowedOrigins))
 
-	if recipeProvider == nil {
-		recipeProvider = provider.NewTheMealDBClient("", 10*time.Second)
-	}
-
 	authService := service.NewAuthService(queries, cfg.Auth.JWTSecret)
 	userService := service.NewUserService(queries)
 	ingredientService := service.NewIngredientService(queries)
 	inventoryService := service.NewInventoryService(queries)
-	recipeService := service.NewRecipeService(queries, recipeProvider)
+	recipeService := service.NewRecipeService(queries)
 	shoppingService := service.NewShoppingService(queries)
-	translationService := service.NewTranslationService(cfg.Groq.APIKey, cfg.Groq.Model)
 
 	if pushSender == nil {
 		pushSender = service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
@@ -83,7 +76,6 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 		recipes := v1.Group("/recipes")
 		{
 			recipes.GET("", recipeHandler.List)
-			recipes.POST("/sync", recipeHandler.Sync)
 		}
 
 		v1.GET("/notifications/vapid-key", notificationHandler.GetVAPIDKey)
@@ -148,13 +140,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 		httpServer:       httpServer,
 		expirationWorker: expirationWorker,
 		recipeService:    recipeService,
-		translationWorker: func() *service.RecipeTranslationWorker {
-			if queries == nil {
-				return nil
-			}
-			return service.NewRecipeTranslationWorker(queries, translationService, recipeService)
-		}(),
-		router: router,
+		router:           router,
 	}
 }
 
@@ -164,7 +150,7 @@ func New(cfg *config.Config, db *pgxpool.Pool) *Server {
 		queries = store.New(db)
 	}
 
-	srv := NewWithQuerier(cfg, queries, nil, nil)
+	srv := NewWithQuerier(cfg, queries, nil)
 	srv.db = db
 	return srv
 }
@@ -177,18 +163,12 @@ func (s *Server) Start() error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Start()
 	}
-	if s.translationWorker != nil {
-		s.translationWorker.Start()
-	}
 	return s.httpServer.ListenAndServe()
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Stop()
-	}
-	if s.translationWorker != nil {
-		s.translationWorker.Stop()
 	}
 	if s.db != nil {
 		s.db.Close()

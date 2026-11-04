@@ -1,18 +1,15 @@
-export type RecipeDifficulty = 'easy' | 'medium' | 'hard'
-export type IngredientCriticality = 'critical' | 'essential' | 'optional'
+export type RecipeDifficulty = 'легко' | 'средне' | 'сложно'
+export type IngredientCriticality = 'основной' | 'важный' | 'опциональный'
 
 export interface RecipeIngredientResponse {
   ingredient_id: number
   name: string
-  name_en?: string | null
   category: string
   amount?: number | null
   unit?: string | null
   display_text?: string | null
   criticality: IngredientCriticality | string
   is_pantry_essential: boolean
-  localized_name?: string
-  localized_display_text?: string | null
 }
 
 export interface RecipeResponse {
@@ -28,15 +25,11 @@ export interface RecipeResponse {
   ingredients?: RecipeIngredientResponse[]
   created_at: string
   updated_at: string
-  localized_title?: string
-  localized_description?: string | null
-  localized_instructions?: string[]
 }
 
 export interface RecipeListResponse {
   items: RecipeResponse[]
   total: number
-  pending_translations?: number
 }
 
 export interface RecipeQuery {

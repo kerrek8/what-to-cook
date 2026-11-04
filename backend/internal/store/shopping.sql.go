@@ -95,7 +95,6 @@ SELECT
     s.created_at,
     s.updated_at,
     ing.name AS ingredient_name,
-    ing.name_en AS ingredient_name_en,
     ing.category AS ingredient_category,
     ing.default_unit AS ingredient_default_unit
 FROM shopping_list_items s
@@ -120,7 +119,6 @@ type GetShoppingItemByIDAndUserIDRow struct {
 	CreatedAt             pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
 	IngredientName        pgtype.Text        `json:"ingredient_name"`
-	IngredientNameEn      pgtype.Text        `json:"ingredient_name_en"`
 	IngredientCategory    pgtype.Text        `json:"ingredient_category"`
 	IngredientDefaultUnit pgtype.Text        `json:"ingredient_default_unit"`
 }
@@ -139,7 +137,6 @@ func (q *Queries) GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShopp
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IngredientName,
-		&i.IngredientNameEn,
 		&i.IngredientCategory,
 		&i.IngredientDefaultUnit,
 	)
@@ -187,7 +184,6 @@ SELECT
     s.created_at,
     s.updated_at,
     ing.name AS ingredient_name,
-    ing.name_en AS ingredient_name_en,
     ing.category AS ingredient_category,
     ing.default_unit AS ingredient_default_unit
 FROM shopping_list_items s
@@ -209,7 +205,6 @@ type ListShoppingItemsByUserIDRow struct {
 	CreatedAt             pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
 	IngredientName        pgtype.Text        `json:"ingredient_name"`
-	IngredientNameEn      pgtype.Text        `json:"ingredient_name_en"`
 	IngredientCategory    pgtype.Text        `json:"ingredient_category"`
 	IngredientDefaultUnit pgtype.Text        `json:"ingredient_default_unit"`
 }
@@ -234,7 +229,6 @@ func (q *Queries) ListShoppingItemsByUserID(ctx context.Context, userID pgtype.U
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IngredientName,
-			&i.IngredientNameEn,
 			&i.IngredientCategory,
 			&i.IngredientDefaultUnit,
 		); err != nil {

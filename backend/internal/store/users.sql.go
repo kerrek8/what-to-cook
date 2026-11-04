@@ -14,7 +14,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash, name)
 VALUES ($1, $2, $3)
-RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids
+RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -33,15 +33,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.TokenVersion,
 		&i.ExcludedIngredientIds,
+		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PantryIngredientIds,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids FROM users
+SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -55,15 +55,15 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Name,
 		&i.TokenVersion,
 		&i.ExcludedIngredientIds,
+		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PantryIngredientIds,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, created_at, updated_at, pantry_ingredient_ids FROM users
+SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -77,9 +77,9 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.Name,
 		&i.TokenVersion,
 		&i.ExcludedIngredientIds,
+		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PantryIngredientIds,
 	)
 	return i, err
 }

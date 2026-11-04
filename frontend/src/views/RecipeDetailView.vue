@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
-
 
 const route = useRoute()
 const router = useRouter()
@@ -58,10 +57,13 @@ const missingIngredients = computed(() => {
 const difficultyLabel = computed(() => {
   switch (recipe.value?.difficulty) {
     case 'easy':
+    case 'легко':
       return 'Легко'
     case 'medium':
+    case 'средне':
       return 'Средне'
     case 'hard':
+    case 'сложно':
       return 'Сложно'
     default:
       return recipe.value?.difficulty || 'Средне'
@@ -69,7 +71,7 @@ const difficultyLabel = computed(() => {
 })
 
 function formatIngredientAmount(ing: RecipeIngredientResponse): string {
-  if (ing.localized_display_text || ing.display_text) return (ing.localized_display_text || ing.display_text) as string
+  if (ing.display_text) return ing.display_text
   if (ing.amount != null) {
     return `${ing.amount} ${ing.unit ?? ''}`.trim()
   }
@@ -79,9 +81,11 @@ function formatIngredientAmount(ing: RecipeIngredientResponse): string {
 function getCriticalityBadge(crit: string): { label: string; class: string } {
   switch (crit) {
     case 'critical':
-      return { label: 'Критичный', class: 'crit-critical' }
+    case 'основной':
+      return { label: 'Основной', class: 'crit-critical' }
     case 'essential':
-      return { label: 'Основной', class: 'crit-essential' }
+    case 'важный':
+      return { label: 'Важный', class: 'crit-essential' }
     default:
       return { label: 'Опциональный', class: 'crit-optional' }
   }
@@ -119,15 +123,17 @@ async function onAddToShoppingList() {
 
   isAddingToShopping.value = true
   try {
-    const res = await recipeStore.addMissingToShopping(recipe.value.id)
+    await recipeStore.addMissingToShopping(recipe.value.id)
     shoppingAdded.value = true
-    const count = res.added_count || missingIngredients.value.length
     showToast({
       type: 'success',
-      message: `Добавлено ${count} прод. в список покупок!`
+      message: 'Недостающие ингредиенты добавлены в список покупок!'
     })
   } catch {
-    showToast({ type: 'fail', message: 'Не удалось добавить' })
+    showToast({
+      type: 'fail',
+      message: 'Не удалось добавить ингредиенты'
+    })
   } finally {
     isAddingToShopping.value = false
   }
@@ -142,10 +148,19 @@ function onFavoriteToggle() {
 
 <template>
   <div class="detail-container">
-    <van-skeleton v-if="recipeStore.isDetailLoading" title avatar :row="6" class="skeleton" />
+    <van-nav-bar
+      title="Рецепт"
+      left-arrow
+      fixed
+      placeholder
+      @click-left="router.back()"
+    />
+
+    <div v-if="recipeStore.isDetailLoading" class="skeleton">
+      <van-skeleton title avatar :row="6" />
+    </div>
 
     <template v-else-if="recipe">
-      <!-- Media Hero -->
       <div class="hero-wrapper">
         <img
           v-if="recipe.image_url"
@@ -157,7 +172,7 @@ function onFavoriteToggle() {
           <van-icon name="photograph" size="48" color="#b0bec5" />
         </div>
 
-      <button
+        <button
           type="button"
           class="fav-btn"
           :class="{ active: recipe.is_favorite }"
@@ -173,7 +188,7 @@ function onFavoriteToggle() {
       </div>
 
       <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ recipe.localized_title || recipe.title }}</h1>
+        <h1 class="recipe-title">{{ recipe.title }}</h1>
 
         <!-- Saving banner -->
         <div v-if="savingProducts.length > 0" class="saving-banner">
@@ -202,7 +217,7 @@ function onFavoriteToggle() {
         </div>
 
         <p v-if="recipe.description" class="recipe-desc">
-          {{ recipe.localized_description || recipe.description }}
+          {{ recipe.description }}
         </p>
 
         <!-- Ingredients Section -->
@@ -228,7 +243,7 @@ function onFavoriteToggle() {
               >
                 <div class="ing-left">
                   <van-icon name="passed" color="#2e7d32" size="16" />
-                  <span class="ing-name">{{ ing.localized_name || ing.name }}</span>
+                  <span class="ing-name">{{ ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -254,7 +269,7 @@ function onFavoriteToggle() {
                   >
                     {{ getCriticalityBadge(ing.criticality).label }}
                   </span>
-                  <span class="ing-name">{{ ing.localized_name || ing.name }}</span>
+                  <span class="ing-name">{{ ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -319,17 +334,17 @@ function onFavoriteToggle() {
                 <span v-else>{{ idx + 1 }}</span>
               </div>
               <div class="step-body">
-                <p class="step-text">{{ recipe.localized_instructions?.[idx] || step }}</p>
+                <p class="step-text">{{ step }}</p>
                 <div
-                  v-if="extractTimerMinutes(recipe.instructions[idx] ?? step)"
+                  v-if="extractTimerMinutes(step)"
                   class="step-timer-row"
                 >
                   <button
                     type="button"
                     class="step-timer-chip"
-                    @click.stop="startStepTimer(extractTimerMinutes(recipe.instructions[idx] ?? step)!)"
+                    @click.stop="startStepTimer(extractTimerMinutes(step)!)"
                   >
-                    ⏱️ Запустить {{ extractTimerMinutes(recipe.instructions[idx] ?? step) }} мин
+                    ⏱️ Запустить {{ extractTimerMinutes(step) }} мин
                   </button>
                 </div>
               </div>

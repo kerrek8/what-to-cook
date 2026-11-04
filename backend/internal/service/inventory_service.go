@@ -77,6 +77,30 @@ func (s *inventoryService) Create(ctx context.Context, userID uuid.UUID, req dto
 	var ingredientID pgtype.Int4
 	if req.IngredientID != nil {
 		ingredientID = pgtype.Int4{Int32: *req.IngredientID, Valid: true}
+	} else if req.CustomName != nil && strings.TrimSpace(*req.CustomName) != "" {
+		cleanName := strings.TrimSpace(*req.CustomName)
+		canonicalName := strings.ToLower(cleanName)
+
+		ing, err := s.store.GetIngredientByNameCaseInsensitive(ctx, canonicalName)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				defaultUnit := "г"
+				if req.Unit != nil && *req.Unit != "" {
+					defaultUnit = *req.Unit
+				}
+				newIng, createErr := s.store.CreateIngredient(ctx, store.CreateIngredientParams{
+					Name:              canonicalName,
+					Category:          "Другое",
+					DefaultUnit:       defaultUnit,
+					IsPantryEssential: false,
+				})
+				if createErr == nil {
+					ingredientID = pgtype.Int4{Int32: newIng.ID, Valid: true}
+				}
+			}
+		} else {
+			ingredientID = pgtype.Int4{Int32: ing.ID, Valid: true}
+		}
 	}
 
 	var customName pgtype.Text
@@ -146,6 +170,30 @@ func (s *inventoryService) Update(ctx context.Context, userID uuid.UUID, itemID 
 	var ingredientID pgtype.Int4
 	if req.IngredientID != nil {
 		ingredientID = pgtype.Int4{Int32: *req.IngredientID, Valid: true}
+	} else if req.CustomName != nil && strings.TrimSpace(*req.CustomName) != "" {
+		cleanName := strings.TrimSpace(*req.CustomName)
+		canonicalName := strings.ToLower(cleanName)
+
+		ing, err := s.store.GetIngredientByNameCaseInsensitive(ctx, canonicalName)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				defaultUnit := "г"
+				if req.Unit != nil && *req.Unit != "" {
+					defaultUnit = *req.Unit
+				}
+				newIng, createErr := s.store.CreateIngredient(ctx, store.CreateIngredientParams{
+					Name:              canonicalName,
+					Category:          "Другое",
+					DefaultUnit:       defaultUnit,
+					IsPantryEssential: false,
+				})
+				if createErr == nil {
+					ingredientID = pgtype.Int4{Int32: newIng.ID, Valid: true}
+				}
+			}
+		} else {
+			ingredientID = pgtype.Int4{Int32: ing.ID, Valid: true}
+		}
 	}
 
 	var customName pgtype.Text
@@ -231,12 +279,7 @@ func mapListRowToDTO(row store.ListInventoryItemsByUserIDRow) dto.InventoryItemR
 		name = row.CustomName.String
 	}
 
-	var nameEn *string
-	if row.IngredientNameEn.Valid {
-		nameEn = &row.IngredientNameEn.String
-	}
-
-	category := "other"
+	category := "Другое"
 	if row.IngredientCategory.Valid && row.IngredientCategory.String != "" {
 		category = row.IngredientCategory.String
 	}
@@ -257,7 +300,6 @@ func mapListRowToDTO(row store.ListInventoryItemsByUserIDRow) dto.InventoryItemR
 		ID:                  uuid.UUID(row.ID.Bytes).String(),
 		IngredientID:        ingredientID,
 		Name:                name,
-		NameEn:              nameEn,
 		Category:            category,
 		Amount:              numericToFloat(row.Amount),
 		Unit:                unit,
@@ -282,12 +324,7 @@ func mapGetRowToDTO(row store.GetInventoryItemByIDAndUserIDRow) dto.InventoryIte
 		name = row.CustomName.String
 	}
 
-	var nameEn *string
-	if row.IngredientNameEn.Valid {
-		nameEn = &row.IngredientNameEn.String
-	}
-
-	category := "other"
+	category := "Другое"
 	if row.IngredientCategory.Valid && row.IngredientCategory.String != "" {
 		category = row.IngredientCategory.String
 	}
@@ -308,7 +345,6 @@ func mapGetRowToDTO(row store.GetInventoryItemByIDAndUserIDRow) dto.InventoryIte
 		ID:                  uuid.UUID(row.ID.Bytes).String(),
 		IngredientID:        ingredientID,
 		Name:                name,
-		NameEn:              nameEn,
 		Category:            category,
 		Amount:              numericToFloat(row.Amount),
 		Unit:                unit,

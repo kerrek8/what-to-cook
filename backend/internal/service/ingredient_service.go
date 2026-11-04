@@ -69,15 +69,9 @@ func (s *ingredientService) GetByID(ctx context.Context, id int32) (*dto.Ingredi
 }
 
 func mapStoreIngredientToDTO(item store.Ingredient) dto.IngredientResponse {
-	var nameEn *string
-	if item.NameEn.Valid {
-		nameEn = &item.NameEn.String
-	}
-
 	return dto.IngredientResponse{
 		ID:                item.ID,
 		Name:              item.Name,
-		NameEn:            nameEn,
 		Category:          item.Category,
 		DefaultUnit:       item.DefaultUnit,
 		IsPantryEssential: item.IsPantryEssential,

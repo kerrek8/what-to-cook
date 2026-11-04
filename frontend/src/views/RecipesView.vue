@@ -3,7 +3,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
-import { getRecipesApi } from '@/api/recipe'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
 
 const recipeStore = useRecipeStore()
@@ -32,8 +31,6 @@ watch(
 )
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
-let translationPollTimer: ReturnType<typeof setInterval> | undefined
-let translationPollAttempts = 0
 
 watch(
   [() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter],
@@ -47,40 +44,6 @@ watch(
 
 onUnmounted(() => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  if (translationPollTimer) clearInterval(translationPollTimer)
-})
-
-function startTranslationPolling() {
-  if (translationPollTimer) return
-  translationPollAttempts = 0
-  translationPollTimer = setInterval(async () => {
-    if (document.visibilityState !== 'visible' || recipeStore.isLoading) return
-    translationPollAttempts++
-    try {
-      const resp = await getRecipesApi({ limit: 1 })
-      recipeStore.pendingTranslations = resp.pending_translations ?? 0
-      if (resp.total !== recipeStore.totalCount) {
-        await recipeStore.loadAllRecipes(recipeStore.page)
-      }
-    } catch {
-      // ignore
-    }
-    if (
-      (recipeStore.pendingTranslations === 0 && recipeStore.allRecipes.length > 0) ||
-      (recipeStore.pendingTranslations === 0 && translationPollAttempts >= 30)
-    ) {
-      clearInterval(translationPollTimer)
-      translationPollTimer = undefined
-    }
-  }, 30000)
-}
-
-watch(() => recipeStore.pendingTranslations, (pending) => {
-  if (pending > 0) startTranslationPolling()
-  else if (recipeStore.allRecipes.length > 0 && translationPollTimer) {
-    clearInterval(translationPollTimer)
-    translationPollTimer = undefined
-  }
 })
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
@@ -93,9 +56,9 @@ const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
 
 const difficultyOptions: Array<{ label: string; value: string }> = [
   { label: 'Любая сложность', value: 'all' },
-  { label: 'Легко', value: 'easy' },
-  { label: 'Средне', value: 'medium' },
-  { label: 'Сложно', value: 'hard' }
+  { label: 'Легко', value: 'легко' },
+  { label: 'Средне', value: 'средне' },
+  { label: 'Сложно', value: 'сложно' }
 ]
 
 onMounted(async () => {
@@ -107,9 +70,6 @@ onMounted(async () => {
     recipeStore.loadAllRecipes(),
     recipeStore.loadFavorites()
   ])
-  if (recipeStore.pendingTranslations > 0 || recipeStore.allRecipes.length === 0) {
-    startTranslationPolling()
-  }
 })
 </script>
 
@@ -203,152 +163,160 @@ onMounted(async () => {
       </button>
     </div>
 
-    <!-- Pull Refresh Content -->
-      <!-- Skeletons while loading -->
+    <!-- Tab: Smart Match -->
+    <template v-if="recipeStore.activeTab === 'match'">
       <div
-        v-if="(recipeStore.activeTab === 'match' && recipeStore.isMatching && recipeStore.allRecipes.length === 0) || (recipeStore.activeTab === 'all' && recipeStore.isLoading) || (recipeStore.activeTab === 'favorites' && recipeStore.isFavoritesLoading)"
+        v-if="recipeStore.isMatching && recipeStore.allRecipes.length === 0"
         class="loading-skeletons"
       >
         <van-skeleton title avatar :row="3" class="skeleton-card" />
         <van-skeleton title avatar :row="3" class="skeleton-card" />
       </div>
 
-      <!-- Tab: Smart Match -->
-      <template v-else-if="recipeStore.activeTab === 'match'">
-        <div
-          v-if="recipeStore.filteredMatchedRecipes.length > 0"
-          class="recipes-list"
+      <div
+        v-else-if="recipeStore.filteredMatchedRecipes.length > 0"
+        class="recipes-list"
+      >
+        <RecipeCard
+          v-for="item in visibleMatchedRecipes"
+          :key="item.recipe.id"
+          :recipe="item.recipe"
+          :match-item="item"
+          :saving-ingredients="recipeStore.getSavingIngredients(item.used_ingredients)"
+        />
+      </div>
+
+      <van-pagination
+        v-if="recipeStore.filteredMatchedRecipes.length > matchPageSize"
+        :model-value="matchPage"
+        :total-items="recipeStore.filteredMatchedRecipes.length"
+        :items-per-page="matchPageSize"
+        prev-text="Назад"
+        next-text="Далее"
+        mode="simple"
+        @change="(val: number) => { matchPage = val }"
+      />
+
+      <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
+        <div class="fallback-note">
+          <van-icon name="info-o" size="18" />
+          <span>Пока нет рецептов, которые можно приготовить только из продуктов в холодильнике. Вот подходящие варианты:</span>
+        </div>
+        <RecipeCard
+          v-for="r in recipeStore.visibleAllRecipes"
+          :key="r.id"
+          :recipe="r"
+          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
+        />
+      </div>
+
+      <div v-else class="empty-state">
+        <van-empty
+          image="search"
+          description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
         >
-          <RecipeCard
-            v-for="item in visibleMatchedRecipes"
-            :key="item.recipe.id"
-            :recipe="item.recipe"
-            :match-item="item"
-            :saving-ingredients="recipeStore.getSavingIngredients(item.used_ingredients)"
-          />
-        </div>
-
-        <van-pagination
-          v-if="recipeStore.filteredMatchedRecipes.length > matchPageSize"
-          :model-value="matchPage"
-          :total-items="recipeStore.filteredMatchedRecipes.length"
-          :items-per-page="matchPageSize"
-          prev-text="Назад"
-          next-text="Далее"
-          mode="simple"
-          @change="(val: number) => { matchPage = val }"
-        />
-
-        <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
-          <div class="fallback-note">
-            <van-icon name="info-o" size="18" />
-            <span>Пока нет рецептов, которые можно приготовить только из продуктов в холодильнике. Вот подходящие варианты:</span>
-          </div>
-          <RecipeCard
-            v-for="r in recipeStore.visibleAllRecipes"
-            :key="r.id"
-            :recipe="r"
-            :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-          />
-        </div>
-
-        <div v-else class="empty-state">
-          <van-empty
-            image="search"
-            :description="recipeStore.pendingTranslations > 0 ? `Переводим рецепты: ${recipeStore.pendingTranslations} в очереди` : 'В каталоге пока нет рецептов. Попробуйте обновить список позже.'"
+          <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
+            <van-button round type="primary" color="#2e7d32" class="action-btn">
+              Заполнить холодильник
+            </van-button>
+          </router-link>
+          <van-button
+            v-if="recipeStore.searchQuery || recipeStore.timeFilter || recipeStore.difficultyFilter !== 'all' || recipeStore.saveExpiringOnly"
+            round
+            plain
+            class="action-btn"
+            @click="
+              recipeStore.searchQuery = '';
+              recipeStore.timeFilter = 0;
+              recipeStore.difficultyFilter = 'all';
+              recipeStore.saveExpiringOnly = false;
+              matchPage = 1;
+            "
           >
-            <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
-              <van-button round type="primary" color="#2e7d32" class="action-btn">
-                Заполнить холодильник
-              </van-button>
-            </router-link>
-            <van-button
-              v-if="recipeStore.searchQuery || recipeStore.timeFilter || recipeStore.difficultyFilter !== 'all' || recipeStore.saveExpiringOnly"
-              round
-              plain
-              class="action-btn"
-              @click="
-                recipeStore.searchQuery = '';
-                recipeStore.timeFilter = 0;
-                recipeStore.difficultyFilter = 'all';
-                recipeStore.saveExpiringOnly = false;
-                matchPage = 1;
-              "
-            >
-              Сбросить фильтры
-            </van-button>
-          </van-empty>
-        </div>
-      </template>
+            Сбросить фильтры
+          </van-button>
+        </van-empty>
+      </div>
+    </template>
 
-      <!-- Tab: All Recipes -->
-      <template v-else-if="recipeStore.activeTab === 'all'">
-        <div v-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list">
-          <RecipeCard
-            v-for="r in recipeStore.visibleAllRecipes"
-            :key="r.id"
-            :recipe="r"
-            :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-          />
-        </div>
-        <van-pagination
-          v-if="recipeStore.filteredAllRecipes.length > recipeStore.pageSize"
-          :model-value="recipeStore.page"
-          :total-items="recipeStore.filteredAllRecipes.length"
-          :items-per-page="recipeStore.pageSize"
-          prev-text="Назад"
-          next-text="Далее"
-          mode="simple"
-          @change="recipeStore.setPage"
+    <!-- Tab: All Recipes -->
+    <template v-else-if="recipeStore.activeTab === 'all'">
+      <div v-if="recipeStore.isLoading" class="loading-skeletons">
+        <van-skeleton title avatar :row="3" class="skeleton-card" />
+        <van-skeleton title avatar :row="3" class="skeleton-card" />
+      </div>
+
+      <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list">
+        <RecipeCard
+          v-for="r in recipeStore.visibleAllRecipes"
+          :key="r.id"
+          :recipe="r"
+          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
         />
+      </div>
+      <van-pagination
+        v-if="recipeStore.filteredAllRecipes.length > recipeStore.pageSize"
+        :model-value="recipeStore.page"
+        :total-items="recipeStore.filteredAllRecipes.length"
+        :items-per-page="recipeStore.pageSize"
+        prev-text="Назад"
+        next-text="Далее"
+        mode="simple"
+        @change="recipeStore.setPage"
+      />
 
-        <div v-if="recipeStore.filteredAllRecipes.length === 0" class="empty-state">
-          <van-empty image="search" :description="recipeStore.pendingTranslations > 0 ? `Переводим рецепты: ${recipeStore.pendingTranslations} в очереди` : 'Рецепты не найдены'">
-            <van-button
-              round
-              plain
-              class="action-btn"
-              @click="
-                recipeStore.searchQuery = '';
-                recipeStore.timeFilter = 0;
-                recipeStore.difficultyFilter = 'all';
-                recipeStore.saveExpiringOnly = false;
-              "
-            >
-              Сбросить фильтры
-            </van-button>
-          </van-empty>
-        </div>
-      </template>
-
-      <!-- Tab: Favorites -->
-      <template v-else-if="recipeStore.activeTab === 'favorites'">
-        <div v-if="recipeStore.favoriteRecipes.length > 0" class="recipes-list">
-          <RecipeCard
-            v-for="r in recipeStore.favoriteRecipes"
-            :key="r.id"
-            :recipe="r"
-            :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-          />
-        </div>
-
-        <div v-else class="empty-state">
-          <van-empty
-            image="default"
-            description="У вас пока нет сохраненных рецептов. Нажмите на сердечко на карточке рецепта, чтобы добавить его сюда."
+      <div v-if="!recipeStore.isLoading && recipeStore.filteredAllRecipes.length === 0" class="empty-state">
+        <van-empty image="search" description="Рецепты не найдены">
+          <van-button
+            round
+            plain
+            class="action-btn"
+            @click="
+              recipeStore.searchQuery = '';
+              recipeStore.timeFilter = 0;
+              recipeStore.difficultyFilter = 'all';
+              recipeStore.saveExpiringOnly = false;
+            "
           >
-            <van-button
-              round
-              type="primary"
-              color="#2e7d32"
-              class="action-btn"
-              @click="recipeStore.activeTab = 'all'"
-            >
-              Смотреть каталог рецептов
-            </van-button>
-          </van-empty>
-        </div>
-      </template>
+            Сбросить фильтры
+          </van-button>
+        </van-empty>
+      </div>
+    </template>
+
+    <!-- Tab: Favorites -->
+    <template v-else-if="recipeStore.activeTab === 'favorites'">
+      <div v-if="recipeStore.isFavoritesLoading" class="loading-skeletons">
+        <van-skeleton title avatar :row="3" class="skeleton-card" />
+        <van-skeleton title avatar :row="3" class="skeleton-card" />
+      </div>
+
+      <div v-else-if="recipeStore.favoriteRecipes.length > 0" class="recipes-list">
+        <RecipeCard
+          v-for="r in recipeStore.favoriteRecipes"
+          :key="r.id"
+          :recipe="r"
+          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
+        />
+      </div>
+
+      <div v-else-if="!recipeStore.isFavoritesLoading" class="empty-state">
+        <van-empty
+          image="default"
+          description="У вас пока нет сохраненных рецептов. Нажмите на сердечко на карточке рецепта, чтобы добавить его сюда."
+        >
+          <van-button
+            round
+            type="primary"
+            color="#2e7d32"
+            class="action-btn"
+            @click="recipeStore.activeTab = 'all'"
+          >
+            Смотреть каталог рецептов
+          </van-button>
+        </van-empty>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -387,7 +355,6 @@ onMounted(async () => {
 .search-header :deep(.van-field__control::placeholder) {
   color: #7c887e;
 }
-
 
 .tabs-nav {
   display: flex;

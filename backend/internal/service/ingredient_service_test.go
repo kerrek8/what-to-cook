@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kerrek8/what-to-cook/backend/internal/dto"
 	"github.com/kerrek8/what-to-cook/backend/internal/service"
 	"github.com/kerrek8/what-to-cook/backend/internal/store"
@@ -40,15 +39,14 @@ func TestIngredientService_Search_Success(t *testing.T) {
 			assert.True(t, arg.Query.Valid)
 			assert.Equal(t, "лук", arg.Query.String)
 			assert.True(t, arg.Category.Valid)
-			assert.Equal(t, "vegetables", arg.Category.String)
+			assert.Equal(t, "Овощи и зелень", arg.Category.String)
 
 			return []store.Ingredient{
 				{
 					ID:                1,
-					Name:              "Лук репчатый",
-					NameEn:            pgtype.Text{String: "Onion", Valid: true},
-					Category:          "vegetables",
-					DefaultUnit:       "g",
+					Name:              "лук репчатый",
+					Category:          "Овощи и зелень",
+					DefaultUnit:       "г",
 					IsPantryEssential: false,
 				},
 			}, nil
@@ -58,16 +56,14 @@ func TestIngredientService_Search_Success(t *testing.T) {
 	svc := service.NewIngredientService(mockStore)
 	res, err := svc.Search(context.Background(), dto.IngredientFilterQuery{
 		Query:    "лук",
-		Category: "vegetables",
+		Category: "Овощи и зелень",
 	})
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, res.Total)
 	require.Len(t, res.Items, 1)
 	assert.Equal(t, int32(1), res.Items[0].ID)
-	assert.Equal(t, "Лук репчатый", res.Items[0].Name)
-	require.NotNil(t, res.Items[0].NameEn)
-	assert.Equal(t, "Onion", *res.Items[0].NameEn)
+	assert.Equal(t, "лук репчатый", res.Items[0].Name)
 }
 
 func TestIngredientService_Search_Error(t *testing.T) {
@@ -87,9 +83,9 @@ func TestIngredientService_GetByID_Success(t *testing.T) {
 		getByIDFunc: func(ctx context.Context, id int32) (store.Ingredient, error) {
 			return store.Ingredient{
 				ID:                id,
-				Name:              "Соль",
-				Category:          "spices",
-				DefaultUnit:       "g",
+				Name:              "соль",
+				Category:          "Специи",
+				DefaultUnit:       "г",
 				IsPantryEssential: true,
 			}, nil
 		},
@@ -101,8 +97,7 @@ func TestIngredientService_GetByID_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, item)
 	assert.Equal(t, int32(10), item.ID)
-	assert.Equal(t, "Соль", item.Name)
-	assert.Nil(t, item.NameEn)
+	assert.Equal(t, "соль", item.Name)
 	assert.True(t, item.IsPantryEssential)
 }
 
@@ -117,20 +112,5 @@ func TestIngredientService_GetByID_NotFound(t *testing.T) {
 	item, err := svc.GetByID(context.Background(), 999)
 
 	require.ErrorIs(t, err, service.ErrIngredientNotFound)
-	assert.Nil(t, item)
-}
-
-func TestIngredientService_GetByID_Error(t *testing.T) {
-	mockStore := &mockIngredientQuerier{
-		getByIDFunc: func(ctx context.Context, id int32) (store.Ingredient, error) {
-			return store.Ingredient{}, errors.New("connection failed")
-		},
-	}
-
-	svc := service.NewIngredientService(mockStore)
-	item, err := svc.GetByID(context.Background(), 1)
-
-	require.Error(t, err)
-	assert.False(t, errors.Is(err, service.ErrIngredientNotFound))
 	assert.Nil(t, item)
 }

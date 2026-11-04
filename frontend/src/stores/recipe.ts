@@ -31,7 +31,6 @@ export const useRecipeStore = defineStore('recipe', () => {
   const matchedRecipes = ref<RecipeMatchItem[]>([])
   const allRecipes = ref<RecipeResponse[]>([])
   const favoriteCatalog = ref<RecipeResponse[]>([])
-  const pendingTranslations = ref(0)
   const totalCount = ref(0)
   const page = ref(1)
   const pageSize = 15
@@ -87,9 +86,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   ): boolean {
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
-      const text = `${recipe.title} ${recipe.description ?? ''} ${recipe.localized_title ?? ''} ${recipe.localized_description ?? ''}`.toLowerCase()
+      const text = `${recipe.title} ${recipe.description ?? ''}`.toLowerCase()
       const hasIngredient = (usedIngredients || recipe.ingredients || []).some(
-        (ing) => ing.name.toLowerCase().includes(q) || (ing.localized_name && ing.localized_name.toLowerCase().includes(q))
+        (ing) => ing.name.toLowerCase().includes(q)
       )
       if (!text.includes(q) && !hasIngredient) return false
     }
@@ -157,7 +156,6 @@ export const useRecipeStore = defineStore('recipe', () => {
       })
       allRecipes.value = resp.items
       totalCount.value = resp.total
-      pendingTranslations.value = resp.pending_translations ?? 0
       page.value = targetPage
     } catch {
       allRecipes.value = []
@@ -280,7 +278,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     matchedRecipes,
     allRecipes,
     favoriteCatalog,
-    pendingTranslations,
     totalCount,
     page,
     pageSize,
