@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { showToast, showDialog } from 'vant'
 import { useShoppingStore, type AddShoppingItemPayload } from '@/stores/shopping'
 import ShoppingItemCard from '@/components/shopping/ShoppingItemCard.vue'
-import { displayText } from '@/i18n/translation'
+
 import AddShoppingItemSheet from '@/components/shopping/AddShoppingItemSheet.vue'
 
 const shoppingStore = useShoppingStore()
@@ -118,7 +118,7 @@ async function onTransferToInventory() {
         :class="{ active: shoppingStore.activeCategory === cat }"
         @click="shoppingStore.activeCategory = cat"
       >
-        {{ displayText(cat) }}
+        {{ cat }}
       </button>
     </div>
 
@@ -132,7 +132,7 @@ async function onTransferToInventory() {
           class="department-card"
         >
           <div class="department-header">
-            <span class="department-title">{{ displayText(group.category) }}</span>
+            <span class="department-title">{{ group.category }}</span>
             <span class="department-progress">
               {{ group.boughtCount }}/{{ group.items.length }}
             </span>

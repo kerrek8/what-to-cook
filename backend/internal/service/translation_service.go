@@ -6,16 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html"
-	"log"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
-
-	"github.com/kerrek8/what-to-cook/backend/internal/dto"
 )
 
 type GroqRecipeIngredient struct {
@@ -47,27 +41,22 @@ type GroqRecipeTranslateResponse struct {
 }
 
 type TranslationService interface {
-	Translate(request dto.TranslateRequest) (dto.TranslateResponse, error)
 	TranslateRecipeGroq(ctx context.Context, req GroqRecipeTranslateRequest) (*GroqRecipeTranslateResponse, error)
 	IsGroqEnabled() bool
 }
 
 type translationService struct {
-	mu              sync.Mutex
-	cache           map[string]string
-	lastRequestTime time.Time
-	httpClient      *http.Client
-	groqAPIKey      string
-	groqModel       string
+	httpClient *http.Client
+	groqAPIKey string
+	groqModel  string
 }
 
 func NewTranslationService(groqAPIKey, groqModel string) TranslationService {
 	if groqModel == "" {
-		groqModel = "openai/gpt-oss-20b"
+		groqModel = "llama-3.3-70b-versatile"
 	}
 	return &translationService{
-		cache:      make(map[string]string),
-		httpClient: &http.Client{Timeout: 30 * time.Second},
+		httpClient: &http.Client{Timeout: 45 * time.Second},
 		groqAPIKey: strings.TrimSpace(groqAPIKey),
 		groqModel:  strings.TrimSpace(groqModel),
 	}
@@ -75,225 +64,6 @@ func NewTranslationService(groqAPIKey, groqModel string) TranslationService {
 
 func (s *translationService) IsGroqEnabled() bool {
 	return s.groqAPIKey != ""
-}
-
-var culinaryDictEnRu = map[string]string{
-	"salt":              "соль",
-	"sugar":             "сахар",
-	"water":             "вода",
-	"black pepper":      "черный перец",
-	"pepper":            "перец",
-	"olive oil":         "оливковое масло",
-	"vegetable oil":     "растительное масло",
-	"oil":               "растительное масло",
-	"butter":            "сливочное масло",
-	"garlic":            "чеснок",
-	"onion":             "лук",
-	"onions":            "лук",
-	"red onion":         "красный лук",
-	"egg":               "яйцо",
-	"eggs":              "яйца",
-	"flour":             "мука",
-	"all-purpose flour": "мука",
-	"milk":              "молоко",
-	"chicken":           "курица",
-	"chicken breast":    "куриная грудка",
-	"chicken thighs":    "куриные бедра",
-	"beef":              "говядина",
-	"pork":              "свинина",
-	"ground beef":       "фарш говяжий",
-	"minced beef":       "фарш говяжий",
-	"bacon":             "бекон",
-	"potato":            "картофель",
-	"potatoes":          "картофель",
-	"tomato":            "помидор",
-	"tomatoes":          "помидоры",
-	"carrot":            "морковь",
-	"carrots":           "морковь",
-	"cucumber":          "огурец",
-	"cucumbers":         "огурцы",
-	"lemon":             "лимон",
-	"lemon juice":       "лимонный сок",
-	"lime":              "лайм",
-	"lime juice":        "сок лайма",
-	"rice":              "рис",
-	"pasta":             "паста",
-	"spaghetti":         "спагетти",
-	"cheese":            "сыр",
-	"parmesan":          "пармезан",
-	"cheddar":           "чеддер",
-	"mozzarella":        "моцарелла",
-	"soy sauce":         "соевый соус",
-	"honey":             "мед",
-	"ginger":            "имбирь",
-	"cream":             "сливки",
-	"heavy cream":       "жирные сливки",
-	"sour cream":        "сметана",
-	"mayonnaise":        "майонез",
-	"mustard":           "горчица",
-	"vinegar":           "уксус",
-	"parsley":           "петрушка",
-	"dill":              "укроп",
-	"basil":             "базилик",
-	"oregano":           "орегано",
-	"thyme":             "тимьян",
-	"rosemary":          "розмарин",
-	"paprika":           "паприка",
-	"cinnamon":          "корица",
-	"bread":             "хлеб",
-	"mushrooms":         "грибы",
-	"mushroom":          "грибы",
-	"salmon":            "лосось",
-	"tuna":              "тунец",
-	"shrimp":            "креветки",
-	"prawns":            "креветки",
-	"fish":              "рыба",
-	"baking powder":     "разрыхлитель",
-	"yeast":             "дрожжи",
-	"vanilla extract":   "экстракт ванили",
-}
-
-var culinaryDictRuEn = map[string]string{
-	"курица":         "chicken",
-	"куриная грудка": "chicken breast",
-	"говядина":       "beef",
-	"свинина":        "pork",
-	"рыба":           "fish",
-	"паста":          "pasta",
-	"макароны":       "pasta",
-	"спагетти":       "spaghetti",
-	"рис":            "rice",
-	"суп":            "soup",
-	"салат":          "salad",
-	"десерт":         "dessert",
-	"завтрак":        "breakfast",
-	"картофель":      "potato",
-	"картошка":       "potato",
-	"яйца":           "eggs",
-	"яйцо":           "egg",
-	"сыр":            "cheese",
-	"помидоры":       "tomatoes",
-	"помидор":        "tomato",
-	"томаты":         "tomatoes",
-	"огурцы":         "cucumbers",
-	"морковь":        "carrots",
-	"грибы":          "mushrooms",
-	"креветки":       "shrimp",
-	"молоко":         "milk",
-	"хлеб":           "bread",
-	"яблоко":         "apple",
-	"яблоки":         "apples",
-	"банан":          "banana",
-	"бананы":         "bananas",
-	"выпечка":        "dessert",
-	"мясо":           "meat",
-	"фарш":           "ground beef",
-	"пирог":          "pie",
-	"торт":           "cake",
-	"пицца":          "pizza",
-}
-
-func (s *translationService) Translate(request dto.TranslateRequest) (dto.TranslateResponse, error) {
-	if request.Source == request.Target {
-		return dto.TranslateResponse{Translations: request.Texts}, nil
-	}
-
-	result := dto.TranslateResponse{Translations: make([]string, len(request.Texts))}
-	var uncachedIndices []int
-	var uncachedTexts []string
-
-	s.mu.Lock()
-	for index, text := range request.Texts {
-		trimmed := strings.TrimSpace(text)
-		if trimmed == "" {
-			result.Translations[index] = text
-			continue
-		}
-
-		key := request.Source + ":" + request.Target + ":" + trimmed
-		if translated, ok := s.cache[key]; ok {
-			result.Translations[index] = translated
-			continue
-		}
-
-		lower := strings.ToLower(trimmed)
-		if request.Source == "en" && request.Target == "ru" {
-			if dictVal, found := culinaryDictEnRu[lower]; found {
-				result.Translations[index] = dictVal
-				s.cache[key] = dictVal
-				continue
-			} else if !hasLatinChars(trimmed) {
-				result.Translations[index] = trimmed
-				s.cache[key] = trimmed
-				continue
-			}
-		} else if request.Source == "ru" && request.Target == "en" {
-			if dictVal, found := culinaryDictRuEn[lower]; found {
-				result.Translations[index] = dictVal
-				s.cache[key] = dictVal
-				continue
-			} else if !hasRussianChars(trimmed) {
-				result.Translations[index] = trimmed
-				s.cache[key] = trimmed
-				continue
-			}
-		}
-
-		uncachedIndices = append(uncachedIndices, index)
-		uncachedTexts = append(uncachedTexts, trimmed)
-	}
-	s.mu.Unlock()
-
-	if len(uncachedTexts) == 0 {
-		return result, nil
-	}
-
-	if s.IsGroqEnabled() {
-		groqTranslations, err := s.translateGroqTexts(uncachedTexts, request.Source, request.Target)
-		if err == nil && len(groqTranslations) == len(uncachedTexts) {
-			s.mu.Lock()
-			for i, idx := range uncachedIndices {
-				trans := groqTranslations[i]
-				result.Translations[idx] = trans
-				key := request.Source + ":" + request.Target + ":" + uncachedTexts[i]
-				s.cache[key] = trans
-			}
-			s.mu.Unlock()
-			return result, nil
-		}
-		log.Printf("[TranslationService] Groq batch translation failed: %v. Falling back to default providers.", err)
-	}
-
-	for i, idx := range uncachedIndices {
-		txt := uncachedTexts[i]
-		key := request.Source + ":" + request.Target + ":" + txt
-
-		s.mu.Lock()
-		if wait := time.Until(s.lastRequestTime.Add(400 * time.Millisecond)); wait > 0 {
-			time.Sleep(wait)
-		}
-		s.lastRequestTime = time.Now()
-		s.mu.Unlock()
-
-		translated, err := s.translateSafely(txt, request.Source, request.Target)
-		if err != nil {
-			return dto.TranslateResponse{}, fmt.Errorf("translate text: %w", err)
-		}
-		if translated == "" {
-			return dto.TranslateResponse{}, errors.New("translation returned an empty result")
-		}
-
-		s.mu.Lock()
-		if len(s.cache) >= 5000 {
-			s.cache = make(map[string]string)
-		}
-		s.cache[key] = translated
-		s.mu.Unlock()
-
-		result.Translations[idx] = translated
-	}
-
-	return result, nil
 }
 
 type groqMessage struct {
@@ -316,86 +86,13 @@ type groqChatRequest struct {
 type groqChatResponse struct {
 	Choices []struct {
 		Message struct {
-			Content string `json:"content"`
+			Content string `json:"message"`
 		} `json:"message"`
 	} `json:"choices"`
 	Error *struct {
 		Message string `json:"message"`
 		Type    string `json:"type"`
 	} `json:"error,omitempty"`
-}
-
-func (s *translationService) translateGroqTexts(texts []string, source, target string) ([]string, error) {
-	if len(texts) == 0 {
-		return nil, nil
-	}
-
-	systemPrompt := fmt.Sprintf("You are a professional culinary translator. Translate texts from %s to %s with natural culinary terminology. Return a JSON object with key \"translations\" containing array of translated strings in identical order.", source, target)
-
-	reqPayload := groqChatRequest{
-		Model: s.groqModel,
-		Messages: []groqMessage{
-			{Role: "system", Content: systemPrompt},
-			{Role: "user", Content: func() string {
-				b, _ := json.Marshal(map[string]any{"texts": texts})
-				return string(b)
-			}()},
-		},
-		Temperature:    0.1,
-		MaxTokens:      2500,
-		ResponseFormat: &groqResponseFormat{Type: "json_object"},
-	}
-
-	body, err := json.Marshal(reqPayload)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.groq.com/openai/v1/chat/completions", bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	httpReq.Header.Set("Authorization", "Bearer "+s.groqAPIKey)
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := s.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var groqResp groqChatResponse
-	if err := json.NewDecoder(resp.Body).Decode(&groqResp); err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg := fmt.Sprintf("groq status %d", resp.StatusCode)
-		if groqResp.Error != nil && groqResp.Error.Message != "" {
-			errMsg += ": " + groqResp.Error.Message
-		}
-		return nil, errors.New(errMsg)
-	}
-
-	if len(groqResp.Choices) == 0 {
-		return nil, errors.New("empty response choices from groq")
-	}
-
-	var parsed struct {
-		Translations []string `json:"translations"`
-	}
-	if err := json.Unmarshal([]byte(groqResp.Choices[0].Message.Content), &parsed); err != nil {
-		return nil, fmt.Errorf("decode groq json: %w", err)
-	}
-
-	if len(parsed.Translations) != len(texts) {
-		return nil, fmt.Errorf("groq returned %d translations for %d inputs", len(parsed.Translations), len(texts))
-	}
-
-	return parsed.Translations, nil
 }
 
 func (s *translationService) TranslateRecipeGroq(ctx context.Context, req GroqRecipeTranslateRequest) (*GroqRecipeTranslateResponse, error) {
@@ -408,9 +105,9 @@ Translate the culinary recipe into natural, high-quality Russian.
 Requirements:
 1. "localized_title": Russian recipe name (e.g. "Запеканка с курицей терияки", "Паста Карбонара").
 2. "localized_description": Russian category or short culinary description (e.g. "Блюдо из курицы", "Итальянская кухня").
-3. "localized_instructions": Array of step-by-step instructions in natural Russian. Translate measurements and temperatures to metric where appropriate (e.g., 350°F -> 180°C).
-4. "cooking_time_minutes": Integer representing realistic total preparation + cooking time in minutes (between 10 and 240).
-5. "difficulty": Exactly one of "easy", "medium", or "hard".
+3. "localized_instructions": Array of step-by-step instructions in natural Russian. Translate measurements and temperatures to metric (e.g., 350°F -> 180°C).
+4. "cooking_time_minutes": MANDATORY positive integer between 15 and 240 representing realistic preparation + cooking time. NEVER 0, NEVER null.
+5. "difficulty": MANDATORY exactly one of "easy", "medium", or "hard". NEVER empty.
 6. "ingredients": Array of objects matching input IDs:
    - "id": integer ID from input
    - "russian_name": standard lower-case ingredient name in Russian (e.g. "соевый соус", "куриное филе", "чеснок")
@@ -487,149 +184,61 @@ Output MUST be a valid JSON object matching this structure with no markdown code
 		translated.LocalizedInstructions = req.Instructions
 	}
 	if translated.CookingTimeMinutes <= 0 {
-		translated.CookingTimeMinutes = 0
+		translated.CookingTimeMinutes = estimateCookingTime(req.Instructions)
 	}
 	switch translated.Difficulty {
 	case "easy", "medium", "hard":
 	default:
-		translated.Difficulty = "medium"
+		translated.Difficulty = estimateDifficulty(translated.CookingTimeMinutes, len(req.Instructions))
 	}
 
 	return &translated, nil
 }
 
-func (s *translationService) translateSafely(text, source, target string) (string, error) {
-	if translated, err := s.translateGoogleDirect(text, source, target); err == nil && translated != "" {
-		return translated, nil
-	}
+var timePattern = regexp.MustCompile(`(?i)(\d+)\s*(?:min|minute|mins|minutes|мин|минут|минуты|час|часа|часов|hour|hours)`)
 
-	if translated, err := s.translateMyMemory(text, source, target); err == nil && translated != "" {
-		return translated, nil
-	}
-
-	return "", errors.New("all fallback translation providers failed")
-}
-
-func (s *translationService) translateGoogleDirect(text, source, target string) (string, error) {
-	reqURL := fmt.Sprintf(
-		"https://translate.googleapis.com/translate_a/single?client=gtx&sl=%s&tl=%s&dt=t&ie=UTF-8&oe=UTF-8&q=%s",
-		url.QueryEscape(source),
-		url.QueryEscape(target),
-		url.QueryEscape(text),
-	)
-
-	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-	req.Header.Set("Accept", "*/*")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("google translate status %d", resp.StatusCode)
-	}
-
-	var raw []json.RawMessage
-	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
-		return "", err
-	}
-	if len(raw) == 0 {
-		return "", errors.New("empty response from google translate")
-	}
-
-	var segments [][]json.RawMessage
-	if err := json.Unmarshal(raw[0], &segments); err != nil {
-		return "", err
-	}
-
-	var sb strings.Builder
-	for _, seg := range segments {
-		if len(seg) > 0 {
-			var part string
-			if err := json.Unmarshal(seg[0], &part); err == nil {
-				sb.WriteString(part)
+func estimateCookingTime(instructions []string) int32 {
+	var maxFound int32
+	for _, step := range instructions {
+		matches := timePattern.FindAllStringSubmatch(step, -1)
+		for _, m := range matches {
+			if len(m) > 1 {
+				var val int32
+				if _, err := fmt.Sscanf(m[1], "%d", &val); err == nil && val > 0 {
+					if strings.Contains(strings.ToLower(m[0]), "час") || strings.Contains(strings.ToLower(m[0]), "hour") {
+						val *= 60
+					}
+					if val > maxFound && val <= 300 {
+						maxFound = val
+					}
+				}
 			}
 		}
 	}
-
-	result := strings.TrimSpace(sb.String())
-	if result == "" {
-		return "", errors.New("empty translated string")
+	if maxFound >= 15 {
+		return maxFound
 	}
-	return result, nil
+	steps := len(instructions)
+	if steps <= 3 {
+		return 20
+	} else if steps <= 6 {
+		return 30
+	}
+	return 45
 }
 
-func (s *translationService) translateMyMemory(text, source, target string) (string, error) {
-	reqURL := fmt.Sprintf(
-		"https://api.mymemory.translated.net/get?q=%s&langpair=%s|%s",
-		url.QueryEscape(text),
-		url.QueryEscape(source),
-		url.QueryEscape(target),
-	)
-
-	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
-	if err != nil {
-		return "", err
+func estimateDifficulty(mins int32, stepsCount int) string {
+	if mins <= 25 && stepsCount <= 4 {
+		return "easy"
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return "", err
+	if mins > 60 || stepsCount >= 8 {
+		return "hard"
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("mymemory status %d", resp.StatusCode)
-	}
-
-	var payload struct {
-		ResponseData struct {
-			TranslatedText string `json:"translatedText"`
-		} `json:"responseData"`
-		ResponseStatus int `json:"responseStatus"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return "", err
-	}
-
-	result := strings.TrimSpace(payload.ResponseData.TranslatedText)
-	if result == "" {
-		return "", errors.New("empty translated text from mymemory")
-	}
-	result = html.UnescapeString(result)
-	return result, nil
+	return "medium"
 }
-
-func hasLatinChars(s string) bool {
-	for _, r := range s {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
-			return true
-		}
-	}
-	return false
-}
-
-func hasRussianChars(s string) bool {
-	for _, r := range s {
-		if (r >= 'а' && r <= 'я') || (r >= 'А' && r <= 'Я') || r == 'ё' || r == 'Ё' {
-			return true
-		}
-	}
-	return false
-}
-
 
 var dailyLimitRegex = regexp.MustCompile(`(?i)Please try again in\s+([0-9hms\.]+)`)
 
-// ParseDailyLimitError checks if an error indicates that Groq's daily rate limit (TPD or RPD)
-// has been reached. If so, it returns true and the duration to wait before retrying.
 func ParseDailyLimitError(err error) (bool, time.Duration) {
 	if err == nil {
 		return false, 0
@@ -650,11 +259,9 @@ func ParseDailyLimitError(err error) (bool, time.Duration) {
 	if len(matches) > 1 {
 		durStr := strings.TrimRight(matches[1], ".")
 		if d, parseErr := time.ParseDuration(durStr); parseErr == nil && d > 0 {
-			// Add 10s safety buffer against server clock skew
 			return true, d + 10*time.Second
 		}
 	}
 
-	// Default fallback wait time if exact duration cannot be parsed: 15 minutes
 	return true, 15 * time.Minute
 }

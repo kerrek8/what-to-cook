@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { LocalInventoryItem } from '@/db/types'
 import { getFreshnessInfo, formatQuantity } from '@/utils/freshness'
-import { displayText, displayUnit } from '@/i18n/translation'
+
 
 const props = defineProps<{
   item: LocalInventoryItem
@@ -15,7 +15,7 @@ const emit = defineEmits<{
 
 const freshness = computed(() => getFreshnessInfo(props.item.expirationDate))
 const formattedQuantity = computed(() =>
-  formatQuantity(props.item.amount, displayUnit(props.item.unit), props.item.approximateQuantity)
+  formatQuantity(props.item.amount, props.item.unit, props.item.approximateQuantity)
 )
 
 function handleDelete() {
@@ -30,8 +30,8 @@ function handleDelete() {
     <div class="product-card">
       <div class="card-main">
         <div class="product-info">
-          <span class="product-name">{{ displayText(item.name) }}</span>
-          <span class="product-cat">{{ displayText(item.category) }}</span>
+          <span class="product-name">{{ item.name }}</span>
+          <span class="product-cat">{{ item.category }}</span>
         </div>
         <div class="product-qty">
           {{ formattedQuantity }}

@@ -122,6 +122,35 @@ func (h *RecipeHandler) Match(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// @Summary List user favorite recipes
+// @Tags recipes
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} dto.RecipeResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/recipes/favorites [get]
+func (h *RecipeHandler) ListFavorites(c *gin.Context) {
+	userIDStr, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	favs, err := h.recipeService.ListFavorites(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list favorite recipes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, favs)
+}
+
 // @Summary Add recipe to favorites
 // @Tags recipes
 // @Security BearerAuth

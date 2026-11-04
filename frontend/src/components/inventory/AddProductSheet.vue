@@ -5,7 +5,7 @@ import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddItemData } from '@/stores/inventory'
 import type { LocalInventoryItem } from '@/db/types'
-import { displayIngredientName, displayText } from '@/i18n/translation'
+
 
 const props = defineProps<{
   show: boolean
@@ -42,7 +42,7 @@ const suggestions = computed(() => {
   const q = productName.value.trim().toLowerCase()
   if (!q) return []
   return catalog.value
-    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q) || displayIngredientName(item.name, item.nameEn).toLowerCase().includes(q))
+    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q))
     .slice(0, 5)
 })
 
@@ -177,8 +177,8 @@ watch(() => props.editItem, (item) => {
             class="suggestion-item"
             @click="selectSuggestion(s)"
           >
-            <span class="suggestion-name">{{ displayIngredientName(s.name, s.nameEn) }}</span>
-            <span class="suggestion-cat">{{ displayText(s.category) }}</span>
+            <span class="suggestion-name">{{ s.name }}</span>
+            <span class="suggestion-cat">{{ s.category }}</span>
           </div>
         </div>
       </div>

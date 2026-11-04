@@ -30,6 +30,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 vi.mock('@/api/recipe', () => ({
   getRecipesApi: vi.fn(),
   getRecipeByIdApi: vi.fn(),
+  getFavoriteRecipesApi: vi.fn(),
   matchRecipesApi: vi.fn(),
   addFavoriteApi: vi.fn(),
   removeFavoriteApi: vi.fn(),
@@ -102,7 +103,7 @@ describe('useRecipeStore', () => {
     })
 
     const store = useRecipeStore()
-    await store.loadAllRecipes(true)
+    await store.loadAllRecipes(1)
 
     expect(store.allRecipes).toHaveLength(1)
     expect(store.allRecipes[0].title).toBe('Омлет с сыром и томатами')

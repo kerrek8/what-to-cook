@@ -25,7 +25,8 @@ type mockRecipeQuerier struct {
 	countRecipesFunc func(ctx context.Context, arg store.CountRecipesParams) (int64, error)
 	getRecipeFunc    func(ctx context.Context, id int32) (store.Recipe, error)
 	getRecipeIngFunc func(ctx context.Context, id int32) ([]store.GetRecipeIngredientsRow, error)
-	getAllIngFunc    func(ctx context.Context) ([]store.GetAllRecipeIngredientsWithDetailsRow, error)
+	getAllIngFunc    func(ctx context.Context) ([]store.GetTranslatedRecipeIngredientsWithDetailsRow, error)
+	listFavoriteRecipesFunc func(ctx context.Context, userID pgtype.UUID) ([]store.Recipe, error)
 	listFavFunc      func(ctx context.Context, id pgtype.UUID) ([]int32, error)
 	isFavFunc        func(ctx context.Context, arg store.IsRecipeFavoriteParams) (bool, error)
 	addFavFunc       func(ctx context.Context, arg store.AddRecipeFavoriteParams) error
@@ -82,9 +83,23 @@ func (m *mockRecipeQuerier) GetRecipeIngredients(ctx context.Context, id int32) 
 	return nil, nil
 }
 
-func (m *mockRecipeQuerier) GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]store.GetAllRecipeIngredientsWithDetailsRow, error) {
+func (m *mockRecipeQuerier) GetTranslatedRecipeIngredientsWithDetails(ctx context.Context) ([]store.GetTranslatedRecipeIngredientsWithDetailsRow, error) {
 	if m.getAllIngFunc != nil {
 		return m.getAllIngFunc(ctx)
+	}
+	return nil, nil
+}
+
+func (m *mockRecipeQuerier) ListFavoriteRecipes(ctx context.Context, userID pgtype.UUID) ([]store.Recipe, error) {
+	if m.listFavoriteRecipesFunc != nil {
+		return m.listFavoriteRecipesFunc(ctx, userID)
+	}
+	return nil, nil
+}
+
+func (m *mockRecipeQuerier) GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]store.GetAllRecipeIngredientsWithDetailsRow, error) {
+	if m.getAllIngFunc != nil {
+		return nil, nil
 	}
 	return nil, nil
 }
@@ -271,8 +286,8 @@ func TestRecipeService_Match(t *testing.T) {
 				{ID: 3, Title: "Грибной суп", CookingTimeMinutes: 30},
 			}, nil
 		},
-		getAllIngFunc: func(ctx context.Context) ([]store.GetAllRecipeIngredientsWithDetailsRow, error) {
-			return []store.GetAllRecipeIngredientsWithDetailsRow{
+		getAllIngFunc: func(ctx context.Context) ([]store.GetTranslatedRecipeIngredientsWithDetailsRow, error) {
+			return []store.GetTranslatedRecipeIngredientsWithDetailsRow{
 				{RecipeID: 1, IngredientID: 10, IngredientName: "Курица", IsPantryEssential: false},
 				{RecipeID: 1, IngredientID: 11, IngredientName: "Соль", IsPantryEssential: true}, // Pantry essential!
 				{RecipeID: 2, IngredientID: 10, IngredientName: "Курица", IsPantryEssential: false},
@@ -375,4 +390,20 @@ func TestRecipeService_SyncFromProvider(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 1, res.SyncedCount)
+}
+
+func TestRecipeService_ListFavorites(t *testing.T) {
+	uid := uuid.New()
+	mockStore := &mockRecipeQuerier{
+		listFavoriteRecipesFunc: func(ctx context.Context, userID pgtype.UUID) ([]store.Recipe, error) {
+			return []store.Recipe{
+				{ID: 1, Title: "Паста"},
+			}, nil
+		},
+	}
+	svc := service.NewRecipeService(mockStore, nil)
+	res, err := svc.ListFavorites(context.Background(), uid)
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, int32(1), res[0].ID)
 }

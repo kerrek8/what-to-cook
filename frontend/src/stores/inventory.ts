@@ -16,7 +16,7 @@ import {
 } from '@/api/inventory'
 import { useAuthStore } from './auth'
 import { getFreshnessInfo } from '@/utils/freshness'
-import { displayText } from '@/i18n/translation'
+
 
 export interface AddItemData {
   ingredientId?: number | null
@@ -61,9 +61,9 @@ export const useInventoryStore = defineStore('inventory', () => {
       result = result.filter(
         (item) =>
           item.name.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q) ||
-          displayText(item.name).toLowerCase().includes(q) ||
-          displayText(item.category).toLowerCase().includes(q)
+          item.category.toLowerCase().includes(q)
+
+
       )
     }
 

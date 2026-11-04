@@ -336,6 +336,28 @@ func (m *e2eMockStore) GetAllRecipeIngredientsWithDetails(ctx context.Context) (
 	return rows, nil
 }
 
+func (m *e2eMockStore) GetTranslatedRecipeIngredientsWithDetails(ctx context.Context) ([]store.GetTranslatedRecipeIngredientsWithDetailsRow, error) {
+	var rows []store.GetTranslatedRecipeIngredientsWithDetailsRow
+	for _, ings := range m.recipeIngredients {
+		for _, ing := range ings {
+			rows = append(rows, store.GetTranslatedRecipeIngredientsWithDetailsRow{
+				ID:                    ing.ID,
+				RecipeID:              ing.RecipeID,
+				IngredientID:          ing.IngredientID,
+				Amount:                ing.Amount,
+				Unit:                  ing.Unit,
+				DisplayText:           ing.DisplayText,
+				Criticality:           ing.Criticality,
+				IngredientName:        ing.IngredientName,
+				IngredientCategory:    ing.IngredientCategory,
+				IngredientDefaultUnit: ing.IngredientDefaultUnit,
+				IsPantryEssential:     ing.IsPantryEssential,
+			})
+		}
+	}
+	return rows, nil
+}
+
 func (m *e2eMockStore) ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
 	uidStr := uuid.UUID(userID.Bytes).String()
 	userFavs := m.favorites[uidStr]

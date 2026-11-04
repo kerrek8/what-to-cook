@@ -18,7 +18,7 @@ import {
 } from '@/api/shopping'
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
-import { displayText } from '@/i18n/translation'
+
 
 export interface AddShoppingItemPayload {
   ingredientId?: number | null
@@ -64,7 +64,7 @@ export const useShoppingStore = defineStore('shopping', () => {
 
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
-      result = result.filter((i) => i.name.toLowerCase().includes(q) || displayText(i.name).toLowerCase().includes(q))
+      result = result.filter((i) => i.name.toLowerCase().includes(q))
     }
 
     if (activeCategory.value !== 'all') {

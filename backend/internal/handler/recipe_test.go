@@ -22,6 +22,7 @@ type mockRecipeService struct {
 	getByIDFunc     func(ctx context.Context, userID *uuid.UUID, id int32) (*dto.RecipeResponse, error)
 	matchFunc       func(ctx context.Context, userID uuid.UUID) (dto.RecipeMatchResponse, error)
 	setFavoriteFunc func(ctx context.Context, userID uuid.UUID, recipeID int32, isFav bool) error
+	listFavoritesFunc func(ctx context.Context, userID uuid.UUID) ([]dto.RecipeResponse, error)
 	syncFunc        func(ctx context.Context, query string) (dto.RecipeSyncResponse, error)
 }
 
@@ -53,6 +54,13 @@ func (m *mockRecipeService) SetFavorite(ctx context.Context, userID uuid.UUID, r
 	return nil
 }
 
+func (m *mockRecipeService) ListFavorites(ctx context.Context, userID uuid.UUID) ([]dto.RecipeResponse, error) {
+	if m.listFavoritesFunc != nil {
+		return m.listFavoritesFunc(ctx, userID)
+	}
+	return []dto.RecipeResponse{}, nil
+}
+
 func (m *mockRecipeService) SyncFromProvider(ctx context.Context, query string) (dto.RecipeSyncResponse, error) {
 	if m.syncFunc != nil {
 		return m.syncFunc(ctx, query)
@@ -76,6 +84,7 @@ func setupRecipeTestRouter(svc service.RecipeService, authUserID uuid.UUID) *gin
 	{
 		api.GET("/recipes", h.List)
 		api.GET("/recipes/match", h.Match)
+		api.GET("/recipes/favorites", h.ListFavorites)
 		api.GET("/recipes/:id", h.GetByID)
 		api.POST("/recipes/:id/favorite", h.AddFavorite)
 		api.DELETE("/recipes/:id/favorite", h.RemoveFavorite)
@@ -234,4 +243,28 @@ func TestRecipeHandler_Sync(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, 5, resp.SyncedCount)
+}
+
+func TestRecipeHandler_ListFavorites_Success(t *testing.T) {
+	authUID := uuid.New()
+	mockSvc := &mockRecipeService{
+		listFavoritesFunc: func(ctx context.Context, userID uuid.UUID) ([]dto.RecipeResponse, error) {
+			assert.Equal(t, authUID, userID)
+			return []dto.RecipeResponse{
+				{ID: 1, Title: "Паста"},
+			}, nil
+		},
+	}
+	router := setupRecipeTestRouter(mockSvc, authUID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/recipes/favorites", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var resp []dto.RecipeResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Len(t, resp, 1)
+	assert.Equal(t, int32(1), resp[0].ID)
 }

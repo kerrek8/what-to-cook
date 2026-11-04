@@ -4,19 +4,39 @@ SELECT
 FROM recipes r
 WHERE 
     r.translation_status = 'translated'
-    AND (sqlc.narg('query')::text IS NULL OR sqlc.narg('query')::text = '' OR r.title ILIKE '%' || sqlc.narg('query') || '%' OR r.localized_title ILIKE '%' || sqlc.narg('query') || '%')
+    AND (
+        sqlc.narg('query')::text IS NULL OR sqlc.narg('query')::text = ''
+        OR r.localized_title ILIKE '%' || sqlc.narg('query') || '%'
+        OR r.title ILIKE '%' || sqlc.narg('query') || '%'
+        OR EXISTS (
+            SELECT 1 FROM recipe_ingredients ri
+            JOIN ingredients ing ON ing.id = ri.ingredient_id
+            WHERE ri.recipe_id = r.id
+              AND (ing.name ILIKE '%' || sqlc.narg('query') || '%' OR (ing.name_en IS NOT NULL AND ing.name_en ILIKE '%' || sqlc.narg('query') || '%'))
+        )
+    )
     AND (sqlc.narg('difficulty')::text IS NULL OR sqlc.narg('difficulty')::text = '' OR r.difficulty = sqlc.narg('difficulty'))
     AND (sqlc.narg('max_time')::int IS NULL OR sqlc.narg('max_time')::int = 0 OR r.cooking_time_minutes <= sqlc.narg('max_time'))
 ORDER BY r.title ASC
 LIMIT sqlc.arg('limit_val') OFFSET sqlc.arg('offset_val');
 
 -- name: CountRecipes :one
-SELECT COUNT(*) FROM recipes
+SELECT COUNT(*) FROM recipes r
 WHERE 
-    translation_status = 'translated'
-    AND (sqlc.narg('query')::text IS NULL OR sqlc.narg('query')::text = '' OR title ILIKE '%' || sqlc.narg('query') || '%' OR localized_title ILIKE '%' || sqlc.narg('query') || '%')
-    AND (sqlc.narg('difficulty')::text IS NULL OR sqlc.narg('difficulty')::text = '' OR difficulty = sqlc.narg('difficulty'))
-    AND (sqlc.narg('max_time')::int IS NULL OR sqlc.narg('max_time')::int = 0 OR cooking_time_minutes <= sqlc.narg('max_time'));
+    r.translation_status = 'translated'
+    AND (
+        sqlc.narg('query')::text IS NULL OR sqlc.narg('query')::text = ''
+        OR r.localized_title ILIKE '%' || sqlc.narg('query') || '%'
+        OR r.title ILIKE '%' || sqlc.narg('query') || '%'
+        OR EXISTS (
+            SELECT 1 FROM recipe_ingredients ri
+            JOIN ingredients ing ON ing.id = ri.ingredient_id
+            WHERE ri.recipe_id = r.id
+              AND (ing.name ILIKE '%' || sqlc.narg('query') || '%' OR (ing.name_en IS NOT NULL AND ing.name_en ILIKE '%' || sqlc.narg('query') || '%'))
+        )
+    )
+    AND (sqlc.narg('difficulty')::text IS NULL OR sqlc.narg('difficulty')::text = '' OR r.difficulty = sqlc.narg('difficulty'))
+    AND (sqlc.narg('max_time')::int IS NULL OR sqlc.narg('max_time')::int = 0 OR r.cooking_time_minutes <= sqlc.narg('max_time'));
 
 -- name: GetRecipeByID :one
 SELECT 
@@ -61,6 +81,26 @@ SELECT
     ing.is_pantry_essential
 FROM recipe_ingredients ri
 JOIN ingredients ing ON ing.id = ri.ingredient_id;
+
+-- name: GetTranslatedRecipeIngredientsWithDetails :many
+SELECT 
+    ri.id,
+    ri.recipe_id,
+    ri.ingredient_id,
+    ri.amount,
+    ri.unit,
+    ri.display_text,
+    ri.localized_display_text,
+    ri.criticality,
+    ing.name AS ingredient_name,
+    ing.name_en AS ingredient_name_en,
+    ing.category AS ingredient_category,
+    ing.default_unit AS ingredient_default_unit,
+    ing.is_pantry_essential
+FROM recipe_ingredients ri
+JOIN ingredients ing ON ing.id = ri.ingredient_id
+JOIN recipes r ON r.id = ri.recipe_id
+WHERE r.translation_status = 'translated';
 
 -- name: UpsertRecipe :one
 INSERT INTO recipes (
@@ -159,7 +199,38 @@ WHERE id = $1;
 -- name: UpdateIngredientRussianName :exec
 UPDATE ingredients
 SET name = $2
-WHERE id = $1;
+WHERE ingredients.id = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM ingredients other WHERE LOWER(other.name) = LOWER($2) AND other.id <> ingredients.id
+  );
+
+-- name: ReassignRecipeIngredient :exec
+INSERT INTO recipe_ingredients (
+    recipe_id, ingredient_id, display_text, localized_display_text, criticality
+)
+VALUES (
+    @recipe_id,
+    @target_ingredient_id,
+    @display_text,
+    @localized_display_text,
+    COALESCE(NULLIF(@criticality::text, ''), 'desirable')
+)
+ON CONFLICT (recipe_id, ingredient_id) DO UPDATE SET
+    localized_display_text = COALESCE(NULLIF(EXCLUDED.localized_display_text, ''), recipe_ingredients.localized_display_text);
+
+-- name: DeleteRecipeIngredientLink :exec
+DELETE FROM recipe_ingredients
+WHERE recipe_id = $1 AND ingredient_id = $2;
+
+-- name: DeleteUnusedIngredient :exec
+DELETE FROM ingredients
+WHERE ingredients.id = $1
+  AND NOT EXISTS (SELECT 1 FROM recipe_ingredients ri WHERE ri.ingredient_id = ingredients.id)
+  AND NOT EXISTS (SELECT 1 FROM inventory_items ii WHERE ii.ingredient_id = ingredients.id)
+  AND NOT EXISTS (SELECT 1 FROM shopping_list_items sli WHERE sli.ingredient_id = ingredients.id);
+
+-- name: CountTotalRecipes :one
+SELECT COUNT(*) FROM recipes;
 
 -- name: UpdateRecipeIngredientTranslation :exec
 UPDATE recipe_ingredients
@@ -227,6 +298,13 @@ WHERE user_id = $1 AND recipe_id = $2;
 -- name: ListUserFavoriteRecipeIDs :many
 SELECT recipe_id FROM recipe_favorites
 WHERE user_id = $1;
+
+-- name: ListFavoriteRecipes :many
+SELECT r.*
+FROM recipes r
+JOIN recipe_favorites rf ON rf.recipe_id = r.id
+WHERE rf.user_id = $1 AND r.translation_status = 'translated'
+ORDER BY rf.created_at DESC;
 
 -- name: IsRecipeFavorite :one
 SELECT EXISTS (

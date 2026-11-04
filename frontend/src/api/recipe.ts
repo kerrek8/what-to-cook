@@ -29,6 +29,11 @@ export async function syncRecipesApi(query: string): Promise<number> {
   return data.synced_count
 }
 
+export async function getFavoriteRecipesApi(): Promise<RecipeResponse[]> {
+  const { data } = await apiClient.get<RecipeResponse[]>('/api/v1/recipes/favorites')
+  return data
+}
+
 export async function addFavoriteApi(id: number): Promise<void> {
   await apiClient.post(`/api/v1/recipes/${id}/favorite`)
 }

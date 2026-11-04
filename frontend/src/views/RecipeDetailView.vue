@@ -6,7 +6,7 @@ import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
-import { displayText, displayUnit } from '@/i18n/translation'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -69,9 +69,9 @@ const difficultyLabel = computed(() => {
 })
 
 function formatIngredientAmount(ing: RecipeIngredientResponse): string {
-  if (ing.localized_display_text || ing.display_text) return displayText(ing.localized_display_text || ing.display_text)
+  if (ing.localized_display_text || ing.display_text) return (ing.localized_display_text || ing.display_text) as string
   if (ing.amount != null) {
-    return `${ing.amount} ${displayUnit(ing.unit)}`.trim()
+    return `${ing.amount} ${ing.unit ?? ''}`.trim()
   }
   return ing.is_pantry_essential ? 'По вкусу (Базовый)' : 'По вкусу'
 }
@@ -173,7 +173,7 @@ function onFavoriteToggle() {
       </div>
 
       <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ recipe.localized_title || displayText(recipe.title) }}</h1>
+        <h1 class="recipe-title">{{ recipe.localized_title || recipe.title }}</h1>
 
         <!-- Saving banner -->
         <div v-if="savingProducts.length > 0" class="saving-banner">
@@ -181,7 +181,7 @@ function onFavoriteToggle() {
           <div class="saving-text">
             <strong>Спасает продукты!</strong>
             Использует скоропортящиеся:
-            {{ savingProducts.map((p) => displayText(p.name)).join(', ') }}
+            {{ savingProducts.map((p) => p.name).join(', ') }}
           </div>
         </div>
 
@@ -202,7 +202,7 @@ function onFavoriteToggle() {
         </div>
 
         <p v-if="recipe.description" class="recipe-desc">
-          {{ recipe.localized_description || displayText(recipe.description) }}
+          {{ recipe.localized_description || recipe.description }}
         </p>
 
         <!-- Ingredients Section -->
@@ -228,7 +228,7 @@ function onFavoriteToggle() {
               >
                 <div class="ing-left">
                   <van-icon name="passed" color="#2e7d32" size="16" />
-                  <span class="ing-name">{{ ing.localized_name || displayText(ing.name) }}</span>
+                  <span class="ing-name">{{ ing.localized_name || ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -254,7 +254,7 @@ function onFavoriteToggle() {
                   >
                     {{ getCriticalityBadge(ing.criticality).label }}
                   </span>
-                  <span class="ing-name">{{ ing.localized_name || displayText(ing.name) }}</span>
+                  <span class="ing-name">{{ ing.localized_name || ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
               </li>
@@ -319,7 +319,7 @@ function onFavoriteToggle() {
                 <span v-else>{{ idx + 1 }}</span>
               </div>
               <div class="step-body">
-                <p class="step-text">{{ recipe.localized_instructions?.[idx] || displayText(step) }}</p>
+                <p class="step-text">{{ recipe.localized_instructions?.[idx] || step }}</p>
                 <div
                   v-if="extractTimerMinutes(recipe.instructions[idx] ?? step)"
                   class="step-timer-row"

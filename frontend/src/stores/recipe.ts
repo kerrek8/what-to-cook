@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import type {
   RecipeResponse,
   RecipeMatchItem,
@@ -8,16 +8,15 @@ import type {
 import {
   getRecipesApi,
   getRecipeByIdApi,
+  getFavoriteRecipesApi,
   matchRecipesApi,
   addFavoriteApi,
   removeFavoriteApi,
-  addMissingIngredientsToShoppingListApi,
-  syncRecipesApi
+  addMissingIngredientsToShoppingListApi
 } from '@/api/recipe'
 import { useAuthStore } from './auth'
 import { useInventoryStore } from './inventory'
 import { getFreshnessInfo } from '@/utils/freshness'
-import { translateSearchQuery } from '@/i18n/translation'
 import {
   cacheFavoriteRecipe,
   cacheFavoriteRecipes,
@@ -33,8 +32,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   const allRecipes = ref<RecipeResponse[]>([])
   const favoriteCatalog = ref<RecipeResponse[]>([])
   const pendingTranslations = ref(0)
+  const totalCount = ref(0)
   const page = ref(1)
-  const pageSize = 20
+  const pageSize = 15
   const currentRecipe = ref<RecipeResponse | null>(null)
 
   const isLoading = ref(false)
@@ -44,7 +44,6 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   const activeTab = ref<'match' | 'all' | 'favorites'>('match')
   const searchQuery = ref('')
-  const translatedSearchQuery = ref('')
   const timeFilter = ref<CookingTimeFilter>(0)
   const difficultyFilter = ref<string>('all')
   const saveExpiringOnly = ref(false)
@@ -82,15 +81,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     return saved
   }
 
-  function filterRecipe(
+  function filterMatched(
     recipe: RecipeResponse,
     usedIngredients?: RecipeIngredientResponse[]
   ): boolean {
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
       const text = `${recipe.title} ${recipe.description ?? ''} ${recipe.localized_title ?? ''} ${recipe.localized_description ?? ''}`.toLowerCase()
-      const translatedQuery = translatedSearchQuery.value.trim().toLowerCase()
-      if (!text.includes(q) && (!translatedQuery || !text.includes(translatedQuery))) return false
+      const hasIngredient = (usedIngredients || recipe.ingredients || []).some(
+        (ing) => ing.name.toLowerCase().includes(q) || (ing.localized_name && ing.localized_name.toLowerCase().includes(q))
+      )
+      if (!text.includes(q) && !hasIngredient) return false
     }
 
     if (difficultyFilter.value !== 'all' && recipe.difficulty !== difficultyFilter.value) {
@@ -112,21 +113,17 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   const filteredMatchedRecipes = computed(() => {
-    return matchedRecipes.value.filter((item) => filterRecipe(item.recipe, item.used_ingredients))
+    return matchedRecipes.value.filter((item) => filterMatched(item.recipe, item.used_ingredients))
   })
 
   const filteredAllRecipes = computed(() => {
-    return allRecipes.value.filter((r) => filterRecipe(r))
+    return allRecipes.value.filter((r) => filterMatched(r))
   })
-  const visibleAllRecipes = computed(() => filteredAllRecipes.value.slice((page.value - 1) * pageSize, page.value * pageSize))
-  const totalPages = computed(() => Math.max(1, Math.ceil(filteredAllRecipes.value.length / pageSize)))
-  watch([searchQuery, timeFilter, difficultyFilter, saveExpiringOnly], () => {
-    page.value = 1
-    translatedSearchQuery.value = ''
-  })
+  const visibleAllRecipes = computed(() => filteredAllRecipes.value)
+  const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)))
 
   const favoriteRecipes = computed(() => {
-    return favoriteCatalog.value.filter((r) => r.is_favorite && filterRecipe(r))
+    return favoriteCatalog.value.filter((r) => r.is_favorite && filterMatched(r))
   })
 
   async function loadMatchedRecipes(force = false) {
@@ -141,26 +138,28 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       const resp = await matchRecipesApi()
       matchedRecipes.value = resp.items
-    } catch (err) {
-      console.error("TOGGLE_ERR:", err);
+    } catch {
       matchedRecipes.value = []
     } finally {
       isMatching.value = false
     }
   }
 
-  async function loadAllRecipes(force = false) {
-    if (isLoading.value) return
-    if (allRecipes.value.length > 0 && !force) return
-
+  async function loadAllRecipes(targetPage = 1) {
     isLoading.value = true
     try {
-      const first = await getRecipesApi({ limit: 100, offset: 0 })
-      const remaining = await Promise.all(Array.from({ length: Math.ceil(first.total / 100) - 1 }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
-      allRecipes.value = [...first.items, ...remaining.flatMap(response => response.items)]
-      pendingTranslations.value = first.pending_translations ?? 0
-    } catch (err) {
-      console.log("ERR_IN_CATCH:", err);
+      const resp = await getRecipesApi({
+        limit: pageSize,
+        offset: (targetPage - 1) * pageSize,
+        q: searchQuery.value.trim() || undefined,
+        difficulty: difficultyFilter.value !== 'all' ? difficultyFilter.value : undefined,
+        max_time: timeFilter.value > 0 ? timeFilter.value : undefined
+      })
+      allRecipes.value = resp.items
+      totalCount.value = resp.total
+      pendingTranslations.value = resp.pending_translations ?? 0
+      page.value = targetPage
+    } catch {
       allRecipes.value = []
     } finally {
       isLoading.value = false
@@ -168,32 +167,29 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   async function loadFavorites(force = false) {
-    if (!authStore.isAuthenticated) { favoriteCatalog.value = []; return }
-    if (favoriteCatalog.value.length && !force && !navigator.onLine) return
+    if (!authStore.isAuthenticated) {
+      favoriteCatalog.value = []
+      return
+    }
+    if (favoriteCatalog.value.length > 0 && !force && !navigator.onLine) return
     isFavoritesLoading.value = true
     try {
       if (!navigator.onLine) throw new Error('offline')
-      const first = await getRecipesApi({ limit: 100, offset: 0 })
-      pendingTranslations.value = first.pending_translations ?? 0
-      const pages = Math.ceil(first.total / 100)
-      const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => getRecipesApi({ limit: 100, offset: (i + 1) * 100 })))
-      const favorites = [...first.items, ...rest.flatMap(result => result.items)].filter(recipe => recipe.is_favorite)
-      const detailed: RecipeResponse[] = []
-      for (let i = 0; i < favorites.length; i += 4) {
-        const chunk = favorites.slice(i, i + 4)
-        const details = await Promise.all(chunk.map(recipe => getRecipeByIdApi(recipe.id).catch(() => recipe)))
-        detailed.push(...details.map(recipe => ({ ...recipe, is_favorite: true })))
-      }
-      favoriteCatalog.value = detailed
-      await cacheFavoriteRecipes(detailed)
+      const favorites = await getFavoriteRecipesApi()
+      favoriteCatalog.value = favorites
+      await cacheFavoriteRecipes(favorites)
     } catch {
       favoriteCatalog.value = await getCachedFavoriteRecipes()
-    } finally { isFavoritesLoading.value = false }
+    } finally {
+      isFavoritesLoading.value = false
+    }
   }
 
   async function setPage(value: number) {
     const next = Math.min(totalPages.value, Math.max(1, value))
-    page.value = next
+    if (next !== page.value) {
+      await loadAllRecipes(next)
+    }
   }
 
   async function loadRecipeById(id: number): Promise<RecipeResponse | null> {
@@ -280,23 +276,12 @@ export const useRecipeStore = defineStore('recipe', () => {
     return await addMissingIngredientsToShoppingListApi(recipeId)
   }
 
-  async function searchExternalRecipes(query: string): Promise<number> {
-    const translated = await translateSearchQuery(query)
-    translatedSearchQuery.value = translated
-    const count = await syncRecipesApi(translated.trim())
-    if (count > 0) {
-      page.value = 1
-      await loadAllRecipes(true)
-      if (authStore.isAuthenticated) await loadMatchedRecipes(true)
-    }
-    return count
-  }
-
   return {
     matchedRecipes,
     allRecipes,
     favoriteCatalog,
     pendingTranslations,
+    totalCount,
     page,
     pageSize,
     totalPages,
@@ -307,7 +292,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     isDetailLoading,
     activeTab,
     searchQuery,
-    translatedSearchQuery,
     timeFilter,
     difficultyFilter,
     saveExpiringOnly,
@@ -323,7 +307,6 @@ export const useRecipeStore = defineStore('recipe', () => {
     setPage,
     loadRecipeById,
     toggleFavorite,
-    addMissingToShopping,
-    searchExternalRecipes
+    addMissingToShopping
   }
 })

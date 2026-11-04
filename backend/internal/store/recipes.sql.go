@@ -131,12 +131,22 @@ func (q *Queries) CountPendingRecipeTranslations(ctx context.Context) (int64, er
 }
 
 const countRecipes = `-- name: CountRecipes :one
-SELECT COUNT(*) FROM recipes
+SELECT COUNT(*) FROM recipes r
 WHERE 
-    translation_status = 'translated'
-    AND ($1::text IS NULL OR $1::text = '' OR title ILIKE '%' || $1 || '%' OR localized_title ILIKE '%' || $1 || '%')
-    AND ($2::text IS NULL OR $2::text = '' OR difficulty = $2)
-    AND ($3::int IS NULL OR $3::int = 0 OR cooking_time_minutes <= $3)
+    r.translation_status = 'translated'
+    AND (
+        $1::text IS NULL OR $1::text = ''
+        OR r.localized_title ILIKE '%' || $1 || '%'
+        OR r.title ILIKE '%' || $1 || '%'
+        OR EXISTS (
+            SELECT 1 FROM recipe_ingredients ri
+            JOIN ingredients ing ON ing.id = ri.ingredient_id
+            WHERE ri.recipe_id = r.id
+              AND (ing.name ILIKE '%' || $1 || '%' OR (ing.name_en IS NOT NULL AND ing.name_en ILIKE '%' || $1 || '%'))
+        )
+    )
+    AND ($2::text IS NULL OR $2::text = '' OR r.difficulty = $2)
+    AND ($3::int IS NULL OR $3::int = 0 OR r.cooking_time_minutes <= $3)
 `
 
 type CountRecipesParams struct {
@@ -152,6 +162,32 @@ func (q *Queries) CountRecipes(ctx context.Context, arg CountRecipesParams) (int
 	return count, err
 }
 
+const countTotalRecipes = `-- name: CountTotalRecipes :one
+SELECT COUNT(*) FROM recipes
+`
+
+func (q *Queries) CountTotalRecipes(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countTotalRecipes)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const deleteRecipeIngredientLink = `-- name: DeleteRecipeIngredientLink :exec
+DELETE FROM recipe_ingredients
+WHERE recipe_id = $1 AND ingredient_id = $2
+`
+
+type DeleteRecipeIngredientLinkParams struct {
+	RecipeID     int32 `json:"recipe_id"`
+	IngredientID int32 `json:"ingredient_id"`
+}
+
+func (q *Queries) DeleteRecipeIngredientLink(ctx context.Context, arg DeleteRecipeIngredientLinkParams) error {
+	_, err := q.db.Exec(ctx, deleteRecipeIngredientLink, arg.RecipeID, arg.IngredientID)
+	return err
+}
+
 const deleteRecipeIngredients = `-- name: DeleteRecipeIngredients :exec
 DELETE FROM recipe_ingredients
 WHERE recipe_id = $1
@@ -159,6 +195,19 @@ WHERE recipe_id = $1
 
 func (q *Queries) DeleteRecipeIngredients(ctx context.Context, recipeID int32) error {
 	_, err := q.db.Exec(ctx, deleteRecipeIngredients, recipeID)
+	return err
+}
+
+const deleteUnusedIngredient = `-- name: DeleteUnusedIngredient :exec
+DELETE FROM ingredients
+WHERE ingredients.id = $1
+  AND NOT EXISTS (SELECT 1 FROM recipe_ingredients ri WHERE ri.ingredient_id = ingredients.id)
+  AND NOT EXISTS (SELECT 1 FROM inventory_items ii WHERE ii.ingredient_id = ingredients.id)
+  AND NOT EXISTS (SELECT 1 FROM shopping_list_items sli WHERE sli.ingredient_id = ingredients.id)
+`
+
+func (q *Queries) DeleteUnusedIngredient(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteUnusedIngredient, id)
 	return err
 }
 
@@ -373,6 +422,77 @@ func (q *Queries) GetRecipeTranslationIngredients(ctx context.Context, recipeID 
 	return items, nil
 }
 
+const getTranslatedRecipeIngredientsWithDetails = `-- name: GetTranslatedRecipeIngredientsWithDetails :many
+SELECT 
+    ri.id,
+    ri.recipe_id,
+    ri.ingredient_id,
+    ri.amount,
+    ri.unit,
+    ri.display_text,
+    ri.localized_display_text,
+    ri.criticality,
+    ing.name AS ingredient_name,
+    ing.name_en AS ingredient_name_en,
+    ing.category AS ingredient_category,
+    ing.default_unit AS ingredient_default_unit,
+    ing.is_pantry_essential
+FROM recipe_ingredients ri
+JOIN ingredients ing ON ing.id = ri.ingredient_id
+JOIN recipes r ON r.id = ri.recipe_id
+WHERE r.translation_status = 'translated'
+`
+
+type GetTranslatedRecipeIngredientsWithDetailsRow struct {
+	ID                    int32          `json:"id"`
+	RecipeID              int32          `json:"recipe_id"`
+	IngredientID          int32          `json:"ingredient_id"`
+	Amount                pgtype.Numeric `json:"amount"`
+	Unit                  pgtype.Text    `json:"unit"`
+	DisplayText           pgtype.Text    `json:"display_text"`
+	LocalizedDisplayText  pgtype.Text    `json:"localized_display_text"`
+	Criticality           string         `json:"criticality"`
+	IngredientName        string         `json:"ingredient_name"`
+	IngredientNameEn      pgtype.Text    `json:"ingredient_name_en"`
+	IngredientCategory    string         `json:"ingredient_category"`
+	IngredientDefaultUnit string         `json:"ingredient_default_unit"`
+	IsPantryEssential     bool           `json:"is_pantry_essential"`
+}
+
+func (q *Queries) GetTranslatedRecipeIngredientsWithDetails(ctx context.Context) ([]GetTranslatedRecipeIngredientsWithDetailsRow, error) {
+	rows, err := q.db.Query(ctx, getTranslatedRecipeIngredientsWithDetails)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetTranslatedRecipeIngredientsWithDetailsRow{}
+	for rows.Next() {
+		var i GetTranslatedRecipeIngredientsWithDetailsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RecipeID,
+			&i.IngredientID,
+			&i.Amount,
+			&i.Unit,
+			&i.DisplayText,
+			&i.LocalizedDisplayText,
+			&i.Criticality,
+			&i.IngredientName,
+			&i.IngredientNameEn,
+			&i.IngredientCategory,
+			&i.IngredientDefaultUnit,
+			&i.IsPantryEssential,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isRecipeFavorite = `-- name: IsRecipeFavorite :one
 SELECT EXISTS (
     SELECT 1 FROM recipe_favorites
@@ -392,13 +512,68 @@ func (q *Queries) IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoritePara
 	return exists, err
 }
 
+const listFavoriteRecipes = `-- name: ListFavoriteRecipes :many
+SELECT r.id, r.external_id, r.title, r.description, r.instructions, r.cooking_time_minutes, r.difficulty, r.image_url, r.created_at, r.updated_at, r.localized_title, r.localized_description, r.localized_instructions, r.translation_status, r.translation_attempts, r.translation_retry_after
+FROM recipes r
+JOIN recipe_favorites rf ON rf.recipe_id = r.id
+WHERE rf.user_id = $1 AND r.translation_status = 'translated'
+ORDER BY rf.created_at DESC
+`
+
+func (q *Queries) ListFavoriteRecipes(ctx context.Context, userID pgtype.UUID) ([]Recipe, error) {
+	rows, err := q.db.Query(ctx, listFavoriteRecipes, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Recipe{}
+	for rows.Next() {
+		var i Recipe
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExternalID,
+			&i.Title,
+			&i.Description,
+			&i.Instructions,
+			&i.CookingTimeMinutes,
+			&i.Difficulty,
+			&i.ImageUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.LocalizedTitle,
+			&i.LocalizedDescription,
+			&i.LocalizedInstructions,
+			&i.TranslationStatus,
+			&i.TranslationAttempts,
+			&i.TranslationRetryAfter,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listRecipes = `-- name: ListRecipes :many
 SELECT 
     r.id, r.external_id, r.title, r.description, r.instructions, r.cooking_time_minutes, r.difficulty, r.image_url, r.created_at, r.updated_at, r.localized_title, r.localized_description, r.localized_instructions, r.translation_status, r.translation_attempts, r.translation_retry_after
 FROM recipes r
 WHERE 
     r.translation_status = 'translated'
-    AND ($1::text IS NULL OR $1::text = '' OR r.title ILIKE '%' || $1 || '%' OR r.localized_title ILIKE '%' || $1 || '%')
+    AND (
+        $1::text IS NULL OR $1::text = ''
+        OR r.localized_title ILIKE '%' || $1 || '%'
+        OR r.title ILIKE '%' || $1 || '%'
+        OR EXISTS (
+            SELECT 1 FROM recipe_ingredients ri
+            JOIN ingredients ing ON ing.id = ri.ingredient_id
+            WHERE ri.recipe_id = r.id
+              AND (ing.name ILIKE '%' || $1 || '%' OR (ing.name_en IS NOT NULL AND ing.name_en ILIKE '%' || $1 || '%'))
+        )
+    )
     AND ($2::text IS NULL OR $2::text = '' OR r.difficulty = $2)
     AND ($3::int IS NULL OR $3::int = 0 OR r.cooking_time_minutes <= $3)
 ORDER BY r.title ASC
@@ -481,6 +656,40 @@ func (q *Queries) ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.U
 	return items, nil
 }
 
+const reassignRecipeIngredient = `-- name: ReassignRecipeIngredient :exec
+INSERT INTO recipe_ingredients (
+    recipe_id, ingredient_id, display_text, localized_display_text, criticality
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    COALESCE(NULLIF($5::text, ''), 'desirable')
+)
+ON CONFLICT (recipe_id, ingredient_id) DO UPDATE SET
+    localized_display_text = COALESCE(NULLIF(EXCLUDED.localized_display_text, ''), recipe_ingredients.localized_display_text)
+`
+
+type ReassignRecipeIngredientParams struct {
+	RecipeID             int32       `json:"recipe_id"`
+	TargetIngredientID   int32       `json:"target_ingredient_id"`
+	DisplayText          pgtype.Text `json:"display_text"`
+	LocalizedDisplayText pgtype.Text `json:"localized_display_text"`
+	Criticality          string      `json:"criticality"`
+}
+
+func (q *Queries) ReassignRecipeIngredient(ctx context.Context, arg ReassignRecipeIngredientParams) error {
+	_, err := q.db.Exec(ctx, reassignRecipeIngredient,
+		arg.RecipeID,
+		arg.TargetIngredientID,
+		arg.DisplayText,
+		arg.LocalizedDisplayText,
+		arg.Criticality,
+	)
+	return err
+}
+
 const removeRecipeFavorite = `-- name: RemoveRecipeFavorite :exec
 DELETE FROM recipe_favorites
 WHERE user_id = $1 AND recipe_id = $2
@@ -536,7 +745,10 @@ func (q *Queries) RetryRecipeTranslation(ctx context.Context, id int32) error {
 const updateIngredientRussianName = `-- name: UpdateIngredientRussianName :exec
 UPDATE ingredients
 SET name = $2
-WHERE id = $1
+WHERE ingredients.id = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM ingredients other WHERE LOWER(other.name) = LOWER($2) AND other.id <> ingredients.id
+  )
 `
 
 type UpdateIngredientRussianNameParams struct {

@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/kerrek8/what-to-cook/backend/docs"
 	"github.com/kerrek8/what-to-cook/backend/internal/config"
-	"github.com/kerrek8/what-to-cook/backend/internal/dto"
 	"github.com/kerrek8/what-to-cook/backend/internal/handler"
 	"github.com/kerrek8/what-to-cook/backend/internal/middleware"
 	"github.com/kerrek8/what-to-cook/backend/internal/provider"
@@ -46,7 +45,6 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 	recipeService := service.NewRecipeService(queries, recipeProvider)
 	shoppingService := service.NewShoppingService(queries)
 	translationService := service.NewTranslationService(cfg.Groq.APIKey, cfg.Groq.Model)
-	translationHandler := handler.NewTranslationHandler(translationService)
 
 	if pushSender == nil {
 		pushSender = service.NewDefaultPushSender(cfg.VAPID.Subject, cfg.VAPID.PublicKey, cfg.VAPID.PrivateKey, nil)
@@ -68,8 +66,6 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 
 	v1 := router.Group("/api/v1")
 	{
-		v1.POST("/translations", translationHandler.Translate)
-
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)
@@ -115,6 +111,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 			protectedRecipes := protected.Group("/recipes")
 			{
 				protectedRecipes.GET("/match", recipeHandler.Match)
+				protectedRecipes.GET("/favorites", recipeHandler.ListFavorites)
 				protectedRecipes.POST("/:id/favorite", recipeHandler.AddFavorite)
 				protectedRecipes.DELETE("/:id/favorite", recipeHandler.RemoveFavorite)
 			}
@@ -155,7 +152,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, recipeProvider pr
 			if queries == nil {
 				return nil
 			}
-			return service.NewRecipeTranslationWorker(queries, translationService)
+			return service.NewRecipeTranslationWorker(queries, translationService, recipeService)
 		}(),
 		router: router,
 	}
@@ -183,25 +180,7 @@ func (s *Server) Start() error {
 	if s.translationWorker != nil {
 		s.translationWorker.Start()
 	}
-	if s.recipeService != nil {
-		go s.syncInitialRecipesIfEmpty()
-	}
 	return s.httpServer.ListenAndServe()
-}
-
-func (s *Server) syncInitialRecipesIfEmpty() {
-	time.Sleep(1 * time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	list, err := s.recipeService.List(ctx, nil, dto.RecipeQuery{Limit: 1})
-	if err != nil || list.Total+list.PendingTranslations >= 120 {
-		return
-	}
-
-	for _, query := range []string{"chicken", "beef", "pasta", "salad", "pork", "lamb", "fish", "seafood", "curry", "soup", "rice", "dessert", "breakfast", "vegetarian"} {
-		_, _ = s.recipeService.SyncFromProvider(ctx, query)
-	}
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {

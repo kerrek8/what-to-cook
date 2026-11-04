@@ -3,39 +3,29 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
+import { getRecipesApi } from '@/api/recipe'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
-const isSearchingExternal = ref(false)
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+
+let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 let translationPollTimer: ReturnType<typeof setInterval> | undefined
 let translationPollAttempts = 0
-let externalSearchSequence = 0
-const requestedExternalQueries = new Set<string>()
-watch([() => recipeStore.searchQuery, () => recipeStore.activeTab], ([query, tab]) => {
-  if (searchTimer) clearTimeout(searchTimer)
-  const term = query.trim()
-  if (term.length < 3 || tab === 'favorites') return
 
-  const sequence = ++externalSearchSequence
-  searchTimer = setTimeout(async () => {
-    if (requestedExternalQueries.has(term.toLowerCase())) return
-    requestedExternalQueries.add(term.toLowerCase())
-    isSearchingExternal.value = true
-    try {
-      await recipeStore.searchExternalRecipes(term)
-    } catch {
-      requestedExternalQueries.delete(term.toLowerCase())
-    } finally {
-      if (sequence === externalSearchSequence) isSearchingExternal.value = false
-    }
-  }, 600)
-})
+watch(
+  [() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter],
+  () => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = setTimeout(async () => {
+      await recipeStore.loadAllRecipes(1)
+    }, 400)
+  }
+)
 
 onUnmounted(() => {
-  if (searchTimer) clearTimeout(searchTimer)
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   if (translationPollTimer) clearInterval(translationPollTimer)
 })
 
@@ -45,22 +35,32 @@ function startTranslationPolling() {
   translationPollTimer = setInterval(async () => {
     if (document.visibilityState !== 'visible' || recipeStore.isLoading) return
     translationPollAttempts++
-    await recipeStore.loadAllRecipes(true)
-    if ((recipeStore.pendingTranslations === 0 && recipeStore.allRecipes.length > 0) || (recipeStore.pendingTranslations === 0 && translationPollAttempts >= 60)) {
+    try {
+      const resp = await getRecipesApi({ limit: 1 })
+      recipeStore.pendingTranslations = resp.pending_translations ?? 0
+      if (resp.total !== recipeStore.totalCount) {
+        await recipeStore.loadAllRecipes(recipeStore.page)
+      }
+    } catch {
+      // ignore
+    }
+    if (
+      (recipeStore.pendingTranslations === 0 && recipeStore.allRecipes.length > 0) ||
+      (recipeStore.pendingTranslations === 0 && translationPollAttempts >= 30)
+    ) {
       clearInterval(translationPollTimer)
       translationPollTimer = undefined
     }
-  }, 10000)
+  }, 30000)
 }
 
-watch(() => recipeStore.pendingTranslations, pending => {
+watch(() => recipeStore.pendingTranslations, (pending) => {
   if (pending > 0) startTranslationPolling()
   else if (recipeStore.allRecipes.length > 0 && translationPollTimer) {
     clearInterval(translationPollTimer)
     translationPollTimer = undefined
   }
 })
-
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
   { label: 'Любое время', value: 0 },
@@ -86,9 +86,10 @@ onMounted(async () => {
     recipeStore.loadAllRecipes(),
     recipeStore.loadFavorites()
   ])
-  if (recipeStore.pendingTranslations > 0 || recipeStore.allRecipes.length === 0) startTranslationPolling()
+  if (recipeStore.pendingTranslations > 0 || recipeStore.allRecipes.length === 0) {
+    startTranslationPolling()
+  }
 })
-
 </script>
 
 <template>
@@ -101,10 +102,6 @@ onMounted(async () => {
         shape="round"
         clearable
       />
-    </div>
-    <div v-if="isSearchingExternal" class="external-search-status">
-      <van-loading size="16px" color="#2e7d32" />
-      <span>Ищем в TheMealDB…</span>
     </div>
     <!-- Navigation Tabs -->
     <div class="tabs-nav">
@@ -358,15 +355,6 @@ onMounted(async () => {
   color: #7c887e;
 }
 
-.external-search-status {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  min-height: 28px;
-  color: #68706b;
-  font-size: 12px;
-}
 
 .tabs-nav {
   display: flex;

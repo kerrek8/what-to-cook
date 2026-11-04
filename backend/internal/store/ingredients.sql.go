@@ -66,6 +66,27 @@ func (q *Queries) GetIngredientByID(ctx context.Context, id int32) (Ingredient, 
 	return i, err
 }
 
+const getIngredientByNameCaseInsensitive = `-- name: GetIngredientByNameCaseInsensitive :one
+SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
+WHERE LOWER(name) = LOWER($1)
+LIMIT 1
+`
+
+func (q *Queries) GetIngredientByNameCaseInsensitive(ctx context.Context, lower string) (Ingredient, error) {
+	row := q.db.QueryRow(ctx, getIngredientByNameCaseInsensitive, lower)
+	var i Ingredient
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.NameEn,
+		&i.Category,
+		&i.DefaultUnit,
+		&i.IsPantryEssential,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listIngredients = `-- name: ListIngredients :many
 SELECT id, name, name_en, category, default_unit, is_pantry_essential, created_at FROM ingredients
 ORDER BY category, name

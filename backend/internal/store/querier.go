@@ -16,6 +16,7 @@ type Querier interface {
 	ClaimPendingRecipeTranslation(ctx context.Context) (ClaimPendingRecipeTranslationRow, error)
 	CountPendingRecipeTranslations(ctx context.Context) (int64, error)
 	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
+	CountTotalRecipes(ctx context.Context) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
 	CreateInventoryItem(ctx context.Context, arg CreateInventoryItemParams) (InventoryItem, error)
 	CreateShoppingItem(ctx context.Context, arg CreateShoppingItemParams) (ShoppingListItem, error)
@@ -24,26 +25,32 @@ type Querier interface {
 	DeleteInventoryItem(ctx context.Context, arg DeleteInventoryItemParams) error
 	DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error
 	DeletePushSubscriptionByID(ctx context.Context, arg DeletePushSubscriptionByIDParams) error
+	DeleteRecipeIngredientLink(ctx context.Context, arg DeleteRecipeIngredientLinkParams) error
 	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
 	DeleteShoppingItem(ctx context.Context, arg DeleteShoppingItemParams) error
+	DeleteUnusedIngredient(ctx context.Context, id int32) error
 	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
 	GetIngredientByID(ctx context.Context, id int32) (Ingredient, error)
+	GetIngredientByNameCaseInsensitive(ctx context.Context, lower string) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
 	GetRecipeTranslationIngredients(ctx context.Context, recipeID int32) ([]GetRecipeTranslationIngredientsRow, error)
 	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
 	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)
+	GetTranslatedRecipeIngredientsWithDetails(ctx context.Context) ([]GetTranslatedRecipeIngredientsWithDetailsRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
 	ListExpiringInventoryItems(ctx context.Context, arg ListExpiringInventoryItemsParams) ([]ListExpiringInventoryItemsRow, error)
+	ListFavoriteRecipes(ctx context.Context, userID pgtype.UUID) ([]Recipe, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)
 	ListInventoryItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListInventoryItemsByUserIDRow, error)
 	ListPushSubscriptionsByUserID(ctx context.Context, userID pgtype.UUID) ([]PushSubscription, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
+	ReassignRecipeIngredient(ctx context.Context, arg ReassignRecipeIngredientParams) error
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
 	ResetStaleTranslationRetries(ctx context.Context) error
 	ResetStalledTranslatingRecipes(ctx context.Context) error

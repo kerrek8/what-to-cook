@@ -21,6 +21,7 @@ var (
 
 type RecipeService interface {
 	List(ctx context.Context, userID *uuid.UUID, q dto.RecipeQuery) (dto.RecipeListResponse, error)
+	ListFavorites(ctx context.Context, userID uuid.UUID) ([]dto.RecipeResponse, error)
 	GetByID(ctx context.Context, userID *uuid.UUID, id int32) (*dto.RecipeResponse, error)
 	Match(ctx context.Context, userID uuid.UUID) (dto.RecipeMatchResponse, error)
 	SetFavorite(ctx context.Context, userID uuid.UUID, recipeID int32, isFav bool) error
@@ -109,6 +110,18 @@ func (s *recipeService) List(ctx context.Context, userID *uuid.UUID, q dto.Recip
 	}, nil
 }
 
+func (s *recipeService) ListFavorites(ctx context.Context, userID uuid.UUID) ([]dto.RecipeResponse, error) {
+	favs, err := s.store.ListFavoriteRecipes(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]dto.RecipeResponse, len(favs))
+	for i, r := range favs {
+		res[i] = mapStoreRecipeToDTO(r, true, nil)
+	}
+	return res, nil
+}
+
 func (s *recipeService) GetByID(ctx context.Context, userID *uuid.UUID, id int32) (*dto.RecipeResponse, error) {
 	recipe, err := s.store.GetRecipeByID(ctx, id)
 	if err != nil {
@@ -178,12 +191,12 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		return dto.RecipeMatchResponse{}, err
 	}
 
-	allIngredients, err := s.store.GetAllRecipeIngredientsWithDetails(ctx)
+	allIngredients, err := s.store.GetTranslatedRecipeIngredientsWithDetails(ctx)
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
 	}
 
-	recipeIngMap := make(map[int32][]store.GetAllRecipeIngredientsWithDetailsRow)
+	recipeIngMap := make(map[int32][]store.GetTranslatedRecipeIngredientsWithDetailsRow)
 	for _, ing := range allIngredients {
 		recipeIngMap[ing.RecipeID] = append(recipeIngMap[ing.RecipeID], ing)
 	}
@@ -346,8 +359,8 @@ func (s *recipeService) SyncFromProvider(ctx context.Context, query string) (dto
 				created, err := s.store.CreateIngredient(ctx, store.CreateIngredientParams{
 					Name:              trimmedName,
 					NameEn:            pgtype.Text{String: ing.Name, Valid: true},
-					Category:          "other",
-					DefaultUnit:       "g",
+					Category:          "Другое",
+					DefaultUnit:       "г",
 					IsPantryEssential: false,
 				})
 				if err != nil {
@@ -468,7 +481,7 @@ func mapRecipeIngredientToDTO(ing store.GetRecipeIngredientsRow) dto.RecipeIngre
 	}
 }
 
-func mapAllDetailsIngredientToDTO(ing store.GetAllRecipeIngredientsWithDetailsRow) dto.RecipeIngredientResponse {
+func mapAllDetailsIngredientToDTO(ing store.GetTranslatedRecipeIngredientsWithDetailsRow) dto.RecipeIngredientResponse {
 	var nameEn *string
 	if ing.IngredientNameEn.Valid {
 		nameEn = &ing.IngredientNameEn.String

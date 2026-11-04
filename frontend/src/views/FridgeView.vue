@@ -4,7 +4,7 @@ import { showToast } from 'vant'
 import { useInventoryStore, type AddItemData } from '@/stores/inventory'
 import ProductCard from '@/components/inventory/ProductCard.vue'
 import AddProductSheet from '@/components/inventory/AddProductSheet.vue'
-import { displayText } from '@/i18n/translation'
+
 
 const inventoryStore = useInventoryStore()
 
@@ -84,7 +84,7 @@ onMounted(() => {
             :class="{ active: inventoryStore.activeCategory === cat }"
             @click="inventoryStore.activeCategory = cat"
           >
-            {{ displayText(cat) }}
+            {{ cat }}
           </button>
         </div>
 

@@ -4,7 +4,7 @@ import { showToast } from 'vant'
 import { getIngredientsApi } from '@/api/ingredients'
 import type { Ingredient } from '@/types/api'
 import type { AddShoppingItemPayload } from '@/stores/shopping'
-import { displayIngredientName, displayText } from '@/i18n/translation'
+
 
 const props = defineProps<{
   show: boolean
@@ -45,7 +45,7 @@ const suggestions = computed(() => {
   const q = itemName.value.trim().toLowerCase()
   if (!q) return []
   return catalog.value
-    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q) || displayIngredientName(item.name, item.nameEn).toLowerCase().includes(q))
+    .filter((item) => item.name.toLowerCase().includes(q) || (item.nameEn ?? '').toLowerCase().includes(q))
     .slice(0, 5)
 })
 
@@ -136,8 +136,8 @@ watch(
             class="suggestion-item"
             @click="selectSuggestion(s)"
           >
-            <span class="suggestion-name">{{ displayIngredientName(s.name, s.nameEn) }}</span>
-            <span class="suggestion-category">{{ displayText(s.category) }}</span>
+            <span class="suggestion-name">{{ s.name }}</span>
+            <span class="suggestion-category">{{ s.category }}</span>
           </div>
         </div>
       </div>
@@ -177,7 +177,7 @@ watch(
             :class="{ active: selectedCategory === cat }"
             @click="selectedCategory = cat"
           >
-            {{ displayText(cat) }}
+            {{ cat }}
           </span>
         </div>
       </div>

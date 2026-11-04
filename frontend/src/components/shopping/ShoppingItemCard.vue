@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { LocalShoppingItem } from '@/db/types'
-import { displayText, displayUnit } from '@/i18n/translation'
+
 
 const props = defineProps<{
   item: LocalShoppingItem
@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 const formattedQuantity = computed(() => {
   if (props.item.amount != null && props.item.amount > 0) {
-    return `${props.item.amount} ${displayUnit(props.item.unit)}`.trim()
+    return `${props.item.amount} ${props.item.unit ?? ''}`.trim()
   }
   return null
 })
@@ -46,7 +46,7 @@ function onDelete() {
       </div>
 
       <div class="item-info">
-        <span class="item-name">{{ displayText(item.name) }}</span>
+        <span class="item-name">{{ item.name }}</span>
       </div>
 
       <div v-if="formattedQuantity" class="item-quantity">

@@ -20,3 +20,8 @@ WHERE id = $1 LIMIT 1;
 INSERT INTO ingredients (name, name_en, category, default_unit, is_pantry_essential)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+
+-- name: GetIngredientByNameCaseInsensitive :one
+SELECT * FROM ingredients
+WHERE LOWER(name) = LOWER($1)
+LIMIT 1;
