@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import type { LocalShoppingItem } from '@/db/types'
 
-
 const props = defineProps<{
   item: LocalShoppingItem
 }>()
@@ -10,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'toggle', id: number): void
   (e: 'delete', id: number): void
+  (e: 'transfer', item: LocalShoppingItem): void
 }>()
 
 const formattedQuantity = computed(() => {
@@ -30,10 +30,26 @@ function onDelete() {
     emit('delete', props.item.id)
   }
 }
+
+function onTransfer() {
+  emit('transfer', props.item)
+}
 </script>
 
 <template>
   <van-swipe-cell class="shopping-item-cell">
+    <template #left>
+      <van-button
+        square
+        type="primary"
+        color="#2e7d32"
+        text="В холод."
+        icon="passed"
+        class="swipe-action-btn"
+        @click="onTransfer"
+      />
+    </template>
+
     <div
       class="item-row"
       :class="{ bought: item.isBought }"
@@ -52,6 +68,17 @@ function onDelete() {
       <div v-if="formattedQuantity" class="item-quantity">
         <span class="quantity-pill">{{ formattedQuantity }}</span>
       </div>
+
+      <button
+        v-if="item.isBought"
+        type="button"
+        class="transfer-item-btn"
+        title="Перенести в холодильник"
+        aria-label="Перенести в холодильник"
+        @click.stop="onTransfer"
+      >
+        <van-icon name="logistics" size="18" color="#2e7d32" />
+      </button>
     </div>
 
     <template #right>
@@ -151,6 +178,32 @@ function onDelete() {
 .item-row.bought .quantity-pill {
   background-color: #eeeeee;
   color: #9e9e9e;
+}
+
+.transfer-item-btn {
+  background: #e8f5e9;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.transfer-item-btn:active {
+  transform: scale(0.92);
+  background-color: #c8e6c9;
+}
+
+.swipe-action-btn {
+  height: 100%;
+  min-width: 72px;
+  font-weight: 600;
 }
 
 .delete-btn {

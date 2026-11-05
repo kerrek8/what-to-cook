@@ -1,14 +1,50 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { showToast, showDialog } from 'vant'
+import { ref, computed, onMounted } from 'vue'
+import { showToast } from 'vant'
 import { useShoppingStore, type AddShoppingItemPayload } from '@/stores/shopping'
+import { useInventoryStore, type AddItemData } from '@/stores/inventory'
+import type { LocalShoppingItem } from '@/db/types'
 import ShoppingItemCard from '@/components/shopping/ShoppingItemCard.vue'
-
 import AddShoppingItemSheet from '@/components/shopping/AddShoppingItemSheet.vue'
+import AddProductSheet from '@/components/inventory/AddProductSheet.vue'
 
 const shoppingStore = useShoppingStore()
+const inventoryStore = useInventoryStore()
 
 const showAddSheet = ref(false)
+const showTransferSheet = ref(false)
+const transferQueue = ref<LocalShoppingItem[]>([])
+const currentTransferIndex = ref(0)
+
+const currentTransferItem = computed(() => {
+  if (currentTransferIndex.value >= 0 && currentTransferIndex.value < transferQueue.value.length) {
+    return transferQueue.value[currentTransferIndex.value]
+  }
+  return null
+})
+
+const transferInitialData = computed(() => {
+  const item = currentTransferItem.value
+  if (!item) return null
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category || 'Другое',
+    amount: item.amount != null ? Number(item.amount) : null,
+    unit: item.unit || 'г',
+    approximateQuantity: null,
+    expirationDate: null,
+    ingredientId: item.ingredientId ?? null
+  }
+})
+
+const transferSheetTitle = computed(() => {
+  const total = transferQueue.value.length
+  if (total <= 1) {
+    return currentTransferItem.value ? `Перенос: ${currentTransferItem.value.name}` : 'Перенос в холодильник'
+  }
+  return `В холодильник (${currentTransferIndex.value + 1} из ${total}): ${currentTransferItem.value?.name || ''}`
+})
 
 onMounted(() => {
   shoppingStore.loadShoppingList()
@@ -36,31 +72,47 @@ async function onDelete(id: number) {
   }
 }
 
-async function onTransferToInventory() {
-  if (shoppingStore.boughtCount === 0) return
+function onSingleTransfer(item: LocalShoppingItem) {
+  transferQueue.value = [item]
+  currentTransferIndex.value = 0
+  showTransferSheet.value = true
+}
 
-  showDialog({
-    title: 'Перенести в холодильник?',
-    message: `Перенести ${shoppingStore.boughtCount} купленных товаров в холодильник? Они будут удалены из списка покупок.`,
-    showCancelButton: true,
-    confirmButtonText: 'Перенести',
-    cancelButtonText: 'Отмена',
-    confirmButtonColor: '#2e7d32'
-  })
-    .then(async () => {
-      try {
-        const count = await shoppingStore.transferBoughtToInventory()
-        showToast({
-          type: 'success',
-          message: `Перенесено ${count} прод. в холодильник!`
-        })
-      } catch {
-        showToast({ type: 'fail', message: 'Ошибка при переносе' })
-      }
-    })
-    .catch(() => {
-      // Cancelled
-    })
+function onTransferToInventory() {
+  const bought = shoppingStore.items.filter((i) => i.isBought)
+  if (bought.length === 0) return
+
+  transferQueue.value = [...bought]
+  currentTransferIndex.value = 0
+  showTransferSheet.value = true
+}
+
+async function onConfirmTransferItem(payload: AddItemData) {
+  const currentItem = currentTransferItem.value
+  if (!currentItem) return
+
+  try {
+    await inventoryStore.addItem(payload)
+
+    if (currentItem.id != null) {
+      await shoppingStore.deleteItem(currentItem.id)
+    }
+
+    if (currentTransferIndex.value + 1 < transferQueue.value.length) {
+      currentTransferIndex.value++
+      showToast({
+        type: 'success',
+        message: `${payload.name} перенесен (${currentTransferIndex.value}/${transferQueue.value.length})`
+      })
+    } else {
+      showTransferSheet.value = false
+      transferQueue.value = []
+      currentTransferIndex.value = 0
+      showToast({ type: 'success', message: 'Продукты успешно перенесены в холодильник!' })
+    }
+  } catch {
+    showToast({ type: 'fail', message: 'Ошибка при переносе' })
+  }
 }
 </script>
 
@@ -145,6 +197,7 @@ async function onTransferToInventory() {
               :item="item"
               @toggle="onToggle"
               @delete="onDelete"
+              @transfer="onSingleTransfer"
             />
           </div>
         </div>
@@ -185,6 +238,16 @@ async function onTransferToInventory() {
 
     <!-- Add Item Bottom Sheet -->
     <AddShoppingItemSheet v-model:show="showAddSheet" @add="onAddItem" />
+
+    <!-- Sheet for transferring bought item to inventory with expiration date & amount -->
+    <AddProductSheet
+      v-model:show="showTransferSheet"
+      :initial-item="transferInitialData"
+      :title="transferSheetTitle"
+      submit-text="Перенести в холодильник"
+      :hide-add-more="true"
+      @add="onConfirmTransferItem"
+    />
   </div>
 </template>
 

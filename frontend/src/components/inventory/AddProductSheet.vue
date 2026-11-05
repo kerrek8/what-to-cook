@@ -6,10 +6,32 @@ import type { Ingredient } from '@/types/api'
 import type { AddItemData } from '@/stores/inventory'
 import type { LocalInventoryItem } from '@/db/types'
 
-const props = defineProps<{
-  show: boolean
-  editItem?: LocalInventoryItem | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    show: boolean
+    editItem?: LocalInventoryItem | null
+    initialItem?: {
+      id?: number
+      name: string
+      category?: string
+      amount?: number | null
+      unit?: string | null
+      approximateQuantity?: 'few' | 'medium' | 'much' | null
+      expirationDate?: string | null
+      ingredientId?: number | null
+    } | null
+    title?: string
+    submitText?: string
+    hideAddMore?: boolean
+  }>(),
+  {
+    editItem: null,
+    initialItem: null,
+    title: '',
+    submitText: '',
+    hideAddMore: false
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:show', value: boolean): void
@@ -133,6 +155,22 @@ watch(
   }
 )
 
+watch(
+  () => props.initialItem,
+  (item) => {
+    if (!item) return
+    productName.value = item.name || ''
+    selectedCategory.value = item.category || 'Другое'
+    selectedIngredientId.value = item.ingredientId ?? null
+    amount.value = item.amount != null ? Number(item.amount) : undefined
+    unit.value = item.unit || 'г'
+    quantityMode.value = item.approximateQuantity ? 'approx' : 'exact'
+    approximateQuantity.value = item.approximateQuantity ?? 'medium'
+    expirationDate.value = item.expirationDate ?? ''
+  },
+  { immediate: true }
+)
+
 watch(() => props.editItem, (item) => {
   if (!item) return
   productName.value = item.name
@@ -156,7 +194,7 @@ watch(() => props.editItem, (item) => {
     class="add-sheet"
   >
     <div class="sheet-content safe-area-bottom">
-      <h3 class="sheet-title">{{ editItem ? 'Изменить продукт' : 'Добавить в холодильник' }}</h3>
+      <h3 class="sheet-title">{{ title || (editItem ? 'Изменить продукт' : 'Добавить в холодильник') }}</h3>
 
       <!-- 1. Название продукта с автокомплитом -->
       <div class="field-block">
@@ -281,7 +319,16 @@ watch(() => props.editItem, (item) => {
       </div>
 
       <div class="action-footer">
-        <van-button round block plain type="primary" color="#2e7d32" class="submit-button continue-button" @click="handleSubmit(false)">
+        <van-button
+          v-if="!editItem && !hideAddMore"
+          round
+          block
+          plain
+          type="primary"
+          color="#2e7d32"
+          class="submit-button continue-button"
+          @click="handleSubmit(false)"
+        >
           Добавить ещё
         </van-button>
         <van-button
@@ -292,7 +339,7 @@ watch(() => props.editItem, (item) => {
           class="submit-button"
           @click="handleSubmit(true)"
         >
-          Добавить и закрыть
+          {{ submitText || (editItem ? 'Сохранить изменения' : (hideAddMore ? 'Перенести в холодильник' : 'Добавить и закрыть')) }}
         </van-button>
       </div>
 

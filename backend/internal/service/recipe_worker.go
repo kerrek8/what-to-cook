@@ -65,6 +65,7 @@ type normalizedRecipeIngredient struct {
 type normalizedRecipeOutput struct {
 	CookingTimeMinutes int                          `json:"cooking_time_minutes"`
 	Difficulty         string                       `json:"difficulty"`
+	ImageSearchQuery   string                       `json:"image_search_query"`
 	Ingredients        []normalizedRecipeIngredient `json:"ingredients"`
 }
 
@@ -415,6 +416,7 @@ func (w *RecipeWorker) normalizeRecipeWithGigaChat(ctx context.Context, raw *raw
 {
   "cooking_time_minutes": <целое число минут>,
   "difficulty": <"легко" | "средне" | "сложно">,
+  "image_search_query": <краткий английский поисковый запрос блюда из 2-3 слов для фото, например "pineapple pie", "beef goulash", "borscht soup", "lasagna bolognese">,
   "ingredients": [
     {
       "name": <каноническое название продукта в нижнем регистре на русском языке, например "картофель", "куриное филе", "соль">,
@@ -538,8 +540,8 @@ func (w *RecipeWorker) processAndSaveRecipe(ctx context.Context, raw rawCandidat
 		cookTime = 30
 	}
 
-	// 3. Assign reliable curated image URL
-	curatedImage := GetCuratedRecipeImage(raw.Title, raw.Category)
+	// 3. Resolve accurate, unique image URL
+	curatedImage := w.resolveRecipeImage(ctx, raw.Title, raw.Category, norm.ImageSearchQuery)
 
 	// 4. Save recipe to database
 	instrJSON, err := json.Marshal(instructions)
@@ -681,32 +683,143 @@ func generateUUID() string {
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }
 
+func (w *RecipeWorker) resolveRecipeImage(ctx context.Context, title, category, englishQuery string) string {
+	query := strings.TrimSpace(englishQuery)
+	if query != "" {
+		if img, err := w.fetchWikimediaImage(ctx, query); err == nil && img != "" {
+			return img
+		}
+	}
+
+	if img, err := w.fetchWikimediaImage(ctx, title); err == nil && img != "" {
+		return img
+	}
+
+	return GetCuratedRecipeImage(title, category)
+}
+
+func (w *RecipeWorker) fetchWikimediaImage(ctx context.Context, query string) (string, error) {
+	if strings.TrimSpace(query) == "" {
+		return "", errors.New("empty query")
+	}
+
+	reqURL := fmt.Sprintf("https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=%s&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json", url.QueryEscape(query))
+	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", "WhatCookBot/1.0 (contact@whatcook.app)")
+
+	resp, err := w.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("wikimedia returned %d", resp.StatusCode)
+	}
+
+	var result struct {
+		Query struct {
+			Pages map[string]struct {
+				Title     string `json:"title"`
+				ImageInfo []struct {
+					ThumbURL string `json:"thumburl"`
+					URL      string `json:"url"`
+				} `json:"imageinfo"`
+			} `json:"pages"`
+		} `json:"query"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	for _, page := range result.Query.Pages {
+		if len(page.ImageInfo) > 0 {
+			if page.ImageInfo[0].ThumbURL != "" {
+				return page.ImageInfo[0].ThumbURL, nil
+			}
+			if page.ImageInfo[0].URL != "" {
+				return page.ImageInfo[0].URL, nil
+			}
+		}
+	}
+
+	return "", errors.New("no image found on wikimedia")
+}
+
 // GetCuratedRecipeImage assigns a reliable, high-resolution food image from Unsplash Food CDN.
 func GetCuratedRecipeImage(title, category string) string {
 	t := strings.ToLower(title)
 	c := strings.ToLower(category)
 
 	switch {
+	// Specific pastries & sweets
+	case strings.Contains(t, "ананас") && (strings.Contains(t, "пирог") || strings.Contains(t, "торт")):
+		return "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "шарлотк") || (strings.Contains(t, "яблочн") && strings.Contains(t, "пирог")):
+		return "https://images.unsplash.com/photo-1568571780765-9276ac8b75a2?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "чизкейк"):
+		return "https://images.unsplash.com/photo-1524351199678-941a58a3df50?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "маршмеллоу"):
+		return "https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "нутелл") || (strings.Contains(t, "шоколадн") && strings.Contains(t, "паста")):
+		return "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "пудинг"):
+		return "https://images.unsplash.com/photo-1541783245831-57d6fb0926d3?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "чипс"):
+		return "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "рогалик") || strings.Contains(t, "круассан"):
+		return "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "пицц"):
+		return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "бургер"):
+		return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "блин") || strings.Contains(t, "оладь") || strings.Contains(t, "панкейк"):
+		return "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "сырник"):
+		return "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "пирог") || strings.Contains(t, "кекс") || strings.Contains(c, "выпечк"):
+		return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80"
+
+	// Soups
 	case strings.Contains(t, "борщ"):
 		return "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "суп") || strings.Contains(t, "солянк") || strings.Contains(t, "рассольник") || strings.Contains(c, "суп"):
+	case strings.Contains(t, "мисо") || strings.Contains(t, "рамен"):
+		return "https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "рассольник"):
+		return "https://images.unsplash.com/photo-1578020190125-f4f7c18bc9cb?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "суп") || strings.Contains(t, "солянк") || strings.Contains(c, "суп"):
 		return "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "рыб") || strings.Contains(t, "скумбри") || strings.Contains(t, "горбуш") || strings.Contains(t, "лосос") || strings.Contains(t, "креветк"):
+
+	// Seafood & Fish
+	case strings.Contains(t, "креветк"):
+		return "https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "рыб") || strings.Contains(t, "скумбри") || strings.Contains(t, "горбуш") || strings.Contains(t, "лосос") || strings.Contains(c, "рыб"):
 		return "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=660&q=80"
+
+	// Poultry
 	case strings.Contains(t, "куриц") || strings.Contains(t, "курин") || strings.Contains(t, "цыпленок") || strings.Contains(t, "индейк"):
 		return "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "говядин") || strings.Contains(t, "свинин") || strings.Contains(t, "мяс") || strings.Contains(t, "гуляш") || strings.Contains(t, "печен"):
-		return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "лазань") || strings.Contains(t, "паст") || strings.Contains(t, "макарон"):
+
+	// Meat & Stews
+	case strings.Contains(t, "печен"):
+		return "https://images.unsplash.com/photo-1584947921538-261657523910?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "лазань"):
+		return "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "паст") || strings.Contains(t, "макарон") || strings.Contains(t, "спагетти"):
 		return "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=660&q=80"
+	case strings.Contains(t, "говядин") || strings.Contains(t, "свинин") || strings.Contains(t, "мяс") || strings.Contains(t, "гуляш") || strings.Contains(t, "азу"):
+		return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80"
+
+	// Salads & Breakfast
 	case strings.Contains(t, "салат") || strings.Contains(c, "салат"):
 		return "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "сырник") || strings.Contains(t, "чипс") || strings.Contains(t, "рулет") || strings.Contains(t, "омлет") || strings.Contains(c, "закуск"):
+	case strings.Contains(t, "рулет") || strings.Contains(t, "омлет") || strings.Contains(c, "закуск"):
 		return "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "рогалик") || strings.Contains(t, "пирог") || strings.Contains(t, "хлеб") || strings.Contains(c, "выпечк"):
-		return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80"
-	case strings.Contains(t, "чизкейк") || strings.Contains(t, "пудинг") || strings.Contains(t, "маршмеллоу") || strings.Contains(t, "нутелл") || strings.Contains(c, "десерт"):
-		return "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=660&q=80"
+
 	default:
 		return "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=660&q=80"
 	}

@@ -67,3 +67,31 @@ button,
   min-height: 44px;
   min-width: 44px;
 }
+
+/* Typography & Word Break Rules for Russian text across Vant mobile components */
+.van-toast,
+.van-toast__text,
+.van-dialog__message,
+.van-notify,
+.van-action-sheet__item,
+.van-cell__title,
+.van-cell__value {
+  word-break: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  hyphens: manual !important;
+}
+
+.van-toast {
+  max-width: 88% !important;
+  width: auto !important;
+  min-width: 200px !important;
+  text-align: center !important;
+  line-height: 1.45 !important;
+  padding: 12px 18px !important;
+}
+
+.van-dialog__message {
+  line-height: 1.5 !important;
+}
