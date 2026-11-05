@@ -151,3 +151,8 @@ INSERT INTO recipes (
 ) VALUES (
     $1, $2, $3, $4, $5, $6
 ) RETURNING *;
+
+-- name: UpdateRecipeImage :exec
+UPDATE recipes
+SET image_url = $2, updated_at = NOW()
+WHERE id = $1;

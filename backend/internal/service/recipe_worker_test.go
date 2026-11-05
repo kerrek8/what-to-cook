@@ -36,7 +36,7 @@ func TestRecipeWorker_NewAndDisabled(t *testing.T) {
 		RateLimitPause: 50 * time.Millisecond,
 	}
 
-	worker := service.NewRecipeWorker(mockStore, config.GigaChatConfig{}, cfg)
+	worker := service.NewRecipeWorker(mockStore, config.GigaChatConfig{}, cfg, nil)
 	require.NotNil(t, worker)
 
 	worker.Start()
@@ -59,7 +59,7 @@ func TestRecipeWorker_StartAndStop(t *testing.T) {
 		RateLimitPause: 50 * time.Millisecond,
 	}
 
-	worker := service.NewRecipeWorker(mockStore, config.GigaChatConfig{}, cfg)
+	worker := service.NewRecipeWorker(mockStore, config.GigaChatConfig{}, cfg, nil)
 	require.NotNil(t, worker)
 
 	worker.Start()
@@ -69,6 +69,18 @@ func TestRecipeWorker_StartAndStop(t *testing.T) {
 
 	worker.Stop()
 	worker.Stop()
+}
+
+func TestRecipeImageFilename(t *testing.T) {
+	fn1 := service.RecipeImageFilename("Борщ классический")
+	fn2 := service.RecipeImageFilename("борщ классический ")
+	assert.NotEmpty(t, fn1)
+	assert.Equal(t, fn1, fn2)
+	assert.True(t, len(fn1) > 5)
+	assert.Contains(t, fn1, ".jpg")
+
+	fn3 := service.RecipeImageFilename("Шарлотка с яблоками")
+	assert.NotEqual(t, fn1, fn3)
 }
 
 func TestGetCuratedRecipeImage(t *testing.T) {
@@ -99,7 +111,20 @@ func TestGetCuratedRecipeImage(t *testing.T) {
 		assert.NotEmpty(t, img, "image should not be empty for %s", tc.title)
 		assert.Contains(t, img, "https://images.unsplash.com/", "should be valid unsplash image for %s", tc.title)
 		if tc.disallowedURL != "" {
-			assert.NotContains(t, img, tc.disallowedURL, "image for %s must not match generic disallowed image %s", tc.title, tc.disallowedURL)
+			assert.NotContains(t, img, tc.disallowedURL, "image should not contain %s for %s", tc.disallowedURL, tc.title)
 		}
 	}
+}
+
+func TestGenerateFluxImage_DelegationAndFallback(t *testing.T) {
+	mockStore := &mockWorkerQuerier{}
+	worker := service.NewRecipeWorker(mockStore, config.GigaChatConfig{}, config.RecipeWorkerConfig{}, nil)
+	require.NotNil(t, worker)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	// Calling with cancelled/short context should return error or fallback gracefully without panic
+	_, _ = worker.GenerateFluxImage(ctx, "Борщ классический", "appetizing borscht")
+	_, _ = worker.GenerateKandinskyImage(ctx, "Борщ классический")
 }

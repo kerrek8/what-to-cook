@@ -6,6 +6,7 @@ import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
+import { getImageUrl } from '@/utils/imageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -169,7 +170,7 @@ function onFavoriteToggle() {
       <div class="hero-wrapper">
         <img
           v-if="recipe.image_url && !heroImageError"
-          :src="recipe.image_url"
+          :src="getImageUrl(recipe.image_url)"
           :alt="recipe.title"
           class="hero-img"
           @error="heroImageError = true"

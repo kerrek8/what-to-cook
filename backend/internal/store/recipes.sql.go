@@ -524,3 +524,19 @@ func (q *Queries) RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavo
 	_, err := q.db.Exec(ctx, removeRecipeFavorite, arg.UserID, arg.RecipeID)
 	return err
 }
+
+const updateRecipeImage = `-- name: UpdateRecipeImage :exec
+UPDATE recipes
+SET image_url = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type UpdateRecipeImageParams struct {
+	ID       int32       `json:"id"`
+	ImageUrl pgtype.Text `json:"image_url"`
+}
+
+func (q *Queries) UpdateRecipeImage(ctx context.Context, arg UpdateRecipeImageParams) error {
+	_, err := q.db.Exec(ctx, updateRecipeImage, arg.ID, arg.ImageUrl)
+	return err
+}

@@ -51,6 +51,7 @@ type Querier interface {
 	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
 	TransferBoughtItemsToInventory(ctx context.Context, userID pgtype.UUID) ([]InventoryItem, error)
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
+	UpdateRecipeImage(ctx context.Context, arg UpdateRecipeImageParams) error
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
 	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error

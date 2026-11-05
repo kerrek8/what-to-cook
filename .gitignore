@@ -83,8 +83,13 @@ backend/bin/
 # Local media uploads
 backend/uploads/*
 !backend/uploads/.gitkeep
+!backend/uploads/recipes/
+!backend/uploads/recipes/*.jpg
 
 
 # Local seed generator script and cache
 backend/cmd/seed_generator/
 backend/scripts/
+recipe_preview.html
+test_output/
+test_comparison.html

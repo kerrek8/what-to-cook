@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { RecipeResponse, RecipeMatchItem } from '@/types/recipe'
 import { useRecipeStore } from '@/stores/recipe'
+import { getImageUrl } from '@/utils/imageUrl'
 
 const props = defineProps<{
   recipe: RecipeResponse
@@ -81,7 +82,7 @@ function onFavoriteClick(e: MouseEvent) {
     <div class="card-media">
       <img
         v-if="recipe.image_url && !imageError"
-        :src="recipe.image_url"
+        :src="getImageUrl(recipe.image_url)"
         :alt="recipe.title"
         class="card-img"
         loading="lazy"

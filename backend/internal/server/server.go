@@ -12,6 +12,7 @@ import (
 	"github.com/kerrek8/what-to-cook/backend/internal/handler"
 	"github.com/kerrek8/what-to-cook/backend/internal/middleware"
 	"github.com/kerrek8/what-to-cook/backend/internal/service"
+	"github.com/kerrek8/what-to-cook/backend/internal/storage"
 	"github.com/kerrek8/what-to-cook/backend/internal/store"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -45,7 +46,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 	}
 	notificationService := service.NewNotificationService(queries, pushSender)
 	expirationWorker := service.NewExpirationWorker(notificationService, 24*time.Hour)
-	recipeWorker := service.NewRecipeWorker(queries, cfg.GigaChat, cfg.RecipeWorker)
+	mediaStorage := storage.NewLocalStorage("./uploads", "/uploads")
+	recipeWorker := service.NewRecipeWorker(queries, cfg.GigaChat, cfg.RecipeWorker, mediaStorage)
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
@@ -58,6 +60,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 
 	router.GET("/health", healthHandler.Health)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.Static("/uploads", "./uploads")
 
 	v1 := router.Group("/api/v1")
 	{
