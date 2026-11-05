@@ -17,6 +17,7 @@ type Querier interface {
 	CountTotalRecipes(ctx context.Context) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
 	CreateInventoryItem(ctx context.Context, arg CreateInventoryItemParams) (InventoryItem, error)
+	CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error)
 	CreateShoppingItem(ctx context.Context, arg CreateShoppingItemParams) (ShoppingListItem, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBoughtShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) error
@@ -30,6 +31,7 @@ type Querier interface {
 	GetIngredientByNameCaseInsensitive(ctx context.Context, lower string) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
+	GetRecipeByTitle(ctx context.Context, lower string) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
 	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
 	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)

@@ -21,6 +21,7 @@ type Server struct {
 	httpServer       *http.Server
 	db               *pgxpool.Pool
 	expirationWorker *service.ExpirationWorker
+	recipeWorker     *service.RecipeWorker
 	recipeService    service.RecipeService
 	router           *gin.Engine
 }
@@ -44,6 +45,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 	}
 	notificationService := service.NewNotificationService(queries, pushSender)
 	expirationWorker := service.NewExpirationWorker(notificationService, 24*time.Hour)
+	recipeWorker := service.NewRecipeWorker(queries, cfg.GigaChat, cfg.RecipeWorker)
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
@@ -139,6 +141,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 	return &Server{
 		httpServer:       httpServer,
 		expirationWorker: expirationWorker,
+		recipeWorker:     recipeWorker,
 		recipeService:    recipeService,
 		router:           router,
 	}
@@ -163,12 +166,18 @@ func (s *Server) Start() error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Start()
 	}
+	if s.recipeWorker != nil {
+		s.recipeWorker.Start()
+	}
 	return s.httpServer.ListenAndServe()
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	if s.expirationWorker != nil {
 		s.expirationWorker.Stop()
+	}
+	if s.recipeWorker != nil {
+		s.recipeWorker.Stop()
 	}
 	if s.db != nil {
 		s.db.Close()

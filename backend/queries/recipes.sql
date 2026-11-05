@@ -133,3 +133,21 @@ SELECT EXISTS (
     SELECT 1 FROM recipe_favorites
     WHERE user_id = $1 AND recipe_id = $2
 );
+
+
+-- name: GetRecipeByTitle :one
+SELECT * FROM recipes
+WHERE LOWER(title) = LOWER($1)
+LIMIT 1;
+
+-- name: CreateRecipe :one
+INSERT INTO recipes (
+    title,
+    description,
+    instructions,
+    cooking_time_minutes,
+    difficulty,
+    image_url
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING *;

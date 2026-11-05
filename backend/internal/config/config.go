@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ServerConfig struct {
@@ -38,16 +39,51 @@ type GigaChatConfig struct {
 	VerifySSL bool
 }
 
+type RecipeWorkerConfig struct {
+	Enabled        bool
+	TargetTotal    int
+	ChunkSize      int
+	SubBatchSize   int
+	SubBatchPause  time.Duration
+	RateLimitPause time.Duration
+}
+
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Auth     AuthConfig
-	CORS     CORSConfig
-	VAPID    VAPIDConfig
-	GigaChat GigaChatConfig
+	Server       ServerConfig
+	Database     DatabaseConfig
+	Auth         AuthConfig
+	CORS         CORSConfig
+	VAPID        VAPIDConfig
+	GigaChat     GigaChatConfig
+	RecipeWorker RecipeWorkerConfig
+}
+
+func loadEnvFile(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			k := strings.TrimSpace(parts[0])
+			v := strings.TrimSpace(parts[1])
+			if os.Getenv(k) == "" {
+				os.Setenv(k, v)
+			}
+		}
+	}
 }
 
 func Load() (*Config, error) {
+	loadEnvFile(".env")
+	loadEnvFile("../.env")
+
 	cfg := &Config{
 		Server: ServerConfig{
 			Port: getEnvWithFallback("PORT", "BACKEND_PORT", "8080"),
@@ -72,6 +108,14 @@ func Load() (*Config, error) {
 			Scope:     getEnv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS"),
 			Model:     getEnv("GIGACHAT_MODEL", "GigaChat"),
 			VerifySSL: getEnvBool("GIGACHAT_VERIFY_SSL", false),
+		},
+		RecipeWorker: RecipeWorkerConfig{
+			Enabled:        getEnvBool("RECIPE_WORKER_ENABLED", true),
+			TargetTotal:    getEnvInt("RECIPE_WORKER_TARGET_TOTAL", 500),
+			ChunkSize:      getEnvInt("RECIPE_WORKER_CHUNK_SIZE", 50),
+			SubBatchSize:   getEnvInt("RECIPE_WORKER_SUB_BATCH_SIZE", 3),
+			SubBatchPause:  getEnvDuration("RECIPE_WORKER_SUB_BATCH_PAUSE", 1*time.Minute),
+			RateLimitPause: getEnvDuration("RECIPE_WORKER_RATE_LIMIT_PAUSE", 10*time.Minute),
 		},
 	}
 
@@ -140,6 +184,30 @@ func getEnvBool(key string, defaultValue bool) bool {
 		return defaultValue
 	}
 	parsed, err := strconv.ParseBool(strings.TrimSpace(val))
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	val, ok := os.LookupEnv(key)
+	if !ok || strings.TrimSpace(val) == "" {
+		return defaultValue
+	}
+	parsed, err := strconv.Atoi(strings.TrimSpace(val))
+	if err != nil {
+		return defaultValue
+	}
+	return parsed
+}
+
+func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
+	val, ok := os.LookupEnv(key)
+	if !ok || strings.TrimSpace(val) == "" {
+		return defaultValue
+	}
+	parsed, err := time.ParseDuration(strings.TrimSpace(val))
 	if err != nil {
 		return defaultValue
 	}

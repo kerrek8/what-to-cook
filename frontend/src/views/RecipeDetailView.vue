@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
@@ -19,6 +19,11 @@ const completedSteps = ref<Record<number, boolean>>({})
 const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
+const heroImageError = ref(false)
+
+watch(recipeId, () => {
+  heroImageError.value = false
+})
 
 onMounted(async () => {
   if (inventoryStore.items.length === 0) {
@@ -163,13 +168,15 @@ function onFavoriteToggle() {
     <template v-else-if="recipe">
       <div class="hero-wrapper">
         <img
-          v-if="recipe.image_url"
+          v-if="recipe.image_url && !heroImageError"
           :src="recipe.image_url"
           :alt="recipe.title"
           class="hero-img"
+          @error="heroImageError = true"
         />
         <div v-else class="hero-img placeholder-hero">
-          <van-icon name="photograph" size="48" color="#b0bec5" />
+          <van-icon name="photograph" size="48" color="#78909c" />
+          <span class="placeholder-cat">{{ recipe.description || 'Рецепт' }}</span>
         </div>
 
         <button

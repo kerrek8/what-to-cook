@@ -7,14 +7,14 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('ананасы', 'Фрукты и ягоды', 'шт.', FALSE),
 ('базилик сушеный', 'Специи', 'г', FALSE),
 ('бекон', 'Мясо и птица', 'г', FALSE),
-('бульон', 'Молочные продукты', 'мл', FALSE),
-('бульон куриный', 'Молочные продукты', 'мл', FALSE),
+('бульон', 'Молочные продукты', 'стакан', FALSE),
+('бульон куриный', 'Другое', 'стаканов', FALSE),
 ('ванилин', 'Специи', 'г', FALSE),
 ('ветчина', 'Мясо и птица', 'г', FALSE),
 ('вино белое сухое', 'Другое', 'мл', FALSE),
 ('вино красное', 'Другое', 'г', FALSE),
 ('вишня замороженная', 'Фрукты и ягоды', 'г', FALSE),
-('вода', 'Другое', 'мл', FALSE),
+('вода', 'Молочные продукты', 'мл', FALSE),
 ('водка сливовая', 'Другое', 'ст.л.', FALSE),
 ('водоросли вакаме', 'Овощи и зелень', 'г', FALSE),
 ('говядина', 'Мясо и птица', 'г', FALSE),
@@ -39,7 +39,7 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('капуста', 'Овощи и зелень', 'г', FALSE),
 ('кардамон', 'Специи', 'г', FALSE),
 ('карри', 'Специи', 'ч. л.', FALSE),
-('картофель', 'Овощи и зелень', 'г', FALSE),
+('картофель', 'Овощи и зелень', 'шт.', FALSE),
 ('кетчуп', 'Бакалея и соусы', 'ст. л.', FALSE),
 ('кешью', 'Другое', 'г', FALSE),
 ('конняку', 'Бакалея и соусы', 'пакетик', FALSE),
@@ -58,8 +58,8 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('листы лазаньи', 'Другое', 'шт.', FALSE),
 ('листья салата', 'Овощи и зелень', 'г', FALSE),
 ('лук', 'Овощи и зелень', 'шт', FALSE),
-('лук зеленый', 'Овощи и зелень', 'г', FALSE),
-('лук репчатый', 'Овощи и зелень', 'шт.', FALSE),
+('лук зеленый', 'Овощи и зелень', 'пучок', FALSE),
+('лук репчатый', 'Овощи и зелень', 'шт', FALSE),
 ('лук-шалот', 'Овощи и зелень', 'шт.', FALSE),
 ('майонез', 'Молочные продукты', 'г', FALSE),
 ('майонез домашний', 'Молочные продукты', 'г', FALSE),
@@ -77,7 +77,7 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('морковь', 'Овощи и зелень', 'шт', FALSE),
 ('морковь по-корейски', 'Овощи и зелень', 'г', FALSE),
 ('моцарелла', 'Молочные продукты', 'г', FALSE),
-('мука', 'Крупы и мука', 'ст. л.', FALSE),
+('мука', 'Крупы и мука', 'г', FALSE),
 ('мускатный орех', 'Специи', 'ч. л.', FALSE),
 ('огурцы', 'Овощи и зелень', 'шт', FALSE),
 ('огурцы маринованные', 'Овощи и зелень', 'г', FALSE),
@@ -96,7 +96,7 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('перец красный жгучий', 'Специи', 'ч. л.', FALSE),
 ('перец острый', 'Специи', 'ч. л.', FALSE),
 ('перец острый красный', 'Специи', 'г', FALSE),
-('перец сладкий болгарский', 'Овощи и зелень', 'шт.', FALSE),
+('перец сладкий болгарский', 'Овощи и зелень', 'г', FALSE),
 ('перец черный молотый', 'Специи', 'г', FALSE),
 ('перец черный свежемолотый', 'Специи', 'ч. л.', FALSE),
 ('перец чили хлопьями', 'Специи', 'ч. л.', FALSE),
@@ -104,13 +104,13 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('петрушка', 'Овощи и зелень', 'г', FALSE),
 ('повидло', 'Другое', 'г', FALSE),
 ('повидло сливовое', 'Фрукты и ягоды', 'ст.л.', FALSE),
-('помидоры', 'Овощи и зелень', 'шт.', FALSE),
+('помидоры', 'Овощи и зелень', 'г', FALSE),
 ('помидоры в собственном соку', 'Овощи и зелень', 'г', FALSE),
 ('разрыхлитель', 'Другое', 'ч.л.', FALSE),
-('растительное масло', 'Другое', 'г', FALSE),
+('растительное масло', 'Другое', 'мл', FALSE),
 ('рис', 'Крупы и мука', 'г', FALSE),
 ('розмарин', 'Овощи и зелень', 'ст. л.', FALSE),
-('сахар', 'Другое', 'ст. л.', FALSE),
+('сахар', 'Специи', 'ч. л.', FALSE),
 ('сахар коричневый', 'Другое', 'ст. л.', FALSE),
 ('сахарная пудра', 'Другое', 'стакан', FALSE),
 ('свекла', 'Овощи и зелень', 'шт', FALSE),
@@ -130,13 +130,13 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('соус чили', 'Другое', 'г', FALSE),
 ('сухари панировочные', 'Другое', 'г', FALSE),
 ('сыр', 'Молочные продукты', 'г', FALSE),
-('сыр пармезан', 'Другое', 'г', FALSE),
+('сыр пармезан', 'Молочные продукты', 'г', FALSE),
 ('сыр плавленый', 'Молочные продукты', 'шт.', FALSE),
 ('сыр твердый', 'Молочные продукты', 'г', FALSE),
 ('сыр филадельфия', 'Молочные продукты', 'г', FALSE),
 ('томатная паста', 'Молочные продукты', 'ст. л.', FALSE),
 ('тофу', 'Молочные продукты', 'г', FALSE),
-('укроп', 'Овощи и зелень', 'г', FALSE),
+('укроп', 'Специи', 'г', FALSE),
 ('укроп сушеный', 'Специи', 'г', FALSE),
 ('уксус винный', 'Другое', 'ст. л.', FALSE),
 ('фарш из индейки', 'Мясо и птица', 'г', FALSE),
@@ -148,866 +148,866 @@ INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALU
 ('шампиньоны консервированные', 'Другое', 'г', FALSE),
 ('шафран имеретинский', 'Специи', 'г', FALSE),
 ('шпинат свежий', 'Овощи и зелень', 'г', FALSE),
-('яйца', 'Молочные продукты', 'шт.', FALSE),
+('яйца', 'Другое', 'шт.', FALSE),
 ('яйца куриные', 'Молочные продукты', 'шт', FALSE)
 ON CONFLICT (name) DO NOTHING;
 
 -- 2. Рецепты и связи с ингредиентами
--- 1. Рецепт: Рогалики из дрожжевого теста на молоке с повидлом
+-- 1. Рецепт: Скумбрия с лимоном на решетке на углях
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
     1,
-    'Рогалики из дрожжевого теста на молоке с повидлом',
-    'Выпечка',
-    '["Приготовить опару из дрожжей, молока, муки и сахарного песка.","Перемешать, разбить комочки, оставить в тепле на сорок минут, емкость прикрыть чистой тканью.","Масса должна пениться.","Взбить 2 яйца с солью и сахаром, влить растительное масло.","Ввести смесь в опару.","Замесить тесто, муку всыпать порциями.","Тесто должно получиться эластичным, оставить его в тепле на час.","Готовое тесто разрезать на равные небольшие кусочки, каждый раскатать.","Положить по столовой ложке повидла, свернуть в рулеты.","Противень застелить бумагой, выложить рогалики, оставить на полчаса.","Смазать изделия оставшимися взбитыми яйцами, поставить в духовку. Температура выпекания – 180 градусов."]'::jsonb,
-    80,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/fc/84d09f6fc5511fc_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(1, (SELECT id FROM ingredients WHERE name = 'мука'), 700, 'г', '700 г', 'основной'),
-(1, (SELECT id FROM ingredients WHERE name = 'повидло'), 500, 'г', '500 г', 'основной'),
-(1, (SELECT id FROM ingredients WHERE name = 'молоко'), 300, 'мл', '300 мл', 'основной'),
-(1, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
-(1, (SELECT id FROM ingredients WHERE name = 'сахар'), 75, 'г', '75 г', 'важный'),
-(1, (SELECT id FROM ingredients WHERE name = 'растительное масло'), 45, 'мл', '45 мл', 'важный'),
-(1, (SELECT id FROM ingredients WHERE name = 'дрожжи свежие'), 30, 'г', '30 г', 'основной'),
-(1, (SELECT id FROM ingredients WHERE name = 'соль'), 3, 'г', '3 г', 'важный');
-
--- 2. Рецепт: Японский чизкейк с повидлом
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    2,
-    'Японский чизкейк с повидлом',
-    'Выпечка',
-    '["Достать из холодильника заранее сыр и масло, чтобы они нагрелись до комнатной температуры. Отделить белки и взбить, всыпать сахар, чуть соли. Положить в миску сливочный сыр, добавить масло, перемешать миксером на низких оборотах в однородную массу. Влить во время взбивания сок лимона, добавить по одному желтки яиц, перемешать.","Добавить молоко, все смешать в однородную массу, всыпать муку и крахмал, аккуратно перемешать. Порциями к смеси добавить белки, осторожно перемешать все снизу вверх. Подготовить форму, положить  пергамент, обернуть несколькими слоями фольги. Заполнить форму тестом, поставить на противень с высокими бортиками, залить в него горячую воду, чтобы она доходила до половины высоты формы, поставить на час в прогретую до 150 градусов духовку.","Достать из духовки, вынуть из формы, дать хорошо остыть, присыпать сахарной пудрой. Повидло из сливы прогреть на небольшом огне, добавить сливовую водку перемешать, полученной пропиткой полить верх десерта. Разрезать японский чизкейк с повидлом лучше только после полного остывания, а еще лучше после часа пребывания в холодильнике."]'::jsonb,
-    75,
-    'сложно',
-    'https://st.vkuso.ru/data/cache/thumb/85/fc750dfcbbab985_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(2, (SELECT id FROM ingredients WHERE name = 'сыр филадельфия'), 250, 'г', '250 г', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'сахар'), 140, 'г', '140 г', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'молоко'), 100, 'мл', '100 мл', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'мука'), 60, 'г', '60 г', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 50, 'г', '50 г', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'крахмал'), 20, 'г', '20 г', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'яйца'), 6, 'шт', '6 шт.', 'основной'),
-(2, (SELECT id FROM ingredients WHERE name = 'сок лимона'), 0.5, 'шт', '1/2 шт.', 'важный'),
-(2, (SELECT id FROM ingredients WHERE name = 'повидло сливовое'), 5, 'ст.л.', '5 ст.л.', 'важный'),
-(2, (SELECT id FROM ingredients WHERE name = 'водка сливовая'), 2, 'ст.л.', '2 ст.л.', 'важный'),
-(2, (SELECT id FROM ingredients WHERE name = 'разрыхлитель'), 1, 'ч.л.', '1 ч.л.', 'важный'),
-(2, (SELECT id FROM ingredients WHERE name = 'соль'), 1, 'щепотка', '1 щепотка', 'опциональный'),
-(2, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), NULL, NULL, 'по вкусу', 'опциональный');
-
--- 3. Рецепт: Рогалики из дрожжевого теста с замороженной вишней
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    3,
-    'Рогалики из дрожжевого теста с замороженной вишней',
-    'Выпечка',
-    '["Растворить дрожжи с сахарным песком на молоке, оставить на несколько минут, до появления пены.","Дрожжи соединить с пшеничной мукой, сахаром, сливочным и растительным маслом, ванильным сахаром из пакетика, солью, мукой, крахмалом и водой.","Массу хорошо вымесить, оставить при комнатной температуре на час или полтора.","Приготовить начинку: положить в сотейник замороженную вишню, всыпать крахмал, сахар, влить немного воды.","Потомить массу на огне до кипения.","Когда начинка загустеет – ее нужно охладить.","Готовое тесто разделить пополам, раскатать круглые лепешки, разрезать на двенадцать треугольников каждую.","Выложить начинку и скатать рогалики.","Время выпекания: от 25 до 30 минут, температура – от 175 до 180 градусов."]'::jsonb,
-    90,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/82/1191831cab65482_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(3, (SELECT id FROM ingredients WHERE name = 'мука'), 450, 'г', '450 г', 'основной'),
-(3, (SELECT id FROM ingredients WHERE name = 'вишня замороженная'), 300, 'г', '300 г', 'основной'),
-(3, (SELECT id FROM ingredients WHERE name = 'молоко'), 250, 'мл', '250 мл', 'основной'),
-(3, (SELECT id FROM ingredients WHERE name = 'сахар'), 210, 'г', '210 г', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 40, 'г', '40 г', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 30, 'мл', '30 мл', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'крахмал'), 30, 'г', '30 г', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'вода'), 30, 'мл', '30 мл', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'ванилин'), 10, 'г', '10 г', 'важный'),
-(3, (SELECT id FROM ingredients WHERE name = 'дрожжи быстродействующие'), 8, 'г', '8 г', 'основной'),
-(3, (SELECT id FROM ingredients WHERE name = 'соль'), 6, 'г', '6 г', 'важный');
-
--- 4. Рецепт: Классические рогалики из дрожжевого теста с маком
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    4,
-    'Классические рогалики из дрожжевого теста с маком',
-    'Выпечка',
-    '["Прессованные дрожжи смешать со 100 г сахара, теплым цельным молоком, мукой.","Оставить в тепле на пятнадцать или двадцать минут.","Просеять муку горкой, всыпать соль, сформовать углубление, влить опару и взболтанные яйца.","Вымешать массу, в процессе приготовления добавить мягкое сливочное масло.","Тесто оставить в тепле на час, оно должно удвоиться в размерах.","Сухой мак запарить в кипящей воде, время – сорок минут.","Воду слить, начинку растереть в однородную массу при помощи блендера, оставшийся сахар подсыпать порциями.","Сформовать рогалики: раскатать тесто в лепешки, а затем разрезать на сегменты.","Выложить начинку, свернуть маленькие рулеты, изогнуть их подковами.","Печь рогалики до появления корочки, температура – 180 градусов."]'::jsonb,
-    70,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/13/a32c9168e0fee13_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(4, (SELECT id FROM ingredients WHERE name = 'мука'), 600, 'г', '600 г', 'основной'),
-(4, (SELECT id FROM ingredients WHERE name = 'молоко'), 300, 'мл', '300 мл', 'основной'),
-(4, (SELECT id FROM ingredients WHERE name = 'сахар'), 150, 'г', '150 г', 'важный'),
-(4, (SELECT id FROM ingredients WHERE name = 'мак'), 135, 'г', '135 г', 'важный'),
-(4, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 120, 'г', '120 г', 'важный'),
-(4, (SELECT id FROM ingredients WHERE name = 'дрожжи прессованные'), 40, 'г', '40 г', 'основной'),
-(4, (SELECT id FROM ingredients WHERE name = 'яйца'), 2, 'шт', '2 шт.', 'основной'),
-(4, (SELECT id FROM ingredients WHERE name = 'соль'), 5, 'г', '5 г', 'важный');
-
--- 5. Рецепт: Маршмеллоу из сахара, желатина и воды
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    5,
-    'Маршмеллоу из сахара, желатина и воды',
-    'Десерты',
-    '["Желатин залить 40 мл воды. Оставить набухать.","В сотейник добавить сахар и 40 мл воды. Поставить его на средний огонь. Все перемешать. Кипятить 12-15 минут до состояния сиропа.","В глубокую емкость переложить желатин.","Начать взбивать миксером на низкой скорости и постепенно вводить сироп. Важно: сироп нужно добавлять сразу, как только сняли его с огня, не давая ему застыть.","Когда весь сироп добавлен, плавно увеличить скорость миксера до максимальной. Взбивать, пока масса не станет пышной и плотной.","В прямоугольную емкость постелить пищевую пленку, смазать ее растительным маслом.","Взбитую массу перенести в подготовленную тару. Убрать в холодильник до застывания. Примерно на 2 часа.","Посыпать плоскую поверхность сахарной пудрой, достать готовый маршмеллоу и обвалять в пудре.","Разрезать на кусочки, обвалять каждый кусочек в сахарной пудре. Маршмеллоу готов! Всем приятного аппетита! Больше кушайте, никого не слушайте!"]'::jsonb,
-    120,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/78/de97bcfdb786278_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(5, (SELECT id FROM ingredients WHERE name = 'желатин'), 6, 'г', '6 г', 'основной'),
-(5, (SELECT id FROM ingredients WHERE name = 'вода'), 80, 'мл', '80 мл', 'основной'),
-(5, (SELECT id FROM ingredients WHERE name = 'сахар'), 110, 'г', '110 г', 'основной'),
-(5, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), 2, 'ст. л.', '2 ст. л.', 'важный');
-
--- 6. Рецепт: Шоколадная паста «Нутелла» с орехами
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    6,
-    'Шоколадная паста «Нутелла» с орехами',
-    'Десерты',
-    '["Слегка подогреть молоко, перемешать блендером с сахаром, но лучше с сахарной пудрой, влить растительное масло, взбить на большой скорости, всыпать сухое молоко и порошок какао, еще раз, не переключая скорости, взбить.","Завершить приготовление, добавлением большого количества любых дробленых орехов, перемешать шоколадную пасту «Нутелла» с орехами окончательно, убрать в холодильник. После полного охлаждения ни запах, ни вкус подсолнечного масла чувствоваться не будет."]'::jsonb,
-    15,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/e3/31c7b0a528fe5e3_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(6, (SELECT id FROM ingredients WHERE name = 'растительное масло'), 350, 'мл', '350 мл', 'основной'),
-(6, (SELECT id FROM ingredients WHERE name = 'молоко'), 150, 'мл', '150 мл', 'основной'),
-(6, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), 0.5, 'стакан', '1/2 стакана', 'основной'),
-(6, (SELECT id FROM ingredients WHERE name = 'орехи'), 0.5, 'стакан', '1/2 стакана', 'основной'),
-(6, (SELECT id FROM ingredients WHERE name = 'какао-порошок'), 3, 'ст. л.', '3 ст.л.', 'основной'),
-(6, (SELECT id FROM ingredients WHERE name = 'молоко сухое'), 2, 'ст. л.', '2 ст.л.', 'важный'),
-(6, (SELECT id FROM ingredients WHERE name = 'ванилин'), NULL, NULL, 'по вкусу', 'опциональный');
-
--- 7. Рецепт: Рисовый пудинг с орехами, изюмом и специями
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    7,
-    'Рисовый пудинг с орехами, изюмом и специями',
-    'Десерты',
-    '["Подготовим заранее ингредиенты. Рис промыть, залить парой стаканов воды и оставить на 1 час.","Орехи измельчить ножом. На разогретую сковороду выложить масло и когда оно начнет шипеть всыпать орехи с изюмом. Обжаривать их в течении 2-3 минут постоянно помешивая.","В глубокую кастрюлю налить молоко и на умеренном огне довести до кипения.","Прежде чем молоко закипит, залить шафран 2 ложками горячего молока и дать настояться.","Всыпать рис в кипящее молоко и через 10 минут добавить сахар. Затем варить еще в течении 30-40 минут помешивая.","За несколько минут до готовности добавить в кастрюлю смесь орехов и изюма, шафрана, кардамон и соль. Подавать пудинг теплым."]'::jsonb,
-    240,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/ab/74a6158fc1c88ab_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(7, (SELECT id FROM ingredients WHERE name = 'рис'), 50, 'г', '½ стаканов', 'основной'),
-(7, (SELECT id FROM ingredients WHERE name = 'кешью'), 7, 'г', '1 ст.л.', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'миндаль'), 7, 'г', '1 ст.л.', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'изюм без косточек'), 30, 'г', '2 ст.л.', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 30, 'г', '2 ст.л.', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'молоко'), 750, 'мл', '3 стакана', 'основной'),
-(7, (SELECT id FROM ingredients WHERE name = 'сахар'), 90, 'г', '&frac13; стакан', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'шафран имеретинский'), NULL, NULL, '1 щепотка', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'кардамон'), NULL, NULL, '1 щепотка', 'важный'),
-(7, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, '1 щепотка', 'важный');
-
--- 8. Рецепт: Суп с мини-фрикадельками из индейки
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    8,
-    'Суп с мини-фрикадельками из индейки',
-    'Супы',
-    '["Нарезать мелкими кубиками лук, смешать с фаршем, добавить сыр, яйца, сухари, перец и соль, очень хорошо перемешать. Сформовать небольшие шарики фрикаделек, скатывать с небольшим усилием, чтобы фрикадельки получились после варки плотными и не потеряли форму.","Дать закипеть предварительно сваренному бульону, положить нарезанную небольшими брусочками морковь, довести до кипения, проварить минут 5, всыпать макаронные изделия,  помешивая еще около 5 минут. Положить в суп фрикадельки, варить еще 10 минут.","Последний штрих,  добавить в суп с мини-фрикадельками из индейки крупно порезанный шпинат, подержать на огне еще около минуты и выключить, прикрыть крышкой, дать настояться. Приятного аппетита!"]'::jsonb,
-    35,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/00/c5fc321c0ab8400_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(8, (SELECT id FROM ingredients WHERE name = 'фарш из индейки'), 340, 'г', '340 г', 'основной'),
-(8, (SELECT id FROM ingredients WHERE name = 'шпинат свежий'), 280, 'г', '280 г', 'основной'),
-(8, (SELECT id FROM ingredients WHERE name = 'паста орзо (ризони)'), 220, 'г', '220 г', 'основной'),
-(8, (SELECT id FROM ingredients WHERE name = 'сухари панировочные'), 120, 'г', '120 г', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 120, 'г', '120 г', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт.', '2 шт.', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'яйца'), 1, 'шт.', '1 шт.', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'бульон куриный'), 8, 'стаканов', '8 стаканов', 'основной'),
-(8, (SELECT id FROM ingredients WHERE name = 'вода'), 0.25, 'стаканов', '1/4 стакана', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 2, 'головки', '2 головки', 'важный'),
-(8, (SELECT id FROM ingredients WHERE name = 'соль'), 0.5, 'ч. л.', '1/2 ч.л.', 'опциональный'),
-(8, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
-
--- 9. Рецепт: Венгерский суп гуляш Бограч с говядиной
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    9,
-    'Венгерский суп гуляш Бограч с говядиной',
-    'Супы',
-    '["В кастрюлю налить 1 литр воды и довести до кипения.","Говядину нарезать прямоугольными кусочками. Обжарить на растительном масле на среднем огне 7 минут с двух сторон под накрытой крышкой.","Лук нарезать кубиками, добавить к говядине и готовить 5 минут под крышкой.","К говядине добавить паприку, сахар, картофель нарезанный кубиками, морковь соломкой – перемешать. Готовим 7 минут на среднем огне накрыв крышкой.","Болгарский перец очистить от семян и нарезать очень крупными кубиками. Помидоры нарезать крупной соломкой и добавить это все к содержимому сковороды – перемешать. Накрываем крышкой и готовим 15 минут на среднем огне.","Содержимое сковороды переложить в кастрюлю и залить кипятком. Посолить (1 ч.л.), поперчить жгучим перцем (1/5 ч.л.) – перемешать. Варим на медленном огне 30 минут накрыв крышкой.","Свежий укроп мелко нарезать и добавить в кастрюлю."]'::jsonb,
-    50,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/3a/50690b9f768053a_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(9, (SELECT id FROM ingredients WHERE name = 'говядина'), 200, 'г', '200 г', 'основной'),
-(9, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 200, 'г', '200 г', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'паприка молотая'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'сахар'), 1, 'ч. л.', '1 ч. л.', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'картофель'), 250, 'г', '250 г', 'основной'),
-(9, (SELECT id FROM ingredients WHERE name = 'морковь'), 80, 'г', '80 г', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'перец сладкий болгарский'), 170, 'г', '170 г', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'помидоры'), 250, 'г', '250 г', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'укроп'), 15, 'г', '15 г', 'опциональный'),
-(9, (SELECT id FROM ingredients WHERE name = 'соль'), 1, 'ч. л.', '1 ч. л.', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'перец красный жгучий'), 0.2, 'ч. л.', '&frac15; ч. л.', 'важный'),
-(9, (SELECT id FROM ingredients WHERE name = 'вода'), 100, 'л', '100 л', 'основной'),
-(9, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный');
-
--- 10. Рецепт: Борщ на свиных косточках в казане на костре
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    10,
-    'Борщ на свиных косточках в казане на костре',
-    'Супы',
-    '["Наливаем в казан 150 грамм растительного масла.","Добавляем лук и обжариваем 2-3 минуты.","Добавляем чеснок и обжариваем 1 минуту.","Добавляем морковь, сладкий перец, свеклу и обжариваем 2 - 3 минуты.","Добавляем томатную пасту, черный молотый перец, красный острый, соль и потушим 2 минуты.","Заливаем свиные кости холодной водой и варим бульон 40 минут.","Добавляем картофель и варим 10 минут.","Добавляем капусту.","Добавляем зажарку и варим до готовности картофеля.","Добавляем зелень."]'::jsonb,
-    60,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/38/47c841371155638_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(10, (SELECT id FROM ingredients WHERE name = 'свиные кости'), 1000, 'г', '1 кг', 'основной'),
-(10, (SELECT id FROM ingredients WHERE name = 'капуста'), 2000, 'г', '2 кг', 'основной'),
-(10, (SELECT id FROM ingredients WHERE name = 'картофель'), 2000, 'г', '2 кг', 'основной'),
-(10, (SELECT id FROM ingredients WHERE name = 'свекла'), 1, 'шт', '1 шт.', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'морковь'), 1, 'шт', '1 шт.', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'лук'), 3, 'шт', '3 шт.', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'укроп'), NULL, NULL, 'по вкусу', 'опциональный'),
-(10, (SELECT id FROM ingredients WHERE name = 'перец черный свежемолотый'), 1, 'ч. л.', '1 ч. л.', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'перец острый'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
-(10, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 150, 'г', '150 г', 'важный'),
-(10, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 150, 'г', '150 г', 'важный');
-
--- 11. Рецепт: Рассольник с перловой крупой без мяса
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    11,
-    'Рассольник с перловой крупой без мяса',
-    'Супы',
-    '["Промыть под проточной водой перловку, залить водой, дать постоять до утра, потом проварить 20 минут. Почистить и порезать на кубики картофель, высыпать к перловке, сварить до готовности. Обжарить до золотистости  измельченный лук на масле.","Измельчить на терке морковь, высыпать к луку, жарить, не забывая помешивать, 5 минут, добавить томатную пасту, размешать, немного прогреть и переложить эту заправку к крупе и картофелю.","Натереть соленые огурцы, положить в кастрюлю, проварить 10 минут. Готовому рассольнику с перловой крупой без мяса дать постоять немного под крышкой, разлить по тарелкам, положить по ложечке сметаны и присыпать измельченной зеленью."]'::jsonb,
-    60,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/89/8f8e4467b7e4989_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(11, (SELECT id FROM ingredients WHERE name = 'огурцы соленые'), 4, 'шт', '4 шт.', 'важный'),
-(11, (SELECT id FROM ingredients WHERE name = 'картофель'), 340, 'г', '340 г', 'основной'),
-(11, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт', '2 шт.', 'важный'),
-(11, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
-(11, (SELECT id FROM ingredients WHERE name = 'перловая крупа'), 130, 'г', '1/3 стакана', 'основной'),
-(11, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(11, (SELECT id FROM ingredients WHERE name = 'вода'), 1000, 'мл', '1 л', 'основной'),
-(11, (SELECT id FROM ingredients WHERE name = 'зелень'), NULL, NULL, 'по вкусу', 'опциональный'),
-(11, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
-
--- 12. Рецепт: Японский мисо-суп с зеленью
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    12,
-    'Японский мисо-суп с зеленью',
-    'Супы',
-    '["Картофель очистить, вымыть, нарезать кубиками небольшого размера.","Поставить вариться в кастрюле.","При закипании воды добавить сухой бульон даси.","При готовности картофеля добавить водоросли вакаме.","Снять кастрюлю с плиты.","Добавить светлую пасту мисо, продукт необходимо предварительно разбавить бульоном."]'::jsonb,
-    30,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/54/2a9bfb3e2584454_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(12, (SELECT id FROM ingredients WHERE name = 'вода'), 600, 'мл', '600 мл', 'основной'),
-(12, (SELECT id FROM ingredients WHERE name = 'картофель'), 2, 'шт.', '2 шт.', 'основной'),
-(12, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 1, 'пучок', '1 пучок', 'важный'),
-(12, (SELECT id FROM ingredients WHERE name = 'водоросли вакаме'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(12, (SELECT id FROM ingredients WHERE name = 'бульон'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(12, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 1, 'ст. л.', '1 ст. л.', 'основной');
-
--- 13. Рецепт: Мисо-суп со свининой и грибами
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    13,
-    'Мисо-суп со свининой и грибами',
-    'Супы',
-    '["Свиное мясо нарезать небольшими кусочками.","Очистить и нарезать корень пастернака или гобо.","Если используется второй продукт, то залить холодной водой.","Дайкон покрошить кубиками со стороной в полтора сантиметра.","Удалить ножки у грибов шиитаке, шляпки разрезать на четыре части.","Коннияку залить кипятком на минуту, выложить на сито, остудить.","Разрезать продукт на четыре части, а затем поперек – на ломтики.","Налить в кастрюлю кунжутное масло, прогреть до появления дымка.","Свинину обжарить, добавить пастернак, дайкон, коннияку, грибы.","Влить бульон даси, суп довести до кипения, варить на тихом огне пятнадцать минут.","Мисо пасту перемешать с небольшим количеством супа, влить в основное блюдо."]'::jsonb,
-    90,
-    'средне',
-    'https://st.vkuso.ru/data/cache/thumb/0a/507300a1d11de0a_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(13, (SELECT id FROM ingredients WHERE name = 'филе свинины'), 200, 'г', '200 г', 'основной'),
-(13, (SELECT id FROM ingredients WHERE name = 'бульон'), 1.75, 'стакан', '1.75 стакана', 'основной'),
-(13, (SELECT id FROM ingredients WHERE name = 'тофу'), 140, 'г', '140 г', 'основной'),
-(13, (SELECT id FROM ingredients WHERE name = 'грибы шиитаке'), 4, 'шт.', '4 шт.', 'важный'),
-(13, (SELECT id FROM ingredients WHERE name = 'лук-шалот'), 2, 'шт.', '2 шт.', 'важный'),
-(13, (SELECT id FROM ingredients WHERE name = 'пастернак'), 1, 'шт.', '1 шт.', 'важный'),
-(13, (SELECT id FROM ingredients WHERE name = 'дайкон'), 50, 'г', '50 г', 'важный'),
-(13, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 4.5, 'ч. л.', '4.5 ч. л.', 'основной'),
-(13, (SELECT id FROM ingredients WHERE name = 'семена кунжута'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
-(13, (SELECT id FROM ingredients WHERE name = 'конняку'), 0.5, 'пакетик', '½ пакетика', 'важный'),
-(13, (SELECT id FROM ingredients WHERE name = 'масло кунжутное'), NULL, NULL, 'по вкусу', 'опциональный');
-
--- 14. Рецепт: Простой мисо-суп с вакаме и тофу
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    14,
-    'Простой мисо-суп с вакаме и тофу',
-    'Супы',
-    '["В кастрюлю положить сухие водоросли вакаме, варить до кипения.","Снять с огня, добавить пасту мисо, перемешивать до растворения.","Разлить суп в тарелки, положить кубики тофу."]'::jsonb,
-    20,
-    'легко',
-    'https://st.vkuso.ru/data/cache/thumb/9f/8b8949db32d7c9f_660x440.jpg'
-);
-
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(14, (SELECT id FROM ingredients WHERE name = 'вода'), 300, 'мл', '300 мл', 'основной'),
-(14, (SELECT id FROM ingredients WHERE name = 'тофу'), 80, 'г', '80 г', 'основной'),
-(14, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 2, 'ч. л.', '2 ч. л.', 'важный'),
-(14, (SELECT id FROM ingredients WHERE name = 'водоросли вакаме'), 7, 'г', '7 г', 'основной');
-
--- 15. Рецепт: Скумбрия с лимоном на решетке на углях
-INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
-VALUES (
-    15,
     'Скумбрия с лимоном на решетке на углях',
     'Вторые блюда',
     '["Чистим и потрошим скумбрию.","Делаем неглубокие надрезы на спинке скумбрии.","Смешиваем соль, перец черный молотый, перец острый и сухой базилик.","Натираем скумбрию специями.","Поливаем соком лимона.","Жарим на углях по 7 минут с каждой стороны."]'::jsonb,
     30,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/33/f944ac6398f3b33_660x440.jpg'
+    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(15, (SELECT id FROM ingredients WHERE name = 'скумбрия свежемороженая'), 2, 'шт.', '2 шт.', 'основной'),
-(15, (SELECT id FROM ingredients WHERE name = 'лимон'), 1, 'шт.', '1 шт.', 'важный'),
-(15, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(15, (SELECT id FROM ingredients WHERE name = 'перец острый красный'), NULL, NULL, 'по вкусу', 'опциональный'),
-(15, (SELECT id FROM ingredients WHERE name = 'базилик сушеный'), NULL, NULL, 'по вкусу', 'опциональный'),
-(15, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(1, (SELECT id FROM ingredients WHERE name = 'скумбрия свежемороженая'), 2, 'шт.', '2 шт.', 'основной'),
+(1, (SELECT id FROM ingredients WHERE name = 'лимон'), 1, 'шт.', '1 шт.', 'важный'),
+(1, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(1, (SELECT id FROM ingredients WHERE name = 'перец острый красный'), NULL, NULL, 'по вкусу', 'опциональный'),
+(1, (SELECT id FROM ingredients WHERE name = 'базилик сушеный'), NULL, NULL, 'по вкусу', 'опциональный'),
+(1, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 16. Рецепт: Цыпленок в чесночно-масляном маринаде на углях
+-- 2. Рецепт: Цыпленок в чесночно-масляном маринаде на углях
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    16,
+    2,
     'Цыпленок в чесночно-масляном маринаде на углях',
     'Вторые блюда',
     '["Смешиваем чеснок, зелень и сливочное масло.","Маринад. Смешиваем черный молотый перец, соль, красный острый перец и растительное масло.","Натираем цыпленка маринадом.","Жарим на углях 25-30 минут.","Смазываем цыпленка маслом,чесноком, зеленью и жарим ещё 5 минут. Готовьте с удовольствием и приятного аппетита!"]'::jsonb,
     40,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/87/2df727895129887_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(16, (SELECT id FROM ingredients WHERE name = 'цыпленок'), 1, 'шт', '1 шт.', 'основной'),
-(16, (SELECT id FROM ingredients WHERE name = 'чеснок'), 7, 'зубчик', '7 зубчиков', 'важный'),
-(16, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 50, 'г', '50 г', 'важный'),
-(16, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(16, (SELECT id FROM ingredients WHERE name = 'соль'), 1.5, 'ч. л.', '1.5 ч. л.', 'важный'),
-(16, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), 0.5, 'ч. л.', '0.5 ч. л.', 'важный'),
-(16, (SELECT id FROM ingredients WHERE name = 'перец острый'), 0.5, 'ч. л.', '0.5 ч. л.', 'важный');
+(2, (SELECT id FROM ingredients WHERE name = 'цыпленок'), 1, 'шт', '1 шт.', 'основной'),
+(2, (SELECT id FROM ingredients WHERE name = 'чеснок'), 7, 'зубчик', '7 зубчиков', 'важный'),
+(2, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 50, 'г', '50 г', 'важный'),
+(2, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(2, (SELECT id FROM ingredients WHERE name = 'соль'), 1.5, 'ч. л.', '1.5 ч. л.', 'важный'),
+(2, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), 0.5, 'ч. л.', '0.5 ч. л.', 'важный'),
+(2, (SELECT id FROM ingredients WHERE name = 'перец острый'), 0.5, 'ч. л.', '0.5 ч. л.', 'важный');
 
--- 17. Рецепт: Очень вкусные креветки под сливочным соусом
+-- 3. Рецепт: Очень вкусные креветки под сливочным соусом
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    17,
+    3,
     'Очень вкусные креветки под сливочным соусом',
     'Вторые блюда',
     '["Разогреть на сковороде сливочное масло, добавить пропущенный через пресс чеснок, слегка прогреть и влить сливки, дать закипеть.","Положить в сковороду очищенные креветки, тушить при  слабом нагреве минут 10. Нашинковать мелко зелень, высыпать к креветкам, прогреть еще пару минут","Переложить креветки в тарелку, а соус продолжать нагревать до тех пор, пока он не загустеет. В сливочный соус положить креветки, размешать, прогреть минуты три, снять с огня, выложить на блюдо."]'::jsonb,
     30,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/d3/15b5ee9084208d3_660x440.jpg'
+    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(17, (SELECT id FROM ingredients WHERE name = 'креветки'), 800, 'г', '800 г', 'основной'),
-(17, (SELECT id FROM ingredients WHERE name = 'сливки'), 250, 'мл', '250 мл', 'важный'),
-(17, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 50, 'г', '50 г', 'важный'),
-(17, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
-(17, (SELECT id FROM ingredients WHERE name = 'петрушка'), NULL, NULL, 'по вкусу', 'опциональный'),
-(17, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(3, (SELECT id FROM ingredients WHERE name = 'креветки'), 800, 'г', '800 г', 'основной'),
+(3, (SELECT id FROM ingredients WHERE name = 'сливки'), 250, 'мл', '250 мл', 'важный'),
+(3, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 50, 'г', '50 г', 'важный'),
+(3, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(3, (SELECT id FROM ingredients WHERE name = 'петрушка'), NULL, NULL, 'по вкусу', 'опциональный'),
+(3, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 18. Рецепт: Сочное куриное филе на скорую руку
+-- 4. Рецепт: Сочное куриное филе на скорую руку
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    18,
+    4,
     'Сочное куриное филе на скорую руку',
     'Вторые блюда',
     '["Поставить в духовку керамическую форму, включить прогреваться духовку примерно до 250 градусов.","Помыть куриное филе, удалить кожу, обсушить, тщательно обвалять со всех сторон в панировочных сухарях.","Вынуть форму, сбрызнуть аккуратно дно маслом, добавить соль, уложить филе, по верху посолить и вернуть на 10 минут форму в духовку.","Открыть духовку, перевернуть мясо, прикрыть куриное филе пластинками сливочного масла, запекать еще 10 минут.","Переложить сочное куриное филе на тарелку, дать полежать минут пять и порезать на порции."]'::jsonb,
     20,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/9d/e2d9606400d659d_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(18, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 500, 'г', '500 г', 'основной'),
-(18, (SELECT id FROM ingredients WHERE name = 'панировочные сухари'), NULL, NULL, 'по вкусу', 'важный'),
-(18, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
-(18, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), NULL, NULL, 'по вкусу', 'важный'),
-(18, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'важный');
+(4, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 500, 'г', '500 г', 'основной'),
+(4, (SELECT id FROM ingredients WHERE name = 'панировочные сухари'), NULL, NULL, 'по вкусу', 'важный'),
+(4, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
+(4, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), NULL, NULL, 'по вкусу', 'важный'),
+(4, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'важный');
 
--- 19. Рецепт: Курица с ананасом в кисло-сладком соусе
+-- 5. Рецепт: Курица с ананасом в кисло-сладком соусе
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    19,
+    5,
     'Курица с ананасом в кисло-сладком соусе',
     'Вторые блюда',
     '["Для начала приготовим соус. В небольшой миске смешаем крахмал,ананасовый сок , протертый имбирь, чеснок, соевый соус, уксус, сахар, кетчуп, хлопья чили, паприку и все хорошо перемешаем. Уберем в сторону.","Нарежем курицу,лук, перец, ананас одного размера.","Теперь разогреваем масло в сковородке. Сначала обжарим в течение пару минут курицу, после добавим лук и перец.","За 4-5 минут до готовности, добавим соус и ананас. Продолжаем готовить на среднем огне до загустения.","В конце добавим порезанный зеленый лук и перед подачей можно посыпать кунжутом."]'::jsonb,
     25,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/2c/974c6ace13ea02c_660x440.jpeg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(19, (SELECT id FROM ingredients WHERE name = 'куриная грудка'), 2, 'шт.', '2 шт.', 'основной'),
-(19, (SELECT id FROM ingredients WHERE name = 'ананасы'), 0.5, 'шт.', '½ шт.', 'основной'),
-(19, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт.', '1 шт.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'перец сладкий болгарский'), 1, 'шт.', '1 шт.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 4, 'шт.', '4 шт.', 'опциональный'),
-(19, (SELECT id FROM ingredients WHERE name = 'кунжут'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
-(19, (SELECT id FROM ingredients WHERE name = 'масло подсолнечное'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'кукурузный крахмал'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'ананасовый сок'), 100, 'мл', '100 мл', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'имбирь'), 30, 'г', '30 г', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'кетчуп'), 3, 'ст. л.', '3 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'перец чили хлопьями'), 1, 'ч. л.', '1 ч. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'уксус винный'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'сахар коричневый'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(19, (SELECT id FROM ingredients WHERE name = 'паприка'), 1, 'ч. л.', '1 ч. л.', 'важный');
+(5, (SELECT id FROM ingredients WHERE name = 'куриная грудка'), 2, 'шт.', '2 шт.', 'основной'),
+(5, (SELECT id FROM ingredients WHERE name = 'ананасы'), 0.5, 'шт.', '½ шт.', 'основной'),
+(5, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт.', '1 шт.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'перец сладкий болгарский'), 1, 'шт.', '1 шт.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 4, 'шт.', '4 шт.', 'опциональный'),
+(5, (SELECT id FROM ingredients WHERE name = 'кунжут'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
+(5, (SELECT id FROM ingredients WHERE name = 'масло подсолнечное'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'кукурузный крахмал'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'ананасовый сок'), 100, 'мл', '100 мл', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'имбирь'), 30, 'г', '30 г', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'кетчуп'), 3, 'ст. л.', '3 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'перец чили хлопьями'), 1, 'ч. л.', '1 ч. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'уксус винный'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'сахар коричневый'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(5, (SELECT id FROM ingredients WHERE name = 'паприка'), 1, 'ч. л.', '1 ч. л.', 'важный');
 
--- 20. Рецепт: Свинина в сливочно-грибном соусе со специями
+-- 6. Рецепт: Свинина в сливочно-грибном соусе со специями
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    20,
+    6,
     'Свинина в сливочно-грибном соусе со специями',
     'Вторые блюда',
     '["Разрезать свинину на кусочки толщиной около 1 см.","Посолить и поперчить по вкусу.","Нарезать репчатый лук и шампиньоны полу-кольцами и пластинками.","На растительном масле на сильном огне быстро обжарить свинину примерно по 10-15 сек с каждой стороны, чтобы запечатать весь сок внутри. Свинину снять с огня и отложить в сторону.","На растительном масле на сильном огне обжарить шампиньоны с луком до полного выпаривания жидкости и легкого подрумянивания грибов.","Грибы посолить и поперчить по вкусу, добавить в них сладкую паприку, карри и итальянские травы, все перемешать. Сразу после этого добавить муку и все хорошо перемешать, чтобы мука прихватилась.","Влить в грибы молоко, все перемешать до получения однородного начинающего слегка загустевать соуса. Если соус Вам кажется слишком густым можно добавить еще немного молока или воды.","Уложить в грибной соус поджаренные кусочки свинины, ложкой равномерно покрыть поверхность мяса соусом.","Накрыть крышкой и держать на слабом огне около 30 мин."]'::jsonb,
     50,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/31/27ef083143eb131_660x440.jpg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(20, (SELECT id FROM ingredients WHERE name = 'свинина'), 750, 'г', '750 г', 'основной'),
-(20, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 500, 'г', '500 г', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 150, 'г', '150 г', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'молоко 3.2%'), 500, 'мл', '500 мл', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'мука'), 1, 'ст. л.', '1 ст. л.', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 3, 'ст. л.', '3 ст. л.', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'карри'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'паприка сладкая'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'итальянские травы'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
-(20, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(20, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(6, (SELECT id FROM ingredients WHERE name = 'свинина'), 750, 'г', '750 г', 'основной'),
+(6, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 500, 'г', '500 г', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 150, 'г', '150 г', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'молоко 3.2%'), 500, 'мл', '500 мл', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'мука'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 3, 'ст. л.', '3 ст. л.', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'карри'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'паприка сладкая'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'итальянские травы'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
+(6, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(6, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 21. Рецепт: Азу из филе индейки в сметанном соусе
+-- 7. Рецепт: Азу из филе индейки в сметанном соусе
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    21,
+    7,
     'Азу из филе индейки в сметанном соусе',
     'Вторые блюда',
     '["Репчатый лук нарезать полукольцами, филе птицы – полосками.","Обжарить ингредиенты на заранее разогретом масле до золотистого цвета.","Отдельно приготовить подливу из сметаны, муки, свежего или сушеного укропа.","Мясо выложить в сотейник, залить соусом, добавить бульон и лавровый лист.","Мелко порубить чеснок, добавить к остальным компонентам, соль – по вкусу, перемешать.","Тушить все вместе на огне средней мощности в течение получаса, продукты перемешивать."]'::jsonb,
     60,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/0a/8147516bf9e020a_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(21, (SELECT id FROM ingredients WHERE name = 'филе индейки'), 700, 'г', '700 г', 'основной'),
-(21, (SELECT id FROM ingredients WHERE name = 'сметана'), 500, 'г', '500 г', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'бульон куриный'), 400, 'мл', '400 мл', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 200, 'г', '200 г', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'чеснок'), 30, 'г', '30 г', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 4, 'ст. л.', '4 ст. л.', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'мука'), 30, 'г', '30 г', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'лавровый лист'), 2, 'шт.', '2 шт.', 'важный'),
-(21, (SELECT id FROM ingredients WHERE name = 'укроп сушеный'), NULL, NULL, 'по вкусу', 'опциональный'),
-(21, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(21, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(7, (SELECT id FROM ingredients WHERE name = 'филе индейки'), 700, 'г', '700 г', 'основной'),
+(7, (SELECT id FROM ingredients WHERE name = 'сметана'), 500, 'г', '500 г', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'бульон куриный'), 400, 'мл', '400 мл', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 200, 'г', '200 г', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'чеснок'), 30, 'г', '30 г', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 4, 'ст. л.', '4 ст. л.', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'мука'), 30, 'г', '30 г', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'лавровый лист'), 2, 'шт.', '2 шт.', 'важный'),
+(7, (SELECT id FROM ingredients WHERE name = 'укроп сушеный'), NULL, NULL, 'по вкусу', 'опциональный'),
+(7, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(7, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 22. Рецепт: Азу из индейки со сметаной и соевым соусом
+-- 8. Рецепт: Азу из индейки со сметаной и соевым соусом
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    22,
+    8,
     'Азу из индейки со сметаной и соевым соусом',
     'Вторые блюда',
     '["Филе птицы нарезать кусочками небольшого размера, выложить на прогретую с растительным маслом сковороду.","Время тушения – десять минут, огонь – средний, ингредиенты несколько раз перемешать.","Репчатый лук нарезать полукольцами, добавить в основную массу, тушить пять минут.","Нарезать чеснок, также добавить к мясу.","Влить немного соевого соуса, сметану, молотый перец и соль – по вкусу.","При необходимости можно добавить немного кипяченой воды.","Все вместе тушить десять минут, азу должно загустеть."]'::jsonb,
     50,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/7f/a0e201076bd707f_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(22, (SELECT id FROM ingredients WHERE name = 'филе индейки'), 1000, 'г', '1 кг', 'основной'),
-(22, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт.', '1 шт.', 'важный'),
-(22, (SELECT id FROM ingredients WHERE name = 'сметана'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(22, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(22, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
-(22, (SELECT id FROM ingredients WHERE name = 'смесь молотых перцев'), NULL, NULL, 'по вкусу', 'опциональный'),
-(22, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(8, (SELECT id FROM ingredients WHERE name = 'филе индейки'), 1000, 'г', '1 кг', 'основной'),
+(8, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт.', '1 шт.', 'важный'),
+(8, (SELECT id FROM ingredients WHERE name = 'сметана'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(8, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(8, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
+(8, (SELECT id FROM ingredients WHERE name = 'смесь молотых перцев'), NULL, NULL, 'по вкусу', 'опциональный'),
+(8, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 23. Рецепт: Говядина Сигурени по-японски
+-- 9. Рецепт: Говядина Сигурени по-японски
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    23,
+    9,
     'Говядина Сигурени по-японски',
     'Вторые блюда',
     '["В сковороду налить масло и разогреть. Свежий имбирь очистить от кожицы и натереть на терке. Чеснок пропустить через пресс. Обжариваем 2 минуты на среднем огне.","В тарелке смешать воду, соевый соус, сахар, вино, соус чили – перемешать. Вылить в сковородку. Греем 5 минут на слабом огне.","Говядину нарезать на кусочки и добавить в сковороду и тушим на медленном огне, пока не выкипит весь соус. Посыпаем кунжутом."]'::jsonb,
     45,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/de/867cdd15c18e2de_660x440.jpg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(23, (SELECT id FROM ingredients WHERE name = 'корень имбиря'), 15, 'г', '15 г', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'сахар'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'чеснок'), 1, 'зубчик', '1 зубчик', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'вода'), 200, 'мл', '200 мл', 'основной'),
-(23, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 4, 'ст. л.', '4 ст. л.', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'кунжут'), 1, 'ч. л.', '1 ч. л.', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'говяжья вырезка'), 400, 'г', '400 г', 'основной'),
-(23, (SELECT id FROM ingredients WHERE name = 'вино белое сухое'), 50, 'мл', '50 мл', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'соус чили'), 5, 'г', '5 г', 'важный'),
-(23, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 1, 'ст. л.', '1 ст. л.', 'важный');
+(9, (SELECT id FROM ingredients WHERE name = 'корень имбиря'), 15, 'г', '15 г', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'сахар'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'чеснок'), 1, 'зубчик', '1 зубчик', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'вода'), 200, 'мл', '200 мл', 'основной'),
+(9, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 4, 'ст. л.', '4 ст. л.', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'кунжут'), 1, 'ч. л.', '1 ч. л.', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'говяжья вырезка'), 400, 'г', '400 г', 'основной'),
+(9, (SELECT id FROM ingredients WHERE name = 'вино белое сухое'), 50, 'мл', '50 мл', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'соус чили'), 5, 'г', '5 г', 'важный'),
+(9, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 1, 'ст. л.', '1 ст. л.', 'важный');
 
--- 24. Рецепт: Лазанья болоньезе с мясным фаршем и соусом бешамель
+-- 10. Рецепт: Лазанья болоньезе с мясным фаршем и соусом бешамель
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    24,
+    10,
     'Лазанья болоньезе с мясным фаршем и соусом бешамель',
     'Вторые блюда',
     '["Для начала приготовим соус Болоньезе. Для этого нам понадобиться разогреть масло в кастрюле, туда добавим лук,морковь, сельдерей, слегка обжарим, добавим бекон и фарш, также слегка обжарим.","Добавим вино, выпарим, после добавим бульон, соль, перец, затем добавим томаты в собственном соку.","Теперь оставим на час на среднем огне, периодически помешивая.","Добавим молоко к Болоньезе и еще 5-10 минут готовить.","Теперь все раскладываем в форму. На низ добавим болоньезе и накроем листами (варить листы необязательно).","Сверху выкладываем опять болоньезе, посыпаем моцарелла и пармезаном, поливаем соусом бешамель. И так делаем 2-3 слоя. Под конец можно залить соус бешамель и посыпать пармезаном.","И ставим в разогретую духовку до 180 градусов на 35-40 минут.","Перейдем к соусу бешамель. Для этого нужно растопить сливочное масло, добавим муку и в течение 2-х минут перемешивать.","После залить молоко и миксером или венчиком мешать до загустения.","После добавить мускатный орех и соль,перемешаем и оставим в сторонку.","Добавим молоко к Болоньезе и еще 5-10 минут готовить.","Теперь все раскладываем в форму. На низ добавим болоньезе и накроем листами (варить листы необязательно).","Сверху выкладываем опять болоньезе, посыпаем моцарелла и пармезаном, поливаем соусом бешамель. И так делаем 2-3 слоя.","Под конец можно залить соус бешамель и посыпать пармезаном. И ставим в разогретую духовку до 180 градусов на 35-40 минут."]'::jsonb,
     210,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/d7/fa87bea3db2aed7_660x440.jpeg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(24, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'лук'), 40, 'г', '40 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'морковь'), 40, 'г', '40 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'сельдерей'), 40, 'г', '40 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'бекон'), 80, 'г', '80 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'свино-говяжий фарш'), 500, 'г', '500 г', 'основной'),
-(24, (SELECT id FROM ingredients WHERE name = 'молоко'), 100, 'мл', '100 мл, 400 мл', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'бульон'), 100, 'мл', '100 мл', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'вино красное'), 100, 'г', '100 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'помидоры в собственном соку'), 400, 'г', '400 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'соль'), 2, 'щепотка', '2 щепотки, 1 щепотка', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), 2, 'щепотка', '2 щепотки', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 60, 'г', '60 г', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'мука'), 1.5, 'ст. л.', '1.5 ст. л.', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'мускатный орех'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
-(24, (SELECT id FROM ingredients WHERE name = 'листы лазаньи'), 10, 'шт.', '10 шт.', 'основной'),
-(24, (SELECT id FROM ingredients WHERE name = 'моцарелла'), 200, 'г', '200 г', 'основной'),
-(24, (SELECT id FROM ingredients WHERE name = 'пармезан'), 50, 'г', '50 г', 'основной');
+(10, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'лук'), 40, 'г', '40 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'морковь'), 40, 'г', '40 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'сельдерей'), 40, 'г', '40 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'бекон'), 80, 'г', '80 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'свино-говяжий фарш'), 500, 'г', '500 г', 'основной'),
+(10, (SELECT id FROM ingredients WHERE name = 'молоко'), 100, 'мл', '100 мл, 400 мл', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'бульон'), 100, 'мл', '100 мл', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'вино красное'), 100, 'г', '100 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'помидоры в собственном соку'), 400, 'г', '400 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'соль'), 2, 'щепотка', '2 щепотки, 1 щепотка', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), 2, 'щепотка', '2 щепотки', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 60, 'г', '60 г', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'мука'), 1.5, 'ст. л.', '1.5 ст. л.', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'мускатный орех'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
+(10, (SELECT id FROM ingredients WHERE name = 'листы лазаньи'), 10, 'шт.', '10 шт.', 'основной'),
+(10, (SELECT id FROM ingredients WHERE name = 'моцарелла'), 200, 'г', '200 г', 'основной'),
+(10, (SELECT id FROM ingredients WHERE name = 'пармезан'), 50, 'г', '50 г', 'основной');
 
--- 25. Рецепт: Испанский омлет тортилья с картошкой и луком
+-- 11. Рецепт: Испанский омлет тортилья с картошкой и луком
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    25,
+    11,
     'Испанский омлет тортилья с картошкой и луком',
     'Вторые блюда',
     '["Картофель нарезаем тонкими пластинами.","Лук – полукольцами.","Обжариваем картофель.","Добавляем лук.","Взбиваем яйца.","Соединяем обе части.","Выкладываем в глубокую сковородку.","Жарим до корочки на медленном огне.","Переворачиваем.","Сервируем зеленым луком."]'::jsonb,
     30,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/38/f40c19d4996c938_660x440.jpg'
+    'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(25, (SELECT id FROM ingredients WHERE name = 'картофель'), 500, 'г', '500 г', 'основной'),
-(25, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
-(25, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 6, 'шт', '6 шт.', 'основной'),
-(25, (SELECT id FROM ingredients WHERE name = 'масло оливковое'), 50, 'мл', '50 мл', 'важный');
+(11, (SELECT id FROM ingredients WHERE name = 'картофель'), 500, 'г', '500 г', 'основной'),
+(11, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(11, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 6, 'шт', '6 шт.', 'основной'),
+(11, (SELECT id FROM ingredients WHERE name = 'масло оливковое'), 50, 'мл', '50 мл', 'важный');
 
--- 26. Рецепт: Весенний салат из молодой капусты, огурца и зелени
+-- 12. Рецепт: Весенний салат из молодой капусты, огурца и зелени
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    26,
+    12,
     'Весенний салат из молодой капусты, огурца и зелени',
     'Салаты',
     '["Сначала приготовим все необходимые ингредиенты. Овощи помоем под проточной водой.","Нарезаем огурцы.","Шинкуем капусту.","Рубим лук и петрушку, добавляем их к огурцам и капусте.","Добавляем сметану, солим и перчим по вкусу.\r\nПеремешиваем. Выкладываем салатик на тарелку и наслаждаемся нашим блюдом. Можно при желании украсить сверху укропом или зеленым луком."]'::jsonb,
     15,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/e4/9c7e8a629329ce4_660x440.jpg'
+    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(26, (SELECT id FROM ingredients WHERE name = 'капуста'), 200, 'г', '200 г', 'основной'),
-(26, (SELECT id FROM ingredients WHERE name = 'огурцы свежие'), 150, 'г', '150 г', 'основной'),
-(26, (SELECT id FROM ingredients WHERE name = 'сметана'), 60, 'г', '60 г', 'важный'),
-(26, (SELECT id FROM ingredients WHERE name = 'укроп'), 20, 'г', '20 г', 'важный'),
-(26, (SELECT id FROM ingredients WHERE name = 'петрушка'), 20, 'г', '20 г', 'важный'),
-(26, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 20, 'г', '20 г', 'важный'),
-(26, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(26, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(12, (SELECT id FROM ingredients WHERE name = 'капуста'), 200, 'г', '200 г', 'основной'),
+(12, (SELECT id FROM ingredients WHERE name = 'огурцы свежие'), 150, 'г', '150 г', 'основной'),
+(12, (SELECT id FROM ingredients WHERE name = 'сметана'), 60, 'г', '60 г', 'важный'),
+(12, (SELECT id FROM ingredients WHERE name = 'укроп'), 20, 'г', '20 г', 'важный'),
+(12, (SELECT id FROM ingredients WHERE name = 'петрушка'), 20, 'г', '20 г', 'важный'),
+(12, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 20, 'г', '20 г', 'важный'),
+(12, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(12, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 27. Рецепт: Салат Грибная поляна с шампиньонами и отварной курицей
+-- 13. Рецепт: Салат Грибная поляна с шампиньонами и отварной курицей
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    27,
+    13,
     'Салат Грибная поляна с шампиньонами и отварной курицей',
     'Салаты',
     '["Отвариваем овощи, яйца и куриное филе.","Салат будем готовить \"вверх ногами\". Салат готовим в кастрюле или как я в разъемной форме для выпечки. Застелем посуду пищевой пленкой.","1 слой: В емкость складываем маринованные грибы вниз шляпками.","2 слой: нарезанная зелень.","3 слой: натертая картошка. Солим и перчим. Промазываем майонезом.","4 слой: натертые яйца. Тоже солим и перчим. Смазываем майонезом.","5 слой: натертая морковь.","6 слой: натертые огурцы.","7 слой: нарезанная куриная грудка. Перчим и солим по вкусу. Смазываем майонезом","8 слой: натертый сыр. Промазываем майонезом.","Накрываем посуду пищевой пленкой и убираем в холодильник на 5-6 часов, а лучше на ночь.","Накрываем кастрюлю тарелкой и переворачиваем салат. Снимаем форму и пленку."]'::jsonb,
     90,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/ac/562e8fcbcd7d3ac_660x440.png'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(27, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 300, 'г', '300 г', 'основной'),
-(27, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 3, 'шт', '3 шт.', 'важный'),
-(27, (SELECT id FROM ingredients WHERE name = 'картофель'), 3, 'шт', '3 шт.', 'важный'),
-(27, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт', '2 шт.', 'важный'),
-(27, (SELECT id FROM ingredients WHERE name = 'грибы маринованные'), 450, 'г', '450 г', 'основной'),
-(27, (SELECT id FROM ingredients WHERE name = 'огурцы маринованные'), 3, 'шт', '3 шт.', 'важный'),
-(27, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 150, 'г', '150 г', 'основной'),
-(27, (SELECT id FROM ingredients WHERE name = 'зелень петрушки'), NULL, NULL, 'по вкусу', 'опциональный'),
-(27, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(27, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
-(27, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(27, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный');
+(13, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 300, 'г', '300 г', 'основной'),
+(13, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 3, 'шт', '3 шт.', 'важный'),
+(13, (SELECT id FROM ingredients WHERE name = 'картофель'), 3, 'шт', '3 шт.', 'важный'),
+(13, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт', '2 шт.', 'важный'),
+(13, (SELECT id FROM ingredients WHERE name = 'грибы маринованные'), 450, 'г', '450 г', 'основной'),
+(13, (SELECT id FROM ingredients WHERE name = 'огурцы маринованные'), 3, 'шт', '3 шт.', 'важный'),
+(13, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 150, 'г', '150 г', 'основной'),
+(13, (SELECT id FROM ingredients WHERE name = 'зелень петрушки'), NULL, NULL, 'по вкусу', 'опциональный'),
+(13, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(13, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(13, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(13, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный');
 
--- 28. Рецепт: Салат «Нежность» с куриным филе и грибами
+-- 14. Рецепт: Салат «Нежность» с куриным филе и грибами
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    28,
+    14,
     'Салат «Нежность» с куриным филе и грибами',
     'Салаты',
     '["Поставить варить филе, нашинковать луковицу, открыть шампиньоны, сок сцедить и обжарить их с луком. За это время натереть на терке со средними отверстиями сыр. Отделить у вареных яиц белок и желток, натереть по отдельности на такой же терке.","На широкое блюдо салат выложить в следующем порядке. Первый слой – кубики курицы, промазанные майонезом. Далее половину грибов с луком и майонез, прикрыть половиной натертого сыра с майонезом, присыпать белком.","Опять положить слой оставшегося мяса с майонезом, затем  грибы с луком и майонез. Посыпать тертыми белками от двух яиц, на них выложить остаток стружки сыра с майонезом. Завершить все слои четырьмя тертыми желтками. Салат «Нежность» с куриным филе и грибами готов."]'::jsonb,
     60,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/8c/d19cb4d41d7158c_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(28, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 300, 'г', '300 г', 'основной'),
-(28, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 200, 'г', '200 г', 'основной'),
-(28, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
-(28, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 2, 'шт', '2 шт.', 'основной'),
-(28, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'головка', '1 головка', 'важный'),
-(28, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный');
+(14, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 300, 'г', '300 г', 'основной'),
+(14, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 200, 'г', '200 г', 'основной'),
+(14, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
+(14, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 2, 'шт', '2 шт.', 'основной'),
+(14, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'головка', '1 головка', 'важный'),
+(14, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный');
 
--- 29. Рецепт: Салат «Изумрудный» с ветчиной и сыром
+-- 15. Рецепт: Салат «Изумрудный» с ветчиной и сыром
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    29,
+    15,
     'Салат «Изумрудный» с ветчиной и сыром',
     'Салаты',
     '["Нашинковать лук кубиками, обжарить на масле, добавить кусочки грибов, обжарить все вместе. Порезать ветчину и яйца мелкими кубиками, сыр измельчить на терке, огурцы нарезать тонкими ломтиками.","Огурцы использовать для оформления, все остальное перемешать, подсолить, сдобрить майонезом, аккуратно перемешать и выложить салат горкой на тарелку. Вдавить в макушку салата «Изумрудный» ломтик огурца, продолжить по часовой стрелке вниз со сдвигом до основания салата, чтобы получился цветок."]'::jsonb,
     30,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/3b/b9558a74933d53b_660x440.jpg'
+    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(29, (SELECT id FROM ingredients WHERE name = 'ветчина'), 200, 'г', '200 г', 'основной'),
-(29, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 150, 'г', '150 г', 'важный'),
-(29, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 100, 'г', '100 г', 'основной'),
-(29, (SELECT id FROM ingredients WHERE name = 'яйца'), 3, 'шт', '3 шт.', 'основной'),
-(29, (SELECT id FROM ingredients WHERE name = 'огурцы'), 2, 'шт', '2 шт.', 'важный'),
-(29, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
-(29, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный'),
-(29, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(15, (SELECT id FROM ingredients WHERE name = 'ветчина'), 200, 'г', '200 г', 'основной'),
+(15, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 150, 'г', '150 г', 'важный'),
+(15, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 100, 'г', '100 г', 'основной'),
+(15, (SELECT id FROM ingredients WHERE name = 'яйца'), 3, 'шт', '3 шт.', 'основной'),
+(15, (SELECT id FROM ingredients WHERE name = 'огурцы'), 2, 'шт', '2 шт.', 'важный'),
+(15, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(15, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'важный'),
+(15, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 30. Рецепт: Салат из куриной грудки с кукурузой и морковью по-корейски
+-- 16. Рецепт: Салат из куриной грудки с кукурузой и морковью по-корейски
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    30,
+    16,
     'Салат из куриной грудки с кукурузой и морковью по-корейски',
     'Салаты',
     '["Куриную грудку обжариваем на среднем огне по 7 минут с каждой стороны.","В глубокую тарелку сложить консервированную кукурузу, морковку по-корейски, мелко нарезанный зеленый лук, нарезанные соломкой маринованные огурцы, йогурт - перемешать.","На тарелку выложить листья салата, сверху выложить салат заправленный йогуртом.","Поверх выложить кусочки курицы нарезанный полосками, вареное яйцо разрезанное на дольки и листики петрушки."]'::jsonb,
     35,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/5e/2b87a02099cbc5e_660x440.jpg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(30, (SELECT id FROM ingredients WHERE name = 'куриная грудка'), 300, 'г', '300 г', 'основной'),
-(30, (SELECT id FROM ingredients WHERE name = 'кукуруза консервированная'), 100, 'г', '100 г', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'морковь по-корейски'), 100, 'г', '100 г', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 15, 'г', '15 г', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 3, 'шт', '3 шт.', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'огурцы маринованные'), 150, 'г', '150 г', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'йогурт натуральный'), 70, 'мл', '70 мл', 'важный'),
-(30, (SELECT id FROM ingredients WHERE name = 'петрушка'), 10, 'г', '10 г', 'опциональный'),
-(30, (SELECT id FROM ingredients WHERE name = 'листья салата'), 30, 'г', '30 г', 'опциональный');
+(16, (SELECT id FROM ingredients WHERE name = 'куриная грудка'), 300, 'г', '300 г', 'основной'),
+(16, (SELECT id FROM ingredients WHERE name = 'кукуруза консервированная'), 100, 'г', '100 г', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'морковь по-корейски'), 100, 'г', '100 г', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 15, 'г', '15 г', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 3, 'шт', '3 шт.', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'огурцы маринованные'), 150, 'г', '150 г', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'йогурт натуральный'), 70, 'мл', '70 мл', 'важный'),
+(16, (SELECT id FROM ingredients WHERE name = 'петрушка'), 10, 'г', '10 г', 'опциональный'),
+(16, (SELECT id FROM ingredients WHERE name = 'листья салата'), 30, 'г', '30 г', 'опциональный');
 
--- 31. Рецепт: Салат Красное море с крабовыми палочками и болгарским перцем
+-- 17. Рецепт: Салат Красное море с крабовыми палочками и болгарским перцем
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    31,
+    17,
     'Салат Красное море с крабовыми палочками и болгарским перцем',
     'Салаты',
     '["Нарезаем соломкой помидора и сладкий болгарский перец.","Крабовые палочки нарезаем не толстыми пяточками.","Сыр натираем на крупной терке.","Отправляем все нарезанные ингредиенты в миску и добавляем пропущенный через чеснокодавку чеснок.","Заправляем салат майонезом и солим по своему вкусу. Перемешиваем и посыпаем нарезанным зеленым луком."]'::jsonb,
     15,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/bc/db5b3f1aa4090bc_660x440.png'
+    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(31, (SELECT id FROM ingredients WHERE name = 'крабовые палочки'), 200, 'г', '200 г', 'основной'),
-(31, (SELECT id FROM ingredients WHERE name = 'помидоры'), 2, 'шт.', '2 шт.', 'важный'),
-(31, (SELECT id FROM ingredients WHERE name = 'перец болгарский красный'), 1, 'шт.', '1 шт.', 'важный'),
-(31, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
-(31, (SELECT id FROM ingredients WHERE name = 'сыр'), 100, 'г', '100 г', 'основной'),
-(31, (SELECT id FROM ingredients WHERE name = 'майонез'), 4, 'ст. л.', '4 ст. л.', 'важный'),
-(31, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(31, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(17, (SELECT id FROM ingredients WHERE name = 'крабовые палочки'), 200, 'г', '200 г', 'основной'),
+(17, (SELECT id FROM ingredients WHERE name = 'помидоры'), 2, 'шт.', '2 шт.', 'важный'),
+(17, (SELECT id FROM ingredients WHERE name = 'перец болгарский красный'), 1, 'шт.', '1 шт.', 'важный'),
+(17, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
+(17, (SELECT id FROM ingredients WHERE name = 'сыр'), 100, 'г', '100 г', 'основной'),
+(17, (SELECT id FROM ingredients WHERE name = 'майонез'), 4, 'ст. л.', '4 ст. л.', 'важный'),
+(17, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(17, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 32. Рецепт: Праздничный слоеный салат с курицей, грибами, сыром и яйцом
+-- 18. Рецепт: Праздничный слоеный салат с курицей, грибами, сыром и яйцом
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    32,
+    18,
     'Праздничный слоеный салат с курицей, грибами, сыром и яйцом',
     'Салаты',
     '["Мелко нарезать лук и грибы, обжарить лук и грибы на сливочном масле 10 минут, солим и перчим по вкусу.","Нарезать отварную курицу, яйца, огурцы, и натереть сыр на терке.","Смазать дно салатника майонезом, первым слоем выложить курицу, посолить и поперчить по вкусу, далее выкладываем обжаренные грибы с луком, смазываем майонезом.","Затем яйца, перец по вкусу, огурцы, майонез и сыр. Приятного аппетита!"]'::jsonb,
     20,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/80/fabdd5182e57480_660x440.jpeg'
+    'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(32, (SELECT id FROM ingredients WHERE name = 'шампиньоны консервированные'), 400, 'г', '400 г', 'основной'),
-(32, (SELECT id FROM ingredients WHERE name = 'курица вареная'), 300, 'г', '300 г', 'основной'),
-(32, (SELECT id FROM ingredients WHERE name = 'яйца'), 3, 'шт', '3 шт.', 'основной'),
-(32, (SELECT id FROM ingredients WHERE name = 'лук'), 2, 'шт', '2 шт.', 'важный'),
-(32, (SELECT id FROM ingredients WHERE name = 'сыр'), 50, 'г', '50 г', 'важный'),
-(32, (SELECT id FROM ingredients WHERE name = 'огурцы свежие'), 2, 'шт', '2 шт.', 'важный'),
-(32, (SELECT id FROM ingredients WHERE name = 'майонез'), 200, 'г', '200 г', 'основной'),
-(32, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
-(32, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(32, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(18, (SELECT id FROM ingredients WHERE name = 'шампиньоны консервированные'), 400, 'г', '400 г', 'основной'),
+(18, (SELECT id FROM ingredients WHERE name = 'курица вареная'), 300, 'г', '300 г', 'основной'),
+(18, (SELECT id FROM ingredients WHERE name = 'яйца'), 3, 'шт', '3 шт.', 'основной'),
+(18, (SELECT id FROM ingredients WHERE name = 'лук'), 2, 'шт', '2 шт.', 'важный'),
+(18, (SELECT id FROM ingredients WHERE name = 'сыр'), 50, 'г', '50 г', 'важный'),
+(18, (SELECT id FROM ingredients WHERE name = 'огурцы свежие'), 2, 'шт', '2 шт.', 'важный'),
+(18, (SELECT id FROM ingredients WHERE name = 'майонез'), 200, 'г', '200 г', 'основной'),
+(18, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
+(18, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(18, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 33. Рецепт: Сырный рулет со свиным фаршем
+-- 19. Рецепт: Сырный рулет со свиным фаршем
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    33,
+    19,
     'Сырный рулет со свиным фаршем',
     'Закуски',
     '["Натерла на мелкой терке твердый сыр. У меня «Российский». Добавила к сыру 3 яйца и майонез и все хорошо перемешала. \r\nВылила сырно-яичную смесь на квадратный противень (25х25), застеленный пергаментом. Равномерно разровняла и поставила выпекаться в разогретую до 180°C духовку на 15 минут.","Пока «тесто» запекалось, приготовила начинку. Фарш (у меня свиной) с луком.\r\nВ фарш добавила 1 яйцо, соль, перец и хорошо перемешала.","Готовому коржу дала немного остыть. Затем выложила на него фарш и равномерно распределила по коржу. Свернула корж в рулет. И поставила выпекаться в разогретую до 180 ° духовку на 40 минут. Рулет при выпекании накрыла пергаментом, можно и не накрывать, тогда у него получится хрустящая румяная корочка.\r\nГотовому рулету дала немного остыть, чтобы сыр схватился. Нарезала на порционные кусочки и выложила на блюдо. \r\nПриятного аппетита!"]'::jsonb,
     55,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/ce/854f1c4e58500ce_660x440.jpg'
+    'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(33, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 4, 'шт', '4 шт.', 'основной'),
-(33, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 100, 'г', '100 г', 'основной'),
-(33, (SELECT id FROM ingredients WHERE name = 'майонез домашний'), 150, 'г', '150 г', 'важный'),
-(33, (SELECT id FROM ingredients WHERE name = 'свинина'), 300, 'г', '300 г', 'основной'),
-(33, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(33, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(19, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 4, 'шт', '4 шт.', 'основной'),
+(19, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 100, 'г', '100 г', 'основной'),
+(19, (SELECT id FROM ingredients WHERE name = 'майонез домашний'), 150, 'г', '150 г', 'важный'),
+(19, (SELECT id FROM ingredients WHERE name = 'свинина'), 300, 'г', '300 г', 'основной'),
+(19, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(19, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 34. Рецепт: Домашние чипсы с зеленью в духовке
+-- 20. Рецепт: Домашние чипсы с зеленью в духовке
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    34,
+    20,
     'Домашние чипсы с зеленью в духовке',
     'Закуски',
     '["Включить и разогреть духовку до 190 градусов. Измельчить зубчики чеснока, перемешать с порубленными листиками розмарина, залить маслом, приправить солью и черным перцем, перемешать.","Тщательно помыть картофель с помощью щеточки, порезать очень тонкими ломтиками, погрузить в пряное масло, стряхнуть излишки масла и выложить внахлест на противень, как черепицу.","Задвинуть противень в прогретую  духовку, запекать домашние чипсы с зеленью в духовке минут 40 до появления аппетитного цвета. Достать противень, переложить подсушенные ломтики на тарелку в один слой."]'::jsonb,
     40,
     'легко',
-    'https://st.vkuso.ru/data/cache/thumb/b0/94ed983c67d6fb0_660x440.jpg'
+    'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(34, (SELECT id FROM ingredients WHERE name = 'картофель'), 1200, 'г', '1,2 кг', 'основной'),
-(34, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), 4, 'ст. л.', '4 ст. л.', 'важный'),
-(34, (SELECT id FROM ingredients WHERE name = 'розмарин'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(34, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
-(34, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(34, (SELECT id FROM ingredients WHERE name = 'растительное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
-(34, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(20, (SELECT id FROM ingredients WHERE name = 'картофель'), 1200, 'г', '1,2 кг', 'основной'),
+(20, (SELECT id FROM ingredients WHERE name = 'оливковое масло'), 4, 'ст. л.', '4 ст. л.', 'важный'),
+(20, (SELECT id FROM ingredients WHERE name = 'розмарин'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(20, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(20, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(20, (SELECT id FROM ingredients WHERE name = 'растительное масло'), NULL, NULL, 'по вкусу', 'опциональный'),
+(20, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 35. Рецепт: Торт из говяжьей печени с зеленью
+-- 21. Рецепт: Торт из говяжьей печени с зеленью
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    35,
+    21,
     'Торт из говяжьей печени с зеленью',
     'Закуски',
     '["Говяжью печень промыть, очистить от прожилок, пленок.","Продукт нарезать кусками большого размера, залить молоком, оставить на полчаса для вымачивания.","Пропустить через мясорубку, добавить немного молока, чтобы масса не была сухой.","Соль – по вкусу, вмешать муку и яйца.","Смесь должна получиться по консистенции похожей на блинное тесто.","Если масса жидкая – добавить муку, если слишком густая – долить молоко.","Разогреть сковороду, жарить блинчики по минуте с каждой стороны.","Коржи должны получиться мягкими.","Приготовить крем из обжаренного репчатого лука, рубленой зелени, майонеза.","Промазать коржи полученной смесью, поставить на ночь в прохладу для пропитывания."]'::jsonb,
     90,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/36/3e22ecb6fcafc36_660x440.jpg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(35, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
-(35, (SELECT id FROM ingredients WHERE name = 'молоко'), 250, 'мл', '1 стакан', 'важный'),
-(35, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт.', '4-5 шт.', 'важный'),
-(35, (SELECT id FROM ingredients WHERE name = 'яйца'), 2, 'шт.', '2 шт.', 'важный'),
-(35, (SELECT id FROM ingredients WHERE name = 'мука'), 2, 'ст. л.', '2 ст. л.', 'важный'),
-(35, (SELECT id FROM ingredients WHERE name = 'зелень укропа'), NULL, NULL, 'по вкусу', 'опциональный'),
-(35, (SELECT id FROM ingredients WHERE name = 'зелень петрушки'), NULL, NULL, 'по вкусу', 'опциональный'),
-(35, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'опциональный'),
-(35, (SELECT id FROM ingredients WHERE name = 'масло растительное'), NULL, NULL, 'по вкусу', 'опциональный'),
-(35, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+(21, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
+(21, (SELECT id FROM ingredients WHERE name = 'молоко'), 250, 'мл', '1 стакан', 'важный'),
+(21, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт.', '4-5 шт.', 'важный'),
+(21, (SELECT id FROM ingredients WHERE name = 'яйца'), 2, 'шт.', '2 шт.', 'важный'),
+(21, (SELECT id FROM ingredients WHERE name = 'мука'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(21, (SELECT id FROM ingredients WHERE name = 'зелень укропа'), NULL, NULL, 'по вкусу', 'опциональный'),
+(21, (SELECT id FROM ingredients WHERE name = 'зелень петрушки'), NULL, NULL, 'по вкусу', 'опциональный'),
+(21, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'опциональный'),
+(21, (SELECT id FROM ingredients WHERE name = 'масло растительное'), NULL, NULL, 'по вкусу', 'опциональный'),
+(21, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 36. Рецепт: Торт из говяжьей печени с грибной начинкой
+-- 22. Рецепт: Торт из говяжьей печени с грибной начинкой
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    36,
+    22,
     'Торт из говяжьей печени с грибной начинкой',
     'Закуски',
     '["Говяжью печень промыть, очистить от пленок, нарезать.","Пропустить продукт через мясорубку.","Всыпать муку, влить молоко.","Соль – по вкусу, перец молотый – по желанию.","Массу хорошо перемешать.","Испечь на сковороде коржики.","Приготовить начинку из очищенной и натертой моркови, нарезанного репчатого лука и грибов.","Грибы и овощи обжарить на сковороде по отдельности.","Натереть твердый сыр, чеснок очистить и измельчить.","Майонез перемешать с чесноком и сыром.","Собрать печеночный торт из остывших коржей, прослоить майонезным кремом, грибной и овощной обжаркой."]'::jsonb,
     90,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/df/d9fa599648d7fdf_660x440.jpg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(36, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
-(36, (SELECT id FROM ingredients WHERE name = 'мука'), 300, 'г', '300 г', 'основной'),
-(36, (SELECT id FROM ingredients WHERE name = 'молоко'), 200, 'мл', '200 мл', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
-(36, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(36, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
-(36, (SELECT id FROM ingredients WHERE name = 'грибы'), 500, 'г', '500-600 г', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 100, 'г', '100 г', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт', '4 шт.', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'морковь'), 4, 'шт', '4 шт.', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'чеснок'), 4, 'зубчик', '4 зубчика', 'важный'),
-(36, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'опциональный');
+(22, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
+(22, (SELECT id FROM ingredients WHERE name = 'мука'), 300, 'г', '300 г', 'основной'),
+(22, (SELECT id FROM ingredients WHERE name = 'молоко'), 200, 'мл', '200 мл', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
+(22, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(22, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(22, (SELECT id FROM ingredients WHERE name = 'грибы'), 500, 'г', '500-600 г', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 100, 'г', '100 г', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт', '4 шт.', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'морковь'), 4, 'шт', '4 шт.', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'чеснок'), 4, 'зубчик', '4 зубчика', 'важный'),
+(22, (SELECT id FROM ingredients WHERE name = 'майонез'), NULL, NULL, 'по вкусу', 'опциональный');
 
--- 37. Рецепт: Торт из говяжьей печени с плавленым сыром
+-- 23. Рецепт: Торт из говяжьей печени с плавленым сыром
 INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
 VALUES (
-    37,
+    23,
     'Торт из говяжьей печени с плавленым сыром',
     'Закуски',
     '["Репчатый лук очистить и нарезать на четвертинки.","Подготовить говяжью печень, пропустить вместе с луком через мясорубку или измельчить блендером.","Готовую смесь перемешать с мукой, яйцами, сметаной, солью и перцем.","Масса должна получиться однородной.","Испечь коржи на сковороде.","Приготовить начинку.","Отварить куриные яйца, очистить.","Натереть на терке, так же поступить с плавленым сыром.","Чеснок измельчить, перемешать с майонезом.","Первый печеночный корж намазать майонезным соусом, посыпать тертым сыром.","Следующий корж намазать чесночным кремом и посыпать яйцами.","Коржи складывать стопкой, прослаивать разными видами начинки.","Готовый торт поставить на два часа в холодильник."]'::jsonb,
     90,
     'средне',
-    'https://st.vkuso.ru/data/cache/thumb/a7/1b3d7e7429a2ba7_660x440.jpg'
+    'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=660&q=80'
 );
 
 INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
-(37, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
-(37, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт.', '4 шт.', 'важный'),
-(37, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт.', '4 шт.', 'основной'),
-(37, (SELECT id FROM ingredients WHERE name = 'мука'), 6, 'ст. л.', '6 ст. л.', 'важный'),
-(37, (SELECT id FROM ingredients WHERE name = 'сметана'), 4, 'ст. л.', '4 ст. л.', 'важный'),
-(37, (SELECT id FROM ingredients WHERE name = 'масло растительное'), NULL, NULL, 'по вкусу', 'опциональный'),
-(37, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
-(37, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
-(37, (SELECT id FROM ingredients WHERE name = 'майонез'), 350, 'г', '350 г', 'важный'),
-(37, (SELECT id FROM ingredients WHERE name = 'сыр плавленый'), 2, 'шт.', '2 шт.', 'важный'),
-(37, (SELECT id FROM ingredients WHERE name = 'чеснок'), 5, 'зубчик', '5-6 зубчиков', 'важный');
+(23, (SELECT id FROM ingredients WHERE name = 'говяжья печень'), 1000, 'г', '1 кг', 'основной'),
+(23, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 4, 'шт.', '4 шт.', 'важный'),
+(23, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт.', '4 шт.', 'основной'),
+(23, (SELECT id FROM ingredients WHERE name = 'мука'), 6, 'ст. л.', '6 ст. л.', 'важный'),
+(23, (SELECT id FROM ingredients WHERE name = 'сметана'), 4, 'ст. л.', '4 ст. л.', 'важный'),
+(23, (SELECT id FROM ingredients WHERE name = 'масло растительное'), NULL, NULL, 'по вкусу', 'опциональный'),
+(23, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(23, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(23, (SELECT id FROM ingredients WHERE name = 'майонез'), 350, 'г', '350 г', 'важный'),
+(23, (SELECT id FROM ingredients WHERE name = 'сыр плавленый'), 2, 'шт.', '2 шт.', 'важный'),
+(23, (SELECT id FROM ingredients WHERE name = 'чеснок'), 5, 'зубчик', '5-6 зубчиков', 'важный');
+
+-- 24. Рецепт: Рогалики из дрожжевого теста на молоке с повидлом
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    24,
+    'Рогалики из дрожжевого теста на молоке с повидлом',
+    'Выпечка',
+    '["Приготовить опару из дрожжей, молока, муки и сахарного песка.","Перемешать, разбить комочки, оставить в тепле на сорок минут, емкость прикрыть чистой тканью.","Масса должна пениться.","Взбить 2 яйца с солью и сахаром, влить растительное масло.","Ввести смесь в опару.","Замесить тесто, муку всыпать порциями.","Тесто должно получиться эластичным, оставить его в тепле на час.","Готовое тесто разрезать на равные небольшие кусочки, каждый раскатать.","Положить по столовой ложке повидла, свернуть в рулеты.","Противень застелить бумагой, выложить рогалики, оставить на полчаса.","Смазать изделия оставшимися взбитыми яйцами, поставить в духовку. Температура выпекания – 180 градусов."]'::jsonb,
+    80,
+    'средне',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(24, (SELECT id FROM ingredients WHERE name = 'мука'), 700, 'г', '700 г', 'основной'),
+(24, (SELECT id FROM ingredients WHERE name = 'повидло'), 500, 'г', '500 г', 'основной'),
+(24, (SELECT id FROM ingredients WHERE name = 'молоко'), 300, 'мл', '300 мл', 'основной'),
+(24, (SELECT id FROM ingredients WHERE name = 'яйца'), 4, 'шт', '4 шт.', 'основной'),
+(24, (SELECT id FROM ingredients WHERE name = 'сахар'), 75, 'г', '75 г', 'важный'),
+(24, (SELECT id FROM ingredients WHERE name = 'растительное масло'), 45, 'мл', '45 мл', 'важный'),
+(24, (SELECT id FROM ingredients WHERE name = 'дрожжи свежие'), 30, 'г', '30 г', 'основной'),
+(24, (SELECT id FROM ingredients WHERE name = 'соль'), 3, 'г', '3 г', 'важный');
+
+-- 25. Рецепт: Японский чизкейк с повидлом
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    25,
+    'Японский чизкейк с повидлом',
+    'Выпечка',
+    '["Достать из холодильника заранее сыр и масло, чтобы они нагрелись до комнатной температуры. Отделить белки и взбить, всыпать сахар, чуть соли. Положить в миску сливочный сыр, добавить масло, перемешать миксером на низких оборотах в однородную массу. Влить во время взбивания сок лимона, добавить по одному желтки яиц, перемешать.","Добавить молоко, все смешать в однородную массу, всыпать муку и крахмал, аккуратно перемешать. Порциями к смеси добавить белки, осторожно перемешать все снизу вверх. Подготовить форму, положить  пергамент, обернуть несколькими слоями фольги. Заполнить форму тестом, поставить на противень с высокими бортиками, залить в него горячую воду, чтобы она доходила до половины высоты формы, поставить на час в прогретую до 150 градусов духовку.","Достать из духовки, вынуть из формы, дать хорошо остыть, присыпать сахарной пудрой. Повидло из сливы прогреть на небольшом огне, добавить сливовую водку перемешать, полученной пропиткой полить верх десерта. Разрезать японский чизкейк с повидлом лучше только после полного остывания, а еще лучше после часа пребывания в холодильнике."]'::jsonb,
+    75,
+    'сложно',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(25, (SELECT id FROM ingredients WHERE name = 'сыр филадельфия'), 250, 'г', '250 г', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'сахар'), 140, 'г', '140 г', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'молоко'), 100, 'мл', '100 мл', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'мука'), 60, 'г', '60 г', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 50, 'г', '50 г', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'крахмал'), 20, 'г', '20 г', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'яйца'), 6, 'шт', '6 шт.', 'основной'),
+(25, (SELECT id FROM ingredients WHERE name = 'сок лимона'), 0.5, 'шт', '1/2 шт.', 'важный'),
+(25, (SELECT id FROM ingredients WHERE name = 'повидло сливовое'), 5, 'ст.л.', '5 ст.л.', 'важный'),
+(25, (SELECT id FROM ingredients WHERE name = 'водка сливовая'), 2, 'ст.л.', '2 ст.л.', 'важный'),
+(25, (SELECT id FROM ingredients WHERE name = 'разрыхлитель'), 1, 'ч.л.', '1 ч.л.', 'важный'),
+(25, (SELECT id FROM ingredients WHERE name = 'соль'), 1, 'щепотка', '1 щепотка', 'опциональный'),
+(25, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 26. Рецепт: Рогалики из дрожжевого теста с замороженной вишней
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    26,
+    'Рогалики из дрожжевого теста с замороженной вишней',
+    'Выпечка',
+    '["Растворить дрожжи с сахарным песком на молоке, оставить на несколько минут, до появления пены.","Дрожжи соединить с пшеничной мукой, сахаром, сливочным и растительным маслом, ванильным сахаром из пакетика, солью, мукой, крахмалом и водой.","Массу хорошо вымесить, оставить при комнатной температуре на час или полтора.","Приготовить начинку: положить в сотейник замороженную вишню, всыпать крахмал, сахар, влить немного воды.","Потомить массу на огне до кипения.","Когда начинка загустеет – ее нужно охладить.","Готовое тесто разделить пополам, раскатать круглые лепешки, разрезать на двенадцать треугольников каждую.","Выложить начинку и скатать рогалики.","Время выпекания: от 25 до 30 минут, температура – от 175 до 180 градусов."]'::jsonb,
+    90,
+    'средне',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(26, (SELECT id FROM ingredients WHERE name = 'мука'), 450, 'г', '450 г', 'основной'),
+(26, (SELECT id FROM ingredients WHERE name = 'вишня замороженная'), 300, 'г', '300 г', 'основной'),
+(26, (SELECT id FROM ingredients WHERE name = 'молоко'), 250, 'мл', '250 мл', 'основной'),
+(26, (SELECT id FROM ingredients WHERE name = 'сахар'), 210, 'г', '210 г', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'масло сливочное'), 40, 'г', '40 г', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 30, 'мл', '30 мл', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'крахмал'), 30, 'г', '30 г', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'вода'), 30, 'мл', '30 мл', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'ванилин'), 10, 'г', '10 г', 'важный'),
+(26, (SELECT id FROM ingredients WHERE name = 'дрожжи быстродействующие'), 8, 'г', '8 г', 'основной'),
+(26, (SELECT id FROM ingredients WHERE name = 'соль'), 6, 'г', '6 г', 'важный');
+
+-- 27. Рецепт: Классические рогалики из дрожжевого теста с маком
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    27,
+    'Классические рогалики из дрожжевого теста с маком',
+    'Выпечка',
+    '["Прессованные дрожжи смешать со 100 г сахара, теплым цельным молоком, мукой.","Оставить в тепле на пятнадцать или двадцать минут.","Просеять муку горкой, всыпать соль, сформовать углубление, влить опару и взболтанные яйца.","Вымешать массу, в процессе приготовления добавить мягкое сливочное масло.","Тесто оставить в тепле на час, оно должно удвоиться в размерах.","Сухой мак запарить в кипящей воде, время – сорок минут.","Воду слить, начинку растереть в однородную массу при помощи блендера, оставшийся сахар подсыпать порциями.","Сформовать рогалики: раскатать тесто в лепешки, а затем разрезать на сегменты.","Выложить начинку, свернуть маленькие рулеты, изогнуть их подковами.","Печь рогалики до появления корочки, температура – 180 градусов."]'::jsonb,
+    70,
+    'средне',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(27, (SELECT id FROM ingredients WHERE name = 'мука'), 600, 'г', '600 г', 'основной'),
+(27, (SELECT id FROM ingredients WHERE name = 'молоко'), 300, 'мл', '300 мл', 'основной'),
+(27, (SELECT id FROM ingredients WHERE name = 'сахар'), 150, 'г', '150 г', 'важный'),
+(27, (SELECT id FROM ingredients WHERE name = 'мак'), 135, 'г', '135 г', 'важный'),
+(27, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 120, 'г', '120 г', 'важный'),
+(27, (SELECT id FROM ingredients WHERE name = 'дрожжи прессованные'), 40, 'г', '40 г', 'основной'),
+(27, (SELECT id FROM ingredients WHERE name = 'яйца'), 2, 'шт', '2 шт.', 'основной'),
+(27, (SELECT id FROM ingredients WHERE name = 'соль'), 5, 'г', '5 г', 'важный');
+
+-- 28. Рецепт: Маршмеллоу из сахара, желатина и воды
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    28,
+    'Маршмеллоу из сахара, желатина и воды',
+    'Десерты',
+    '["Желатин залить 40 мл воды. Оставить набухать.","В сотейник добавить сахар и 40 мл воды. Поставить его на средний огонь. Все перемешать. Кипятить 12-15 минут до состояния сиропа.","В глубокую емкость переложить желатин.","Начать взбивать миксером на низкой скорости и постепенно вводить сироп. Важно: сироп нужно добавлять сразу, как только сняли его с огня, не давая ему застыть.","Когда весь сироп добавлен, плавно увеличить скорость миксера до максимальной. Взбивать, пока масса не станет пышной и плотной.","В прямоугольную емкость постелить пищевую пленку, смазать ее растительным маслом.","Взбитую массу перенести в подготовленную тару. Убрать в холодильник до застывания. Примерно на 2 часа.","Посыпать плоскую поверхность сахарной пудрой, достать готовый маршмеллоу и обвалять в пудре.","Разрезать на кусочки, обвалять каждый кусочек в сахарной пудре. Маршмеллоу готов! Всем приятного аппетита! Больше кушайте, никого не слушайте!"]'::jsonb,
+    120,
+    'легко',
+    'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(28, (SELECT id FROM ingredients WHERE name = 'желатин'), 6, 'г', '6 г', 'основной'),
+(28, (SELECT id FROM ingredients WHERE name = 'вода'), 80, 'мл', '80 мл', 'основной'),
+(28, (SELECT id FROM ingredients WHERE name = 'сахар'), 110, 'г', '110 г', 'основной'),
+(28, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), 2, 'ст. л.', '2 ст. л.', 'важный');
+
+-- 29. Рецепт: Шоколадная паста «Нутелла» с орехами
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    29,
+    'Шоколадная паста «Нутелла» с орехами',
+    'Десерты',
+    '["Слегка подогреть молоко, перемешать блендером с сахаром, но лучше с сахарной пудрой, влить растительное масло, взбить на большой скорости, всыпать сухое молоко и порошок какао, еще раз, не переключая скорости, взбить.","Завершить приготовление, добавлением большого количества любых дробленых орехов, перемешать шоколадную пасту «Нутелла» с орехами окончательно, убрать в холодильник. После полного охлаждения ни запах, ни вкус подсолнечного масла чувствоваться не будет."]'::jsonb,
+    15,
+    'легко',
+    'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(29, (SELECT id FROM ingredients WHERE name = 'растительное масло'), 350, 'мл', '350 мл', 'основной'),
+(29, (SELECT id FROM ingredients WHERE name = 'молоко'), 150, 'мл', '150 мл', 'основной'),
+(29, (SELECT id FROM ingredients WHERE name = 'сахарная пудра'), 0.5, 'стакан', '1/2 стакана', 'основной'),
+(29, (SELECT id FROM ingredients WHERE name = 'орехи'), 0.5, 'стакан', '1/2 стакана', 'основной'),
+(29, (SELECT id FROM ingredients WHERE name = 'какао-порошок'), 3, 'ст. л.', '3 ст.л.', 'основной'),
+(29, (SELECT id FROM ingredients WHERE name = 'молоко сухое'), 2, 'ст. л.', '2 ст.л.', 'важный'),
+(29, (SELECT id FROM ingredients WHERE name = 'ванилин'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 30. Рецепт: Рисовый пудинг с орехами, изюмом и специями
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    30,
+    'Рисовый пудинг с орехами, изюмом и специями',
+    'Десерты',
+    '["Подготовим заранее ингредиенты. Рис промыть, залить парой стаканов воды и оставить на 1 час.","Орехи измельчить ножом. На разогретую сковороду выложить масло и когда оно начнет шипеть всыпать орехи с изюмом. Обжаривать их в течении 2-3 минут постоянно помешивая.","В глубокую кастрюлю налить молоко и на умеренном огне довести до кипения.","Прежде чем молоко закипит, залить шафран 2 ложками горячего молока и дать настояться.","Всыпать рис в кипящее молоко и через 10 минут добавить сахар. Затем варить еще в течении 30-40 минут помешивая.","За несколько минут до готовности добавить в кастрюлю смесь орехов и изюма, шафрана, кардамон и соль. Подавать пудинг теплым."]'::jsonb,
+    240,
+    'средне',
+    'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(30, (SELECT id FROM ingredients WHERE name = 'рис'), 50, 'г', '½ стаканов', 'основной'),
+(30, (SELECT id FROM ingredients WHERE name = 'кешью'), 7, 'г', '1 ст.л.', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'миндаль'), 7, 'г', '1 ст.л.', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'изюм без косточек'), 30, 'г', '2 ст.л.', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 30, 'г', '2 ст.л.', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'молоко'), 750, 'мл', '3 стакана', 'основной'),
+(30, (SELECT id FROM ingredients WHERE name = 'сахар'), 90, 'г', '&frac13; стакан', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'шафран имеретинский'), NULL, NULL, '1 щепотка', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'кардамон'), NULL, NULL, '1 щепотка', 'важный'),
+(30, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, '1 щепотка', 'важный');
+
+-- 31. Рецепт: Суп с мини-фрикадельками из индейки
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    31,
+    'Суп с мини-фрикадельками из индейки',
+    'Супы',
+    '["Нарезать мелкими кубиками лук, смешать с фаршем, добавить сыр, яйца, сухари, перец и соль, очень хорошо перемешать. Сформовать небольшие шарики фрикаделек, скатывать с небольшим усилием, чтобы фрикадельки получились после варки плотными и не потеряли форму.","Дать закипеть предварительно сваренному бульону, положить нарезанную небольшими брусочками морковь, довести до кипения, проварить минут 5, всыпать макаронные изделия,  помешивая еще около 5 минут. Положить в суп фрикадельки, варить еще 10 минут.","Последний штрих,  добавить в суп с мини-фрикадельками из индейки крупно порезанный шпинат, подержать на огне еще около минуты и выключить, прикрыть крышкой, дать настояться. Приятного аппетита!"]'::jsonb,
+    35,
+    'средне',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(31, (SELECT id FROM ingredients WHERE name = 'фарш из индейки'), 340, 'г', '340 г', 'основной'),
+(31, (SELECT id FROM ingredients WHERE name = 'шпинат свежий'), 280, 'г', '280 г', 'основной'),
+(31, (SELECT id FROM ingredients WHERE name = 'паста орзо (ризони)'), 220, 'г', '220 г', 'основной'),
+(31, (SELECT id FROM ingredients WHERE name = 'сухари панировочные'), 120, 'г', '120 г', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 120, 'г', '120 г', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт.', '2 шт.', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'яйца'), 1, 'шт.', '1 шт.', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'бульон куриный'), 8, 'стаканов', '8 стаканов', 'основной'),
+(31, (SELECT id FROM ingredients WHERE name = 'вода'), 0.25, 'стаканов', '1/4 стакана', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 2, 'головки', '2 головки', 'важный'),
+(31, (SELECT id FROM ingredients WHERE name = 'соль'), 0.5, 'ч. л.', '1/2 ч.л.', 'опциональный'),
+(31, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 32. Рецепт: Венгерский суп гуляш Бограч с говядиной
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    32,
+    'Венгерский суп гуляш Бограч с говядиной',
+    'Супы',
+    '["В кастрюлю налить 1 литр воды и довести до кипения.","Говядину нарезать прямоугольными кусочками. Обжарить на растительном масле на среднем огне 7 минут с двух сторон под накрытой крышкой.","Лук нарезать кубиками, добавить к говядине и готовить 5 минут под крышкой.","К говядине добавить паприку, сахар, картофель нарезанный кубиками, морковь соломкой – перемешать. Готовим 7 минут на среднем огне накрыв крышкой.","Болгарский перец очистить от семян и нарезать очень крупными кубиками. Помидоры нарезать крупной соломкой и добавить это все к содержимому сковороды – перемешать. Накрываем крышкой и готовим 15 минут на среднем огне.","Содержимое сковороды переложить в кастрюлю и залить кипятком. Посолить (1 ч.л.), поперчить жгучим перцем (1/5 ч.л.) – перемешать. Варим на медленном огне 30 минут накрыв крышкой.","Свежий укроп мелко нарезать и добавить в кастрюлю."]'::jsonb,
+    50,
+    'легко',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(32, (SELECT id FROM ingredients WHERE name = 'говядина'), 200, 'г', '200 г', 'основной'),
+(32, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 200, 'г', '200 г', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'паприка молотая'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'сахар'), 1, 'ч. л.', '1 ч. л.', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'картофель'), 250, 'г', '250 г', 'основной'),
+(32, (SELECT id FROM ingredients WHERE name = 'морковь'), 80, 'г', '80 г', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'перец сладкий болгарский'), 170, 'г', '170 г', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'помидоры'), 250, 'г', '250 г', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'укроп'), 15, 'г', '15 г', 'опциональный'),
+(32, (SELECT id FROM ingredients WHERE name = 'соль'), 1, 'ч. л.', '1 ч. л.', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'перец красный жгучий'), 0.2, 'ч. л.', '&frac15; ч. л.', 'важный'),
+(32, (SELECT id FROM ingredients WHERE name = 'вода'), 100, 'л', '100 л', 'основной'),
+(32, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный');
+
+-- 33. Рецепт: Борщ на свиных косточках в казане на костре
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    33,
+    'Борщ на свиных косточках в казане на костре',
+    'Супы',
+    '["Наливаем в казан 150 грамм растительного масла.","Добавляем лук и обжариваем 2-3 минуты.","Добавляем чеснок и обжариваем 1 минуту.","Добавляем морковь, сладкий перец, свеклу и обжариваем 2 - 3 минуты.","Добавляем томатную пасту, черный молотый перец, красный острый, соль и потушим 2 минуты.","Заливаем свиные кости холодной водой и варим бульон 40 минут.","Добавляем картофель и варим 10 минут.","Добавляем капусту.","Добавляем зажарку и варим до готовности картофеля.","Добавляем зелень."]'::jsonb,
+    60,
+    'легко',
+    'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(33, (SELECT id FROM ingredients WHERE name = 'свиные кости'), 1000, 'г', '1 кг', 'основной'),
+(33, (SELECT id FROM ingredients WHERE name = 'капуста'), 2000, 'г', '2 кг', 'основной'),
+(33, (SELECT id FROM ingredients WHERE name = 'картофель'), 2000, 'г', '2 кг', 'основной'),
+(33, (SELECT id FROM ingredients WHERE name = 'свекла'), 1, 'шт', '1 шт.', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'морковь'), 1, 'шт', '1 шт.', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'лук'), 3, 'шт', '3 шт.', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'чеснок'), 3, 'зубчик', '3 зубчика', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'укроп'), NULL, NULL, 'по вкусу', 'опциональный'),
+(33, (SELECT id FROM ingredients WHERE name = 'перец черный свежемолотый'), 1, 'ч. л.', '1 ч. л.', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'перец острый'), 0.5, 'ч. л.', '½ ч. л.', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(33, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 150, 'г', '150 г', 'важный'),
+(33, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 150, 'г', '150 г', 'важный');
+
+-- 34. Рецепт: Рассольник с перловой крупой без мяса
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    34,
+    'Рассольник с перловой крупой без мяса',
+    'Супы',
+    '["Промыть под проточной водой перловку, залить водой, дать постоять до утра, потом проварить 20 минут. Почистить и порезать на кубики картофель, высыпать к перловке, сварить до готовности. Обжарить до золотистости  измельченный лук на масле.","Измельчить на терке морковь, высыпать к луку, жарить, не забывая помешивать, 5 минут, добавить томатную пасту, размешать, немного прогреть и переложить эту заправку к крупе и картофелю.","Натереть соленые огурцы, положить в кастрюлю, проварить 10 минут. Готовому рассольнику с перловой крупой без мяса дать постоять немного под крышкой, разлить по тарелкам, положить по ложечке сметаны и присыпать измельченной зеленью."]'::jsonb,
+    60,
+    'средне',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(34, (SELECT id FROM ingredients WHERE name = 'огурцы соленые'), 4, 'шт', '4 шт.', 'важный'),
+(34, (SELECT id FROM ingredients WHERE name = 'картофель'), 340, 'г', '340 г', 'основной'),
+(34, (SELECT id FROM ingredients WHERE name = 'морковь'), 2, 'шт', '2 шт.', 'важный'),
+(34, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(34, (SELECT id FROM ingredients WHERE name = 'перловая крупа'), 130, 'г', '1/3 стакана', 'основной'),
+(34, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(34, (SELECT id FROM ingredients WHERE name = 'вода'), 1000, 'мл', '1 л', 'основной'),
+(34, (SELECT id FROM ingredients WHERE name = 'зелень'), NULL, NULL, 'по вкусу', 'опциональный'),
+(34, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 35. Рецепт: Японский мисо-суп с зеленью
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    35,
+    'Японский мисо-суп с зеленью',
+    'Супы',
+    '["Картофель очистить, вымыть, нарезать кубиками небольшого размера.","Поставить вариться в кастрюле.","При закипании воды добавить сухой бульон даси.","При готовности картофеля добавить водоросли вакаме.","Снять кастрюлю с плиты.","Добавить светлую пасту мисо, продукт необходимо предварительно разбавить бульоном."]'::jsonb,
+    30,
+    'легко',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(35, (SELECT id FROM ingredients WHERE name = 'вода'), 600, 'мл', '600 мл', 'основной'),
+(35, (SELECT id FROM ingredients WHERE name = 'картофель'), 2, 'шт.', '2 шт.', 'основной'),
+(35, (SELECT id FROM ingredients WHERE name = 'лук зеленый'), 1, 'пучок', '1 пучок', 'важный'),
+(35, (SELECT id FROM ingredients WHERE name = 'водоросли вакаме'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(35, (SELECT id FROM ingredients WHERE name = 'бульон'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(35, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 1, 'ст. л.', '1 ст. л.', 'основной');
+
+-- 36. Рецепт: Мисо-суп со свининой и грибами
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    36,
+    'Мисо-суп со свининой и грибами',
+    'Супы',
+    '["Свиное мясо нарезать небольшими кусочками.","Очистить и нарезать корень пастернака или гобо.","Если используется второй продукт, то залить холодной водой.","Дайкон покрошить кубиками со стороной в полтора сантиметра.","Удалить ножки у грибов шиитаке, шляпки разрезать на четыре части.","Коннияку залить кипятком на минуту, выложить на сито, остудить.","Разрезать продукт на четыре части, а затем поперек – на ломтики.","Налить в кастрюлю кунжутное масло, прогреть до появления дымка.","Свинину обжарить, добавить пастернак, дайкон, коннияку, грибы.","Влить бульон даси, суп довести до кипения, варить на тихом огне пятнадцать минут.","Мисо пасту перемешать с небольшим количеством супа, влить в основное блюдо."]'::jsonb,
+    90,
+    'средне',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(36, (SELECT id FROM ingredients WHERE name = 'филе свинины'), 200, 'г', '200 г', 'основной'),
+(36, (SELECT id FROM ingredients WHERE name = 'бульон'), 1.75, 'стакан', '1.75 стакана', 'основной'),
+(36, (SELECT id FROM ingredients WHERE name = 'тофу'), 140, 'г', '140 г', 'основной'),
+(36, (SELECT id FROM ingredients WHERE name = 'грибы шиитаке'), 4, 'шт.', '4 шт.', 'важный'),
+(36, (SELECT id FROM ingredients WHERE name = 'лук-шалот'), 2, 'шт.', '2 шт.', 'важный'),
+(36, (SELECT id FROM ingredients WHERE name = 'пастернак'), 1, 'шт.', '1 шт.', 'важный'),
+(36, (SELECT id FROM ingredients WHERE name = 'дайкон'), 50, 'г', '50 г', 'важный'),
+(36, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 4.5, 'ч. л.', '4.5 ч. л.', 'основной'),
+(36, (SELECT id FROM ingredients WHERE name = 'семена кунжута'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
+(36, (SELECT id FROM ingredients WHERE name = 'конняку'), 0.5, 'пакетик', '½ пакетика', 'важный'),
+(36, (SELECT id FROM ingredients WHERE name = 'масло кунжутное'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 37. Рецепт: Простой мисо-суп с вакаме и тофу
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    37,
+    'Простой мисо-суп с вакаме и тофу',
+    'Супы',
+    '["В кастрюлю положить сухие водоросли вакаме, варить до кипения.","Снять с огня, добавить пасту мисо, перемешивать до растворения.","Разлить суп в тарелки, положить кубики тофу."]'::jsonb,
+    20,
+    'легко',
+    'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=660&q=80'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(37, (SELECT id FROM ingredients WHERE name = 'вода'), 300, 'мл', '300 мл', 'основной'),
+(37, (SELECT id FROM ingredients WHERE name = 'тофу'), 80, 'г', '80 г', 'основной'),
+(37, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 2, 'ч. л.', '2 ч. л.', 'важный'),
+(37, (SELECT id FROM ingredients WHERE name = 'водоросли вакаме'), 7, 'г', '7 г', 'основной');
 
 -- Сброс автоинкремента последовательности recipes
 SELECT setval('recipes_id_seq', (SELECT MAX(id) FROM recipes));

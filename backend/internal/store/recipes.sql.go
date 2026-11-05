@@ -119,6 +119,53 @@ func (q *Queries) CountTotalRecipes(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const createRecipe = `-- name: CreateRecipe :one
+INSERT INTO recipes (
+    title,
+    description,
+    instructions,
+    cooking_time_minutes,
+    difficulty,
+    image_url
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, title, description, instructions, cooking_time_minutes, difficulty, image_url, created_at, updated_at, search_vector
+`
+
+type CreateRecipeParams struct {
+	Title              string      `json:"title"`
+	Description        pgtype.Text `json:"description"`
+	Instructions       []byte      `json:"instructions"`
+	CookingTimeMinutes int32       `json:"cooking_time_minutes"`
+	Difficulty         string      `json:"difficulty"`
+	ImageUrl           pgtype.Text `json:"image_url"`
+}
+
+func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
+	row := q.db.QueryRow(ctx, createRecipe,
+		arg.Title,
+		arg.Description,
+		arg.Instructions,
+		arg.CookingTimeMinutes,
+		arg.Difficulty,
+		arg.ImageUrl,
+	)
+	var i Recipe
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Instructions,
+		&i.CookingTimeMinutes,
+		&i.Difficulty,
+		&i.ImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SearchVector,
+	)
+	return i, err
+}
+
 const deleteRecipeIngredients = `-- name: DeleteRecipeIngredients :exec
 DELETE FROM recipe_ingredients
 WHERE recipe_id = $1
@@ -201,6 +248,30 @@ WHERE r.id = $1 LIMIT 1
 
 func (q *Queries) GetRecipeByID(ctx context.Context, id int32) (Recipe, error) {
 	row := q.db.QueryRow(ctx, getRecipeByID, id)
+	var i Recipe
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Instructions,
+		&i.CookingTimeMinutes,
+		&i.Difficulty,
+		&i.ImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SearchVector,
+	)
+	return i, err
+}
+
+const getRecipeByTitle = `-- name: GetRecipeByTitle :one
+SELECT id, title, description, instructions, cooking_time_minutes, difficulty, image_url, created_at, updated_at, search_vector FROM recipes
+WHERE LOWER(title) = LOWER($1)
+LIMIT 1
+`
+
+func (q *Queries) GetRecipeByTitle(ctx context.Context, lower string) (Recipe, error) {
+	row := q.db.QueryRow(ctx, getRecipeByTitle, lower)
 	var i Recipe
 	err := row.Scan(
 		&i.ID,

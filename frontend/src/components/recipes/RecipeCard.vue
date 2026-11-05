@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { RecipeResponse, RecipeMatchItem } from '@/types/recipe'
 import { useRecipeStore } from '@/stores/recipe'
@@ -12,6 +12,11 @@ const props = defineProps<{
 
 const router = useRouter()
 const recipeStore = useRecipeStore()
+const imageError = ref(false)
+
+watch(() => props.recipe.image_url, () => {
+  imageError.value = false
+})
 
 const difficultyLabel = computed(() => {
   switch (props.recipe.difficulty) {
@@ -75,14 +80,16 @@ function onFavoriteClick(e: MouseEvent) {
   <div class="recipe-card" @click="goToDetail">
     <div class="card-media">
       <img
-        v-if="recipe.image_url"
+        v-if="recipe.image_url && !imageError"
         :src="recipe.image_url"
         :alt="recipe.title"
         class="card-img"
         loading="lazy"
+        @error="imageError = true"
       />
       <div v-else class="card-img placeholder-img">
-        <van-icon name="photograph" size="32" color="#b0bec5" />
+        <van-icon name="photograph" size="32" color="#78909c" />
+        <span class="placeholder-cat">{{ recipe.description || 'Рецепт' }}</span>
       </div>
 
       <div class="badge-overlay">
@@ -174,6 +181,14 @@ function onFavoriteClick(e: MouseEvent) {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.placeholder-cat {
+  font-size: 11px;
+  font-weight: 600;
+  color: #78909c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .placeholder-img {
