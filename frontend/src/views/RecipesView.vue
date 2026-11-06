@@ -241,7 +241,7 @@ onMounted(async () => {
         class="empty-state"
       >
         <van-empty
-          image="warning-o"
+          image="search"
           description="В вашем холодильнике нет продуктов с истекающим сроком годности. Все продукты свежие!"
         >
           <router-link to="/fridge">
