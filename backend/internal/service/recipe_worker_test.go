@@ -128,3 +128,9 @@ func TestGenerateFluxImage_DelegationAndFallback(t *testing.T) {
 	_, _ = worker.GenerateFluxImage(ctx, "Борщ классический", "appetizing borscht")
 	_, _ = worker.GenerateKandinskyImage(ctx, "Борщ классический")
 }
+
+func TestCandidateRecipeURL(t *testing.T) {
+	assert.Equal(t, "https://raw.githubusercontent.com/chipslays/russian-recipes-parser/master/storage/recipes/100/100001.json", service.CandidateRecipeURL(100001))
+	assert.Equal(t, "https://raw.githubusercontent.com/chipslays/russian-recipes-parser/master/storage/recipes/100/100999.json", service.CandidateRecipeURL(100999))
+	assert.Equal(t, "https://raw.githubusercontent.com/chipslays/russian-recipes-parser/master/storage/recipes/101/101000.json", service.CandidateRecipeURL(101000))
+}

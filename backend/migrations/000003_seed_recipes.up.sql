@@ -1009,5 +1009,321 @@ INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_
 (37, (SELECT id FROM ingredients WHERE name = 'мисо паста'), 2, 'ч. л.', '2 ч. л.', 'важный'),
 (37, (SELECT id FROM ingredients WHERE name = 'водоросли вакаме'), 7, 'г', '7 г', 'основной');
 
+-- 3. Дополнительные ингредиенты для расширения каталога до 50 рецептов
+INSERT INTO ingredients (name, category, default_unit, is_pantry_essential) VALUES
+('гречневая крупа', 'Бакалея и соусы', 'г', FALSE),
+('кефир', 'Молочные продукты', 'мл', FALSE),
+('тыква', 'Овощи и зелень', 'г', FALSE),
+('спагетти', 'Бакалея и соусы', 'г', FALSE),
+('яблоки', 'Фрукты и ягоды', 'шт.', FALSE),
+('капуста квашеная', 'Овощи и зелень', 'г', FALSE),
+('огурцы соленые', 'Овощи и зелень', 'шт.', FALSE),
+('горошек консервированный', 'Бакалея и соусы', 'г', FALSE),
+('корица молотая', 'Специи', 'ч. л.', FALSE),
+('разрыхлитель теста', 'Бакалея и соусы', 'ч. л.', FALSE),
+('сода пищевая', 'Бакалея и соусы', 'ч. л.', FALSE),
+('рис круглозерный', 'Бакалея и соусы', 'г', FALSE),
+('помидоры черри', 'Овощи и зелень', 'шт.', FALSE),
+('салат романо', 'Овощи и зелень', 'пучок', FALSE),
+('фарш мясной', 'Мясо и птица', 'г', FALSE),
+('масло оливковое', 'Другое', 'ст. л.', FALSE),
+('розмарин сушеный', 'Специи', 'ч. л.', FALSE),
+('творог', 'Молочные продукты', 'г', FALSE)
+ON CONFLICT (name) DO NOTHING;
+
+-- 4. Рецепты 38-50 и их ингредиенты
+-- 38. Рецепт: Сырники творожные со сметаной
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    38,
+    'Сырники творожные со сметаной',
+    'Завтраки',
+    '["Творог выложите в глубокую миску и разомните вилкой до однородности.","Добавьте куриное яйцо, сахар и щепотку соли, тщательно перемешайте.","Всыпьте муку и замесите мягкое, слегка липкое творожное тесто.","Сформируйте аккуратные круглые сырники и обваляйте их в небольшом количестве муки.","Разогрейте растительное масло на сковороде и обжаривайте сырники на умеренном огне по 4-5 минут с каждой стороны до золотистой корочки.","Подавайте теплыми со свежей сметаной."]'::jsonb,
+    25,
+    'легко',
+    '/uploads/recipes/recipe_3d29a1bba60719d5.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(38, (SELECT id FROM ingredients WHERE name = 'творог'), 400, 'г', '400 г', 'основной'),
+(38, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 1, 'шт', '1 шт.', 'важный'),
+(38, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 3, 'ст. л.', '3 ст. л.', 'важный'),
+(38, (SELECT id FROM ingredients WHERE name = 'сахар'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(38, (SELECT id FROM ingredients WHERE name = 'сметана'), 3, 'ст. л.', '3-4 ст. л.', 'важный'),
+(38, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(38, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'щепотка', 'опциональный');
+
+-- 39. Рецепт: Домашняя шарлотка с яблоками
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    39,
+    'Домашняя шарлотка с яблоками',
+    'Выпечка и десерты',
+    '["Разогрейте духовку до 180 градусов. Форму для выпечки смажьте сливочным маслом.","Яблоки промойте, очистите от сердцевины и нарежьте тонкими дольками.","Яйца взбейте миксером с сахаром в пышную светлую пену в течение 5-7 минут.","Аккуратно лопаткой вмешайте просеянную муку, разрыхлитель и корицу.","Выложите нарезанные яблоки в форму и залейте тестом, равномерно распределив его.","Выпекайте 35-40 минут до сухой зубочистки и аппетитной румяной корочки."]'::jsonb,
+    45,
+    'легко',
+    '/uploads/recipes/recipe_647bb42921ea4f0a.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(39, (SELECT id FROM ingredients WHERE name = 'яблоки'), 4, 'шт.', '4 шт.', 'основной'),
+(39, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 4, 'шт', '4 шт.', 'основной'),
+(39, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 1, 'стакан', '1 стакан (160 г)', 'основной'),
+(39, (SELECT id FROM ingredients WHERE name = 'сахар'), 1, 'стакан', '1 стакан (180 г)', 'важный'),
+(39, (SELECT id FROM ingredients WHERE name = 'разрыхлитель теста'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
+(39, (SELECT id FROM ingredients WHERE name = 'корица молотая'), 0.5, 'ч. л.', '0.5 ч. л.', 'опциональный'),
+(39, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 15, 'г', '15 г (для смазывания)', 'опциональный');
+
+-- 40. Рецепт: Спагетти Карбонара с беконом и сливками
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    40,
+    'Спагетти Карбонара с беконом и сливками',
+    'Вторые блюда',
+    '["Отварите спагетти в кипящей подсоленной воде до состояния аль денте согласно инструкции на упаковке.","Бекон нарежьте небольшими полосками, чеснок мелко измельчите.","Обжарьте бекон на сковороде до золотистого хрустящего состояния, добавьте чеснок и прогрейте полминуты.","Влейте в сковороду сливки, прогрейте на тихом огне 2-3 минуты, добавьте половину тертого пармезана и черный перец.","Переложите горячие спагетти в сковороду с соусом, перемешайте и подержите на огне 1 минуту.","Подавайте сразу, посыпав оставшимся пармезаном."]'::jsonb,
+    25,
+    'легко',
+    '/uploads/recipes/recipe_e7f7d984d73dc9a6.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(40, (SELECT id FROM ingredients WHERE name = 'спагетти'), 300, 'г', '300 г', 'основной'),
+(40, (SELECT id FROM ingredients WHERE name = 'бекон'), 150, 'г', '150 г', 'основной'),
+(40, (SELECT id FROM ingredients WHERE name = 'сливки'), 200, 'мл', '200 мл', 'важный'),
+(40, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 50, 'г', '50 г', 'важный'),
+(40, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(40, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный'),
+(40, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 41. Рецепт: Бефстроганов из говядины с шампиньонами
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    41,
+    'Бефстроганов из говядины с шампиньонами',
+    'Вторые блюда',
+    '["Говядину промойте, обсушите и нарежьте поперек волокон тонкими брусочками.","Шампиньоны нарежьте пластинками, репчатый лук — полукольцами.","На сильном огне в сливочном масле быстро обжарьте мясо порциями по 3-4 минуты до румяной корочки, затем переложите на тарелку.","В той же сковороде обжарьте лук и грибы до мягкости и испарения влаги.","Добавьте столовую ложку муки, перемешайте, затем введите сметану и томатную пасту.","Верните мясо в сковороду, посолите, поперчите, перемешайте и тушите под крышкой на медленном огне 15 минут."]'::jsonb,
+    40,
+    'средне',
+    '/uploads/recipes/recipe_1292dfd5e5961015.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(41, (SELECT id FROM ingredients WHERE name = 'говядина'), 500, 'г', '500 г', 'основной'),
+(41, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 200, 'г', '200 г', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'сметана'), 3, 'ст. л.', '3-4 ст. л.', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 30, 'г', '30 г', 'важный'),
+(41, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(41, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 42. Рецепт: Пышные оладьи на кефире
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    42,
+    'Пышные оладьи на кефире',
+    'Завтраки',
+    '["Кефир слегка подогрейте до теплого состояния (не горячего).","В миске взбейте венчиком яйцо с сахаром и щепоткой соли.","Влейте теплый кефир, перемешайте.","Постепенно всыпьте просеянную муку с содой, аккуратно замешивая густое тягучее тесто без комочков.","Оставьте тесто постоять 10-15 минут, после этого больше не перемешивайте.","Выкладывайте тесто ложкой на сковороду с разогретым маслом и жарьте под крышкой на среднем огне по 3 минуты с каждой стороны."]'::jsonb,
+    25,
+    'легко',
+    '/uploads/recipes/recipe_eeff5b4763c3e6fe.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(42, (SELECT id FROM ingredients WHERE name = 'кефир'), 300, 'мл', '300 мл', 'основной'),
+(42, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 1.5, 'стакан', '1.5 стакана (240 г)', 'основной'),
+(42, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 1, 'шт', '1 шт.', 'важный'),
+(42, (SELECT id FROM ingredients WHERE name = 'сахар'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(42, (SELECT id FROM ingredients WHERE name = 'сода пищевая'), 0.5, 'ч. л.', '0.5 ч. л.', 'важный'),
+(42, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'щепотка', 'опциональный'),
+(42, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 3, 'ст. л.', '3 ст. л. (для жарки)', 'важный');
+
+-- 43. Рецепт: Гречка по-купечески с мясным фаршем
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    43,
+    'Гречка по-купечески с мясным фаршем',
+    'Вторые блюда',
+    '["Лук мелко нарежьте кубиками, морковь натрите на крупной терке.","В глубокой сковороде или сотейнике разогрейте растительное масло, обжарьте лук и морковь до золотистости.","Добавьте мясной фарш, разминая комочки лопаткой, и обжаривайте 7-8 минут.","Добавьте томатную пасту, измельченный чеснок, соль и молотый перец, перемешайте.","Гречневую крупу промойте и всыпьте в сковороду к мясу и овощам.","Залейте горячей водой (в пропорции 1:2 к гречке), доведите до кипения, убавьте огонь до минимума и варите под крышкой 20 минут до впитывания воды."]'::jsonb,
+    35,
+    'легко',
+    '/uploads/recipes/recipe_8e5a2e5bf861b458.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(43, (SELECT id FROM ingredients WHERE name = 'гречневая крупа'), 1, 'стакан', '1 стакан (200 г)', 'основной'),
+(43, (SELECT id FROM ingredients WHERE name = 'фарш мясной'), 350, 'г', '350 г', 'основной'),
+(43, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'морковь'), 1, 'шт', '1 шт.', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 1.5, 'ст. л.', '1.5 ст. л.', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'вода'), 2, 'стакан', '2 стакана (400 мл)', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(43, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(43, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 44. Рецепт: Нежный крем-суп из тыквы со сливками
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    44,
+    'Нежный крем-суп из тыквы со сливками',
+    'Супы',
+    '["Тыкву и картофель очистите и нарежьте кубиками среднего размера.","Лук и чеснок измельчите, обжарьте в кастрюле с толстым дном на сливочном масле 3-4 минуты до прозрачности.","Добавьте в кастрюлю тыкву и картофель, залейте горячей водой так, чтобы овощи были слегка покрыты.","Варите на среднем огне 20-25 минут до полной мягкости овощей.","Слейте часть бульона в чашку, оставшиеся овощи пюрируйте погружным блендером до шелковистой консистенции.","Влейте теплые сливки, посолите, поперчите, перемешайте, прогрейте 2 минуты (не доводя до бурного кипения) и снимите с огня."]'::jsonb,
+    35,
+    'легко',
+    '/uploads/recipes/recipe_b2937fce9b440dd2.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(44, (SELECT id FROM ingredients WHERE name = 'тыква'), 500, 'г', '500 г', 'основной'),
+(44, (SELECT id FROM ingredients WHERE name = 'сливки'), 150, 'мл', '150 мл', 'основной'),
+(44, (SELECT id FROM ingredients WHERE name = 'картофель'), 2, 'шт.', '2 шт.', 'важный'),
+(44, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(44, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(44, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 25, 'г', '25 г', 'важный'),
+(44, (SELECT id FROM ingredients WHERE name = 'вода'), 400, 'мл', '400 мл', 'важный'),
+(44, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(44, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 45. Рецепт: Запеченная скумбрия в фольге с травами
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    45,
+    'Запеченная скумбрия в фольге с травами',
+    'Вторые блюда',
+    '["Скумбрию разморозьте, выпотрошите, промойте и обсушите бумажным полотенцем.","Сделайте на спинке рыбы несколько неглубоких диагональных надрезов.","Натрите рыбу солью, черным перцем, сушеным розмарином и сбрызните растительным маслом.","Лимон и репчатый лук нарежьте тонкими кружочками, вложите в брюшко и надрезы вместе с веточками свежей петрушки.","Заверните рыбу в фольгу и выпекайте в духовке при 190 градусах 25 минут.","За 5 минут до конца разверните фольгу сверху, чтобы рыбка аппетитно подрумянилась."]'::jsonb,
+    35,
+    'легко',
+    '/uploads/recipes/recipe_d82fa091ce2539f3.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(45, (SELECT id FROM ingredients WHERE name = 'скумбрия свежемороженая'), 2, 'шт.', '2 шт.', 'основной'),
+(45, (SELECT id FROM ingredients WHERE name = 'лимон'), 1, 'шт.', '1 шт.', 'важный'),
+(45, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(45, (SELECT id FROM ingredients WHERE name = 'петрушка'), 0.5, 'пучок', '0.5 пучка', 'важный'),
+(45, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 1.5, 'ст. л.', '1.5 ст. л.', 'важный'),
+(45, (SELECT id FROM ingredients WHERE name = 'розмарин сушеный'), 0.5, 'ч. л.', '0.5 ч. л.', 'опциональный'),
+(45, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(45, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 46. Рецепт: Салат Цезарь с курицей и сухариками
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    46,
+    'Салат Цезарь с курицей и сухариками',
+    'Салаты',
+    '["Куриное филе натрите солью, перцем и капелькой соевого соуса, обжарьте на сковороде по 5-6 минут с каждой стороны до готовности, затем нарежьте ломтиками.","Листья салата романо промойте, обсушите и нарвите руками в салатник.","Помидоры черри разрежьте пополам.","Приготовьте быструю заправку: смешайте оливковое масло, измельченный зубчик чеснока, чайную ложку соевого соуса и тертый пармезан.","Смешайте салатные листья с заправкой, выложите сверху курицу, помидоры черри и хрустящие сухарики.","Посыпьте салат тонкими лепестками пармезана и сразу подавайте."]'::jsonb,
+    25,
+    'легко',
+    '/uploads/recipes/recipe_b992ae732f587dd3.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(46, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 300, 'г', '300 г', 'основной'),
+(46, (SELECT id FROM ingredients WHERE name = 'салат романо'), 1, 'пучок', '1 пучок (150 г)', 'основной'),
+(46, (SELECT id FROM ingredients WHERE name = 'сыр пармезан'), 40, 'г', '40 г', 'важный'),
+(46, (SELECT id FROM ingredients WHERE name = 'помидоры черри'), 6, 'шт.', '6-8 шт.', 'важный'),
+(46, (SELECT id FROM ingredients WHERE name = 'сухари панировочные'), 50, 'г', '50 г (сухарики)', 'важный'),
+(46, (SELECT id FROM ingredients WHERE name = 'чеснок'), 1, 'зубчик', '1 зубчик', 'важный'),
+(46, (SELECT id FROM ingredients WHERE name = 'масло оливковое'), 2, 'ст. л.', '2-3 ст. л.', 'важный'),
+(46, (SELECT id FROM ingredients WHERE name = 'соус соевый'), 1, 'ч. л.', '1 ч. л.', 'опциональный'),
+(46, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 47. Рецепт: Ленивые голубцы в томатно-сметанном соусе
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    47,
+    'Ленивые голубцы в томатно-сметанном соусе',
+    'Вторые блюда',
+    '["Рис промойте и отварите до полуготовности (около 10 минут), остудите.","Белокочанную капусту мелко нашинкуйте и залейте кипятком на 5 минут, затем откиньте на дуршлаг и отожмите.","Лук мелко нарежьте, морковь натрите на терке и спассеруйте на растительном масле.","В миске соедините мясной фарш, рис, капусту, пассерованные овощи, яйцо, соль и перец. Тщательно вымесите.","Сформируйте крупные продолговатые котлеты-голубцы и выложите в форму для запекания.","Для соуса смешайте сметану, томатную пасту и 150 мл воды с щепоткой соли, залейте голубцы.","Запекайте в духовке при 180 градусах 35-40 минут до аппетитной румяности."]'::jsonb,
+    50,
+    'средне',
+    '/uploads/recipes/recipe_f51d18929d528c4b.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(47, (SELECT id FROM ingredients WHERE name = 'фарш мясной'), 400, 'г', '400 г', 'основной'),
+(47, (SELECT id FROM ingredients WHERE name = 'капуста'), 300, 'г', '300 г', 'основной'),
+(47, (SELECT id FROM ingredients WHERE name = 'рис круглозерный'), 80, 'г', '80 г', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 1, 'шт', '1 шт.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'сметана'), 3, 'ст. л.', '3 ст. л.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'томатная паста'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'морковь'), 1, 'шт', '1 шт.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(47, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(47, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 48. Рецепт: Сочные рубленые куриные котлеты
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    48,
+    'Сочные рубленые куриные котлеты',
+    'Вторые блюда',
+    '["Куриное филе промойте, обсушите и нарежьте острым ножом мелкими кубиками.","Выложите рубленое мясо в миску, добавьте яйцо, сметану, пропущенный через пресс чеснок и измельченный укроп.","Всыпьте муку, соль и черный перец, тщательно перемешайте до вязкой консистенции.","Дайте фаршу постоять 10-15 минут для маринования.","Разогрейте растительное масло на сковороде, выкладывайте котлеты столовой ложкой и жарьте на умеренном огне по 4-5 минут с каждой стороны до золотистой корочки."]'::jsonb,
+    30,
+    'легко',
+    '/uploads/recipes/recipe_73928c507ec1dba9.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(48, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 450, 'г', '450 г', 'основной'),
+(48, (SELECT id FROM ingredients WHERE name = 'яйца куриные'), 1, 'шт', '1 шт.', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'сметана'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'чеснок'), 2, 'зубчик', '2 зубчика', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'укроп'), 0.5, 'пучок', '0.5 пучка', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 2, 'ст. л.', '2 ст. л.', 'важный'),
+(48, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(48, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 49. Рецепт: Домашний винегрет с квашеной капустой
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    49,
+    'Домашний винегрет с квашеной капустой',
+    'Салаты',
+    '["Отварите свеклу, картофель и морковь в кожуре до готовности, остудите и очистите.","Все овощи нарежьте аккуратными одинаковыми кубиками.","Свеклу нарежьте первой и полейте ложкой растительного масла — это сохранит цвета остальных ингредиентов в салате яркими.","Соленые огурцы нарежьте кубиками, квашеную капусту при необходимости слегка отожмите.","В большой миске соедините картофель, морковь, соленые огурцы, квашеную капусту, консервированный горошек и мелко нарезанный лук.","Добавьте подготовленную свеклу, заправьте оставшимся ароматным растительным маслом, посолите по вкусу и перемешайте."]'::jsonb,
+    35,
+    'легко',
+    '/uploads/recipes/recipe_f4947a86aa5a8365.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(49, (SELECT id FROM ingredients WHERE name = 'свекла'), 2, 'шт', '2 шт. (средние)', 'основной'),
+(49, (SELECT id FROM ingredients WHERE name = 'картофель'), 3, 'шт.', '3 шт.', 'основной'),
+(49, (SELECT id FROM ingredients WHERE name = 'морковь'), 1, 'шт', '1 шт.', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'капуста квашеная'), 150, 'г', '150 г', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'огурцы соленые'), 2, 'шт.', '2 шт.', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'горошек консервированный'), 120, 'г', '120 г', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 0.5, 'шт', '0.5 шт.', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'масло растительное'), 3, 'ст. л.', '3 ст. л.', 'важный'),
+(49, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный');
+
+-- 50. Рецепт: Французский жульен с курицей и грибами
+INSERT INTO recipes (id, title, description, instructions, cooking_time_minutes, difficulty, image_url)
+VALUES (
+    50,
+    'Французский жульен с курицей и грибами',
+    'Вторые блюда',
+    '["Куриное филе отварите до готовности в подсоленной воде и нарежьте мелкими кубиками.","Шампиньоны промойте и нарежьте тонкими ломтиками, репчатый лук измельчите.","На сливочном масле обжарьте лук до прозрачности, затем добавьте грибы и жарьте 7-8 минут до испарения жидкости.","Всыпьте муку, перемешайте, влейте сливки и доведите до легкого загустения соуса.","Добавьте вареное куриное филе, посолите, поперчите и перемешайте.","Разложите смесь по порционным кокотницам или форме для запекания, щедро посыпьте тертым сыром.","Запекайте в духовке при 200 градусах 10-12 минут до аппетитной золотистой сырной корочки."]'::jsonb,
+    35,
+    'легко',
+    '/uploads/recipes/recipe_449bf653c97fccbf.jpg'
+);
+
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit, display_text, criticality) VALUES
+(50, (SELECT id FROM ingredients WHERE name = 'куриное филе'), 300, 'г', '300 г', 'основной'),
+(50, (SELECT id FROM ingredients WHERE name = 'шампиньоны'), 250, 'г', '250 г', 'основной'),
+(50, (SELECT id FROM ingredients WHERE name = 'сыр твердый'), 100, 'г', '100 г', 'важный'),
+(50, (SELECT id FROM ingredients WHERE name = 'сливки'), 150, 'мл', '150 мл (20%)', 'важный'),
+(50, (SELECT id FROM ingredients WHERE name = 'лук репчатый'), 1, 'шт', '1 шт.', 'важный'),
+(50, (SELECT id FROM ingredients WHERE name = 'мука пшеничная'), 1, 'ст. л.', '1 ст. л.', 'важный'),
+(50, (SELECT id FROM ingredients WHERE name = 'сливочное масло'), 25, 'г', '25 г', 'важный'),
+(50, (SELECT id FROM ingredients WHERE name = 'соль'), NULL, NULL, 'по вкусу', 'опциональный'),
+(50, (SELECT id FROM ingredients WHERE name = 'перец черный молотый'), NULL, NULL, 'по вкусу', 'опциональный');
+
 -- Сброс автоинкремента последовательности recipes
 SELECT setval('recipes_id_seq', (SELECT MAX(id) FROM recipes));

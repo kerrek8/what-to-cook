@@ -12,6 +12,24 @@ const authStore = useAuthStore()
 const matchPage = ref(1)
 const matchPageSize = 15
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  const scrollContainer = document.querySelector('.content-wrapper')
+  if (scrollContainer) {
+    scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+function handleMatchPageChange(page: number) {
+  matchPage.value = page
+  scrollToTop()
+}
+
+async function handleAllPageChange(page: number) {
+  await recipeStore.setPage(page)
+  scrollToTop()
+}
+
 const visibleMatchedRecipes = computed(() => {
   const start = (matchPage.value - 1) * matchPageSize
   return recipeStore.filteredMatchedRecipes.slice(start, start + matchPageSize)
@@ -108,6 +126,12 @@ onMounted(async () => {
         @click="recipeStore.activeTab = 'all'"
       >
         <span>Все рецепты</span>
+        <span
+          v-if="recipeStore.totalCount > 0"
+          class="count-badge grey-badge"
+        >
+          {{ recipeStore.totalCount }}
+        </span>
       </button>
 
       <button
@@ -177,6 +201,10 @@ onMounted(async () => {
         v-else-if="recipeStore.filteredMatchedRecipes.length > 0"
         class="recipes-list"
       >
+        <div v-if="authStore.user?.excludedIngredientIds?.length" class="allergen-note">
+          <van-icon name="shield-o" size="16" />
+          <span>Рецепты с выбранным в профиле аллергеном исключены из подбора</span>
+        </div>
         <RecipeCard
           v-for="item in visibleMatchedRecipes"
           :key="item.recipe.id"
@@ -194,7 +222,7 @@ onMounted(async () => {
         prev-text="Назад"
         next-text="Далее"
         mode="simple"
-        @change="(val: number) => { matchPage = val }"
+        @change="handleMatchPageChange"
       />
 
       <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
@@ -255,14 +283,14 @@ onMounted(async () => {
         />
       </div>
       <van-pagination
-        v-if="recipeStore.filteredAllRecipes.length > recipeStore.pageSize"
+        v-if="recipeStore.totalCount > recipeStore.pageSize"
         :model-value="recipeStore.page"
-        :total-items="recipeStore.filteredAllRecipes.length"
+        :total-items="recipeStore.totalCount"
         :items-per-page="recipeStore.pageSize"
         prev-text="Назад"
         next-text="Далее"
         mode="simple"
-        @change="recipeStore.setPage"
+        @change="handleAllPageChange"
       />
 
       <div v-if="!recipeStore.isLoading && recipeStore.filteredAllRecipes.length === 0" class="empty-state">
@@ -409,8 +437,26 @@ onMounted(async () => {
   background-color: #2e7d32;
 }
 
+.grey-badge {
+  background-color: #78909c;
+}
+
 .red-badge {
   background-color: #e53935;
+}
+
+.allergen-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: #f1f8e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 500;
 }
 
 .filters-scroll {

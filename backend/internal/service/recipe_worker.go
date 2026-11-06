@@ -142,7 +142,7 @@ func (w *RecipeWorker) runLoop() {
 	case <-time.After(2 * time.Second):
 	}
 
-	currentOffset := 1
+	currentOffset := 100001
 	for {
 		select {
 		case <-w.stopChan:
@@ -177,8 +177,8 @@ func (w *RecipeWorker) runLoop() {
 		log.Printf("[RecipeWorker] Fetching chunk of up to %d candidate recipes (offset: %d)...", fetchLimit, currentOffset)
 		candidates, nextOffset := w.fetchCandidatesChunk(ctx, currentOffset, fetchLimit)
 		if len(candidates) == 0 {
-			log.Printf("[RecipeWorker] No new candidates found or end of dataset reached. Resetting offset to 1 and pausing 15 min...")
-			currentOffset = 1
+			log.Printf("[RecipeWorker] No new candidates found or end of dataset reached. Resetting offset to 100001 and pausing 15 min...")
+			currentOffset = 100001
 			if !w.sleepInterruptible(15 * time.Minute) {
 				return
 			}
@@ -241,10 +241,19 @@ func (w *RecipeWorker) sleepInterruptible(d time.Duration) bool {
 	}
 }
 
+func CandidateRecipeURL(fileNum int) string {
+	folder := fileNum / 1000
+	return fmt.Sprintf("https://raw.githubusercontent.com/chipslays/russian-recipes-parser/master/storage/recipes/%d/%d.json", folder, fileNum)
+}
+
 func (w *RecipeWorker) fetchCandidatesChunk(ctx context.Context, startOffset, limit int) ([]rawCandidateRecipe, int) {
 	var candidates []rawCandidateRecipe
 	offset := startOffset
+	if offset < 100001 {
+		offset = 100001
+	}
 
+	consecutive404 := 0
 	for len(candidates) < limit {
 		select {
 		case <-w.stopChan:
@@ -254,7 +263,7 @@ func (w *RecipeWorker) fetchCandidatesChunk(ctx context.Context, startOffset, li
 
 		fileNum := offset
 		offset++
-		urlStr := fmt.Sprintf("https://raw.githubusercontent.com/chipslays/russian-recipes-parser/master/recipes/%d.json", fileNum)
+		urlStr := CandidateRecipeURL(fileNum)
 
 		req, err := http.NewRequestWithContext(ctx, "GET", urlStr, nil)
 		if err != nil {
@@ -266,10 +275,16 @@ func (w *RecipeWorker) fetchCandidatesChunk(ctx context.Context, startOffset, li
 			continue
 		}
 
-		if resp.StatusCode == 404 {
+		if resp.StatusCode == http.StatusNotFound {
 			resp.Body.Close()
-			break
+			consecutive404++
+			if consecutive404 >= 50 {
+				log.Printf("[RecipeWorker] Reached %d consecutive 404s at file %d, stopping chunk", consecutive404, fileNum)
+				break
+			}
+			continue
 		}
+		consecutive404 = 0
 
 		if resp.StatusCode != http.StatusOK {
 			resp.Body.Close()
