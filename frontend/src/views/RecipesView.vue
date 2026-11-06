@@ -48,6 +48,15 @@ watch(
   }
 )
 
+watch(
+  () => recipeStore.activeTab,
+  (tab) => {
+    if (tab !== 'match') {
+      recipeStore.saveExpiringOnly = false
+    }
+  }
+)
+
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(
@@ -152,8 +161,9 @@ onMounted(async () => {
 
     <!-- Filter Chips Scroll -->
     <div class="filters-scroll">
-      <!-- Expiring Toggle Chip -->
+      <!-- Expiring Toggle Chip (только для вкладки "Что приготовить") -->
       <button
+        v-if="recipeStore.activeTab === 'match'"
         type="button"
         class="filter-chip expiring-toggle"
         :class="{ active: recipeStore.saveExpiringOnly }"
@@ -224,6 +234,52 @@ onMounted(async () => {
         mode="simple"
         @change="handleMatchPageChange"
       />
+
+      <!-- Состояние: фильтр "Спасает продукты" активен, но в холодильнике нет истекающих продуктов -->
+      <div
+        v-else-if="recipeStore.saveExpiringOnly && recipeStore.expiringItems.length === 0"
+        class="empty-state"
+      >
+        <van-empty
+          image="warning-o"
+          description="В вашем холодильнике нет продуктов с истекающим сроком годности. Все продукты свежие!"
+        >
+          <router-link to="/fridge">
+            <van-button round type="primary" color="#2e7d32" class="action-btn">
+              Перейти в холодильник
+            </van-button>
+          </router-link>
+          <van-button
+            round
+            plain
+            class="action-btn"
+            style="margin-top: 10px;"
+            @click="recipeStore.saveExpiringOnly = false"
+          >
+            Сбросить фильтр
+          </van-button>
+        </van-empty>
+      </div>
+
+      <!-- Состояние: фильтр "Спасает продукты" активен, но рецепты с ними не подобрались -->
+      <div
+        v-else-if="recipeStore.saveExpiringOnly && recipeStore.filteredMatchedRecipes.length === 0"
+        class="empty-state"
+      >
+        <van-empty
+          image="search"
+          description="Не найдено рецептов с продуктами, требующими срочного использования."
+        >
+          <van-button
+            round
+            plain
+            class="action-btn"
+            @click="recipeStore.saveExpiringOnly = false"
+          >
+            Сбросить фильтр
+          </van-button>
+        </van-empty>
+      </div>
 
       <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
         <div class="fallback-note">

@@ -102,7 +102,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     if (timeFilter.value === 60 && recipe.cooking_time_minutes > 60) return false
     if (timeFilter.value === 61 && recipe.cooking_time_minutes <= 60) return false
 
-    if (saveExpiringOnly.value) {
+    if (saveExpiringOnly.value && activeTab.value === 'match') {
       const ings = usedIngredients || recipe.ingredients
       const saved = getSavingIngredients(ings)
       if (saved.length === 0) return false
