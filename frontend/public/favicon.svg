@@ -1,4 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#2E7D32"/>
-  <text x="50" y="68" font-size="52" text-anchor="middle" fill="#FFFFFF">🍳</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B5E20" />
+      <stop offset="60%" stop-color="#2E7D32" />
+      <stop offset="100%" stop-color="#388E3C" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Squircle Background -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
+
+  <!-- Subtle Warm Glow -->
+  <circle cx="232" cy="280" r="180" fill="#ffffff" opacity="0.05" />
+
+  <!-- Sizzling Aroma Steam Dots -->
+  <circle cx="145" cy="95" r="10" fill="#ffffff" opacity="0.8" />
+  <circle cx="138" cy="68" r="7" fill="#ffffff" opacity="0.6" />
+  <circle cx="192" cy="80" r="12" fill="#ffffff" opacity="0.85" />
+  <circle cx="186" cy="52" r="8" fill="#ffffff" opacity="0.65" />
+
+  <!-- Pan & Fried Egg Composition with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Skillet Handle -->
+    <path d="M 290,222 L 395,117 C 404,108 418,108 427,117 C 436,126 436,140 427,149 L 322,254 Z" fill="#26302A" />
+    <!-- Handle Hole -->
+    <circle cx="411" cy="133" r="8" fill="#1B5E20" />
+
+    <!-- Skillet Outer Base & Rim -->
+    <circle cx="232" cy="280" r="152" fill="#415046" />
+    <!-- Skillet Inner Base -->
+    <circle cx="232" cy="280" r="138" fill="#1A221D" />
+
+    <!-- Fried Egg White (organic contour) -->
+    <path d="
+      M 232,196
+      C 275,196 302,225 302,266
+      C 302,295 285,348 245,348
+      C 210,348 180,342 166,310
+      C 152,278 160,230 186,206
+      C 200,196 215,196 232,196 Z" fill="#FFFFFF" />
+    <circle cx="206" cy="260" r="48" fill="#FFFFFF" />
+    <circle cx="262" cy="266" r="46" fill="#FFFFFF" />
+    <circle cx="224" cy="304" r="44" fill="#FFFFFF" />
+
+    <!-- Sunny Golden Yolk -->
+    <circle cx="224" cy="272" r="46" fill="#FF9800" />
+    <circle cx="222" cy="270" r="42" fill="#FFC107" />
+    <!-- Glistening Shine -->
+    <circle cx="210" cy="258" r="10" fill="#FFFFFF" opacity="0.85" />
+    <circle cx="219" cy="250" r="5" fill="#FFFFFF" opacity="0.85" />
+
+    <!-- Fresh Basil Leaves Garnish -->
+    <path d="M 286,316 C 304,300 318,310 310,326 C 298,336 284,330 286,316 Z" fill="#66BB6A" />
+    <path d="M 280,328 C 268,316 260,326 266,338 C 274,346 284,340 280,328 Z" fill="#388E3C" />
+  </g>
 </svg>
