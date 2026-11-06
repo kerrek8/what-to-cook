@@ -28,6 +28,9 @@ const progressPercent = computed(() => {
 
 function startTimer() {
   if (remainingSeconds.value <= 0) {
+    if (totalSeconds.value <= 0) {
+      totalSeconds.value = (props.initialMinutes || 5) * 60
+    }
     remainingSeconds.value = totalSeconds.value
   }
   isRunning.value = true
@@ -57,12 +60,44 @@ function stopTimer() {
 
 function resetTimer() {
   stopTimer()
+  if (totalSeconds.value <= 0) {
+    totalSeconds.value = (props.initialMinutes || 5) * 60
+  }
   remainingSeconds.value = totalSeconds.value
 }
 
+function adjustTime(minutes: number) {
+  const deltaSeconds = minutes * 60
+
+  if (deltaSeconds > 0) {
+    if (remainingSeconds.value <= 0) {
+      remainingSeconds.value = deltaSeconds
+      totalSeconds.value = deltaSeconds
+    } else {
+      remainingSeconds.value += deltaSeconds
+      totalSeconds.value += deltaSeconds
+    }
+    return
+  }
+
+  if (remainingSeconds.value <= 0) {
+    return
+  }
+
+  if (remainingSeconds.value + deltaSeconds <= 0) {
+    remainingSeconds.value = 0
+    if (isRunning.value) {
+      stopTimer()
+      onTimerFinished()
+    }
+  } else {
+    remainingSeconds.value += deltaSeconds
+    totalSeconds.value = Math.max(remainingSeconds.value, totalSeconds.value + deltaSeconds)
+  }
+}
+
 function addMinute() {
-  remainingSeconds.value += 60
-  totalSeconds.value += 60
+  adjustTime(1)
 }
 
 function setPreset(mins: number) {
@@ -91,7 +126,9 @@ defineExpose({
   setPreset,
   startTimer,
   pauseTimer,
-  resetTimer
+  resetTimer,
+  adjustTime,
+  addMinute
 })
 </script>
 
@@ -122,10 +159,24 @@ defineExpose({
         :key="m"
         type="button"
         class="preset-btn"
-        :class="{ active: totalSeconds === m * 60 }"
+        :class="{ active: remainingSeconds === m * 60 && totalSeconds === m * 60 }"
         @click="setPreset(m)"
       >
         {{ m }}м
+      </button>
+    </div>
+
+    <div class="timer-adjustments">
+      <button
+        v-for="delta in [-5, -1, 1, 5]"
+        :key="delta"
+        type="button"
+        class="adjust-btn"
+        :class="{ 'btn-decrement': delta < 0, 'btn-increment': delta > 0 }"
+        :disabled="delta < 0 && remainingSeconds <= 0"
+        @click="adjustTime(delta)"
+      >
+        {{ delta > 0 ? `+${delta}м` : `${delta}м` }}
       </button>
     </div>
 
@@ -161,16 +212,6 @@ defineExpose({
         @click="resetTimer"
       >
         Сброс
-      </van-button>
-
-      <van-button
-        round
-        plain
-        icon="plus"
-        class="action-btn sec-btn"
-        @click="addMinute"
-      >
-        +1м
       </van-button>
     </div>
   </div>
@@ -263,7 +304,7 @@ defineExpose({
 .preset-btn {
   flex: 1;
   min-width: 44px;
-  min-height: 34px;
+  min-height: 38px;
   border: 1px solid #c8e6c9;
   background-color: #f1f8e9;
   color: #2e7d32;
@@ -271,12 +312,65 @@ defineExpose({
   font-size: 13px;
   border-radius: 8px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .preset-btn.active {
   background-color: #2e7d32;
   color: #ffffff;
   border-color: #2e7d32;
+}
+
+.timer-adjustments {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.adjust-btn {
+  flex: 1;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.adjust-btn.btn-decrement {
+  border: 1px solid #e0e0e0;
+  background-color: #f7f9fa;
+  color: #455a64;
+}
+
+.adjust-btn.btn-decrement:active:not(:disabled) {
+  background-color: #eceff1;
+  transform: scale(0.97);
+}
+
+.adjust-btn.btn-increment {
+  border: 1px solid #c8e6c9;
+  background-color: #f1f8e9;
+  color: #2e7d32;
+}
+
+.adjust-btn.btn-increment:active:not(:disabled) {
+  background-color: #e8f5e9;
+  transform: scale(0.97);
+}
+
+.adjust-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #eeeeee;
+  background-color: #f5f5f5;
+  color: #9e9e9e;
 }
 
 .timer-actions {
