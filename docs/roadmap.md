@@ -550,3 +550,32 @@ flowchart TD
 - [x] **Версионирование и верификация**:
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.5.5`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Все тесты фронтенда (`vitest`) и бэкенда (`testify`), а также строгая проверка типов (`vue-tsc`) пройдены успешно (100%).
+
+
+---
+
+## ✅ Завершен: Миграция фронтенда на Bun (полный отказ от pnpm и Node.js, переход на oven/bun:1-alpine)
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f18-bun-migration`.
+- **Цель**: Полностью заменить `pnpm` и `Node.js` на современный all-in-one рантайм `Bun` для ускорения установки зависимостей, выполнения сборок и тестов, а также обновить клиентский `Dockerfile` на официальный образ `oven/bun:1-alpine`.
+
+### Выполнено
+
+- [x] **Установка и интеграция Bun**:
+  - Установлен нативный Bun 1.4+ (`bun.exe`).
+  - Мигрирован файл блокировки зависимостей: сгенерирован `bun.lock` (заменил `pnpm-lock.yaml`, который был полностью удалён).
+  - В `frontend/package.json` удалена секция `"pnpm"`, добавлены `"trustedDependencies": ["esbuild", "vue-demi"]`.
+  - Удалён глобальный пакет `pnpm`.
+- [x] **Верификация скриптов фронтенда через Bun**:
+  - `bun install`: мгновенная установка зависимостей из `bun.lock`.
+  - `bun run type-check`: успешная проверка типов через `vue-tsc --noEmit`.
+  - `bun run test`: успешный прогон всех 36 модульных тестов (`vitest run`).
+  - `bun run build`: успешная сборка продакшен-бандла Vite и генерация Service Worker PWA (`dist/sw.js`).
+- [x] **Оптимизация Docker-образа**:
+  - `frontend/Dockerfile` переведён с `node:20-alpine` + `corepack` + `pnpm` на чистый легковесный образ `oven/bun:1-alpine`.
+  - Сборка внутри контейнера выполняется через `bun install --frozen-lockfile` и `bun run build`.
+- [x] **Версионирование и документация**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.6.0`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Актуализированы файлы `AGENTS.md`, `README.md`, `docs/tech-stack.md` и `docs/roadmap.md`.
+  - Все тесты бэкенда (`go test ./...`) и фронтенда (`bun run test`) пройдены успешно (100%).

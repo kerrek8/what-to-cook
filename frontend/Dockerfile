@@ -1,20 +1,16 @@
-FROM node:20-alpine AS build
-
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM oven/bun:1-alpine AS build
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml* .npmrc* pnpm-workspace.yaml* ./
-RUN pnpm install
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
 COPY . .
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN pnpm run build
+RUN bun run build
 
 FROM nginx:alpine
 

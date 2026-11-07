@@ -1,6 +1,6 @@
 {
   "name": "whatcook-frontend",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -29,10 +29,8 @@
     "vitest": "^3.0.0",
     "vue-tsc": "^2.2.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "vue-demi"
-    ]
-  }
+  "trustedDependencies": [
+    "esbuild",
+    "vue-demi"
+  ]
 }

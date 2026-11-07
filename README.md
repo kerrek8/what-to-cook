@@ -2,7 +2,7 @@
 
 Mobile-First PWA-приложение для рационального использования продуктов, учета содержимого холодильника и подбора рецептов с автоматическим формированием списка покупок.
 
-Текущая версия приложения: **v0.5.5**
+Текущая версия приложения: **v0.6.0**
 
 ---
 
@@ -10,8 +10,8 @@ Mobile-First PWA-приложение для рационального испо
 
 * **Backend**: Go 1.22+, Gin REST API, PostgreSQL 16+, SQLC, pgx, golang-migrate, JWT (Access + HttpOnly Refresh).
 * **AI & Медиа**: Sber GigaChat API (интеллектуальная нормализация ингредиентов, расчет времени/сложности, гастрономические промпты), нейросеть FLUX.1 (генерация ресторанных фуд-фото), локальное медиа-хранилище `backend/uploads/recipes/` с автоматическим билинейным ресайзом 512x512 и JPEG-сжатием.
-* **Frontend**: Vue 3 (Composition API, `<script setup>`, TypeScript), Vite, Vant UI (мобильные компоненты), Pinia, Dexie.js (IndexedDB), `vite-plugin-pwa` (Workbox).
-* **Инфраструктура**: Docker & Docker Compose, Nginx.
+* **Frontend**: Vue 3 (Composition API, `<script setup>`, TypeScript), Vite, **Bun** (сверхбыстрый рантайм и пакетный менеджер), Vant UI (мобильные компоненты), Pinia, Dexie.js (IndexedDB), `vite-plugin-pwa` (Workbox).
+* **Инфраструктура**: Docker & Docker Compose (сборка фронтенда на `oven/bun:1-alpine`), Nginx.
 
 ---
 
@@ -65,19 +65,22 @@ go vet ./...
 *(При установленном [Task](https://taskfile.dev): `task run`, `task test`, `task lint`)*
 
 ### 3. Frontend (Vue 3 / PWA)
-Требуется: Node.js 20+, pnpm 9+
+Требуется: Bun 1.1+
 ```bash
 cd frontend
 
 # Установка зависимостей
-pnpm install
+bun install
 
 # Запуск dev-сервера (http://localhost:5173)
-pnpm dev
+bun run dev
 
 # Проверка типов и тесты
-pnpm type-check
-pnpm test
+bun run type-check
+bun run test
+
+# Сборка PWA
+bun run build
 ```
 
 ---
