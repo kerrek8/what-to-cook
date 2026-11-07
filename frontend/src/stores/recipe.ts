@@ -200,7 +200,7 @@ export const useRecipeStore = defineStore('recipe', () => {
       }
       const recipe = await getRecipeByIdApi(id)
       currentRecipe.value = recipe
-      if (currentRecipe.value.is_favorite) await cacheFavoriteRecipe(recipe)
+      await cacheFavoriteRecipe(recipe)
       return currentRecipe.value
     } catch {
       const cached = await getCachedFavoriteRecipe(id)

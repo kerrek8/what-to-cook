@@ -13,6 +13,7 @@ const emit = defineEmits<{
 const totalSeconds = ref((props.initialMinutes || 5) * 60)
 const remainingSeconds = ref(totalSeconds.value)
 const isRunning = ref(false)
+let targetEndTime: number | null = null
 let intervalId: ReturnType<typeof setInterval> | null = null
 
 const formattedTime = computed(() => {
@@ -33,21 +34,29 @@ function startTimer() {
     }
     remainingSeconds.value = totalSeconds.value
   }
+  targetEndTime = Date.now() + remainingSeconds.value * 1000
   isRunning.value = true
   if (intervalId) clearInterval(intervalId)
 
   intervalId = setInterval(() => {
-    if (remainingSeconds.value > 0) {
-      remainingSeconds.value--
+    if (!targetEndTime) return
+    const diff = Math.ceil((targetEndTime - Date.now()) / 1000)
+    if (diff > 0) {
+      remainingSeconds.value = diff
     } else {
+      remainingSeconds.value = 0
       stopTimer()
       onTimerFinished()
     }
-  }, 1000)
+  }, 250)
 }
 
 function pauseTimer() {
   isRunning.value = false
+  if (targetEndTime) {
+    remainingSeconds.value = Math.max(0, Math.ceil((targetEndTime - Date.now()) / 1000))
+    targetEndTime = null
+  }
   if (intervalId) {
     clearInterval(intervalId)
     intervalId = null
@@ -77,6 +86,9 @@ function adjustTime(minutes: number) {
       remainingSeconds.value += deltaSeconds
       totalSeconds.value += deltaSeconds
     }
+    if (isRunning.value && targetEndTime) {
+      targetEndTime += deltaSeconds * 1000
+    }
     return
   }
 
@@ -93,6 +105,9 @@ function adjustTime(minutes: number) {
   } else {
     remainingSeconds.value += deltaSeconds
     totalSeconds.value = Math.max(remainingSeconds.value, totalSeconds.value + deltaSeconds)
+    if (isRunning.value && targetEndTime) {
+      targetEndTime += deltaSeconds * 1000
+    }
   }
 }
 
@@ -107,9 +122,42 @@ function setPreset(mins: number) {
   startTimer()
 }
 
+function playTimerChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return
+    const ctx = new AudioContextClass()
+
+    const playTone = (freq: number, start: number, duration: number) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start)
+
+      gain.gain.setValueAtTime(0, ctx.currentTime + start)
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + start + 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start(ctx.currentTime + start)
+      osc.stop(ctx.currentTime + start + duration)
+    }
+
+    playTone(880, 0, 0.25)
+    playTone(1046.5, 0.22, 0.45)
+  } catch {
+    // AudioContext fallback
+  }
+}
+
 function onTimerFinished() {
+  playTimerChime()
   if ('vibrate' in navigator) {
-    navigator.vibrate([300, 150, 300, 150, 500])
+    try {
+      navigator.vibrate([300, 150, 300, 150, 500])
+    } catch {}
   }
   showNotify({
     type: 'success',

@@ -275,6 +275,11 @@ func (q *Queries) SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppi
 }
 
 const transferBoughtItemsToInventory = `-- name: TransferBoughtItemsToInventory :many
+WITH moved AS (
+    DELETE FROM shopping_list_items s
+    WHERE s.user_id = $1 AND s.is_bought = TRUE
+    RETURNING s.user_id, s.ingredient_id, s.custom_name, s.amount, s.unit
+)
 INSERT INTO inventory_items (
     user_id,
     ingredient_id,
@@ -284,14 +289,13 @@ INSERT INTO inventory_items (
     in_stock
 )
 SELECT 
-    s.user_id,
-    s.ingredient_id,
-    s.custom_name,
-    s.amount,
-    s.unit,
+    m.user_id,
+    m.ingredient_id,
+    m.custom_name,
+    m.amount,
+    m.unit,
     TRUE
-FROM shopping_list_items s
-WHERE s.user_id = $1 AND s.is_bought = TRUE
+FROM moved m
 RETURNING id, user_id, ingredient_id, custom_name, amount, unit, approximate_quantity, in_stock, expiration_date, created_at, updated_at
 `
 

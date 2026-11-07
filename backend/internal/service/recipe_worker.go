@@ -176,16 +176,17 @@ func (w *RecipeWorker) runLoop() {
 
 		log.Printf("[RecipeWorker] Fetching chunk of up to %d candidate recipes (offset: %d)...", fetchLimit, currentOffset)
 		candidates, nextOffset := w.fetchCandidatesChunk(ctx, currentOffset, fetchLimit)
-		if len(candidates) == 0 {
-			log.Printf("[RecipeWorker] No new candidates found or end of dataset reached. Resetting offset to 100001 and pausing 15 min...")
+		currentOffset = nextOffset
+		if currentOffset > 999999 {
 			currentOffset = 100001
-			if !w.sleepInterruptible(15 * time.Minute) {
+		}
+		if len(candidates) == 0 {
+			log.Printf("[RecipeWorker] No candidates in current scan slice. Advanced to offset %d. Pausing 10s...", currentOffset)
+			if !w.sleepInterruptible(10 * time.Second) {
 				return
 			}
 			continue
 		}
-
-		currentOffset = nextOffset
 		log.Printf("[RecipeWorker] Found %d valid candidates to process. Starting sub-batches...", len(candidates))
 
 		subBatchCount := 0
@@ -278,9 +279,18 @@ func (w *RecipeWorker) fetchCandidatesChunk(ctx context.Context, startOffset, li
 		if resp.StatusCode == http.StatusNotFound {
 			resp.Body.Close()
 			consecutive404++
-			if consecutive404 >= 50 {
-				log.Printf("[RecipeWorker] Reached %d consecutive 404s at file %d, stopping chunk", consecutive404, fileNum)
-				break
+			if consecutive404 >= 25 {
+				currFolder := fileNum / 1000
+				nextFolder := currFolder + 1
+				if nextFolder > 999 {
+					nextFolder = 100
+				}
+				offset = nextFolder*1000 + 1
+				log.Printf("[RecipeWorker] Reached %d consecutive 404s in folder %d at file %d. Advancing to folder %d (offset: %d)", consecutive404, currFolder, fileNum, nextFolder, offset)
+				consecutive404 = 0
+				if len(candidates) > 0 {
+					return candidates, offset
+				}
 			}
 			continue
 		}

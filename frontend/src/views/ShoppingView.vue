@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import { useShoppingStore, type AddShoppingItemPayload } from '@/stores/shopping'
 import { useInventoryStore, type AddItemData } from '@/stores/inventory'
 import type { LocalShoppingItem } from '@/db/types'
@@ -78,6 +78,23 @@ function onSingleTransfer(item: LocalShoppingItem) {
   showTransferSheet.value = true
 }
 
+async function onQuickTransfer() {
+  if (shoppingStore.boughtCount === 0) return
+  try {
+    await showConfirmDialog({
+      title: "Перенос в холодильник",
+      message: `Перенести все купленные товары (${shoppingStore.boughtCount} шт.) в холодильник?`
+    })
+    const count = await shoppingStore.transferBoughtToInventory()
+    showToast({
+      type: "success",
+      message: `Перенесено в холодильник: ${count}`
+    })
+  } catch {
+    // cancelled
+  }
+}
+
 function onTransferToInventory() {
   const bought = shoppingStore.items.filter((i) => i.isBought)
   if (bought.length === 0) return
@@ -145,7 +162,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
         icon="passed"
         :loading="shoppingStore.isTransferring"
         class="transfer-btn"
-        @click="onTransferToInventory"
+        @click="onQuickTransfer"
       >
         В холодильник ({{ shoppingStore.boughtCount }})
       </van-button>

@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
     path: '/recipes/:id',
     name: 'recipe-detail',
     component: () => import('@/views/RecipeDetailView.vue'),
-    meta: { title: 'Рецепт' }
+    meta: { title: 'Рецепт', hideHeader: true, hideTabBar: true }
   },
   {
     path: '/shopping',
@@ -40,13 +40,13 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/LoginView.vue'),
-    meta: { title: 'Вход', guestOnly: true }
+    meta: { title: 'Вход', guestOnly: true, hideTabBar: true }
   },
   {
     path: '/register',
     name: 'register',
     component: () => import('@/views/RegisterView.vue'),
-    meta: { title: 'Регистрация', guestOnly: true }
+    meta: { title: 'Регистрация', guestOnly: true, hideTabBar: true }
   }
 ]
 

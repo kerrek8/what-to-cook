@@ -24,7 +24,7 @@ function onClickLeft() {
 </script>
 
 <template>
-  <header class="app-header safe-area-top">
+  <header v-if="!route.meta.hideHeader" class="app-header safe-area-top">
     <van-nav-bar
       :title="title"
       :left-arrow="showBack"

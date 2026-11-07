@@ -178,13 +178,14 @@ export async function syncServerShoppingList(
     if (local.serverId) {
       if (serverMap.has(local.serverId)) {
         const s = serverMap.get(local.serverId)!
+        const keepLocal = local.synced === 0
         await db.shoppingList.update(local.id!, {
           name: s.name,
           category: s.category,
-          amount: s.amount,
+          amount: keepLocal && local.amount !== undefined ? local.amount : s.amount,
           unit: s.unit,
-          isBought: s.is_bought,
-          synced: 1,
+          isBought: keepLocal ? local.isBought : s.is_bought,
+          synced: keepLocal ? 0 : 1,
           updatedAt: s.updated_at
         })
         serverMap.delete(local.serverId)

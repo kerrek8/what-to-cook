@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 </script>
 
 <template>
-  <nav class="app-tabbar safe-area-bottom">
+  <nav v-if="!route.meta.hideTabBar" class="app-tabbar safe-area-bottom">
     <van-tabbar route :border="true" active-color="#2e7d32" inactive-color="#7d7e80">
       <van-tabbar-item replace to="/fridge" icon="apps-o">
         Холодильник

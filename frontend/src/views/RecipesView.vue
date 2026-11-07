@@ -59,9 +59,8 @@ watch(
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
-watch(
-  [() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter],
-  () => {
+watch([() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter], () => {
+    if (recipeStore.activeTab !== 'all') return
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
     searchDebounceTimer = setTimeout(async () => {
       await recipeStore.loadAllRecipes(1)

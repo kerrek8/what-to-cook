@@ -173,7 +173,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 	}
 
 	recipes, err := s.store.ListRecipes(ctx, store.ListRecipesParams{
-		LimitVal: 100,
+		LimitVal:   1000,
 	})
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
@@ -371,3 +371,4 @@ func mapAllDetailsIngredientToDTO(ing store.GetAllRecipeIngredientsWithDetailsRo
 		IsPantryEssential: ing.IsPantryEssential,
 	}
 }
+

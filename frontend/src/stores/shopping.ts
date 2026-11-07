@@ -126,6 +126,24 @@ export const useShoppingStore = defineStore('shopping', () => {
     if (isSyncing.value && !force) return
     isSyncing.value = true
     try {
+      if (authStore.isAuthenticated && navigator.onLine) {
+        for (const item of items.value) {
+          if (item.synced === 0 && item.serverId && item.id != null) {
+            try {
+              await updateShoppingItemApi(item.serverId, {
+                amount: item.amount,
+                unit: item.unit,
+                is_bought: item.isBought
+              })
+              item.synced = 1
+              await updateLocalShoppingItem(item.id, { synced: 1 })
+            } catch {
+              // will retry later
+            }
+          }
+        }
+      }
+
       const serverItems = await getShoppingListApi()
       const merged = await syncServerShoppingList(serverItems)
       items.value = merged
