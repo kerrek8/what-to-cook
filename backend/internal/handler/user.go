@@ -90,7 +90,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	}
 
 	switch mediaType {
-	case "image/jpeg", "image/jpg", "image/png", "image/webp":
+	case "image/jpeg", "image/jpg", "image/png", "image/gif":
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported image format"})
 		return
@@ -144,15 +144,15 @@ func (h *UserHandler) DeleteAvatar(c *gin.Context) {
 		return
 	}
 
-	if h.storage != nil {
-		relPath := fmt.Sprintf("avatars/%s.jpg", userID)
-		_ = h.storage.Delete(c.Request.Context(), relPath)
-	}
-
 	_, err = h.userService.UpdateAvatar(c.Request.Context(), userID, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete avatar"})
 		return
+	}
+
+	if h.storage != nil {
+		relPath := fmt.Sprintf("avatars/%s.jpg", userID)
+		_ = h.storage.Delete(c.Request.Context(), relPath)
 	}
 
 	c.Status(http.StatusNoContent)
