@@ -2,13 +2,15 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { LoginPayload, RegisterPayload, User, UserBackendResponse } from '@/types/api'
 import { loginApi, registerApi, logoutApi, refreshApi } from '@/api/auth'
-import { getMeApi, updateAllergensApi, updatePantryApi } from '@/api/user'
+import { getMeApi, updateAllergensApi, updatePantryApi, uploadAvatarApi, deleteAvatarApi } from '@/api/user'
 
 function mapUser(res: UserBackendResponse): User {
   return {
     id: res.id,
     email: res.email,
     name: res.name,
+    avatarUrl: res.avatar_url ?? null,
+    avatar_url: res.avatar_url ?? null,
     excludedIngredientIds: res.excluded_ingredient_ids || [],
     pantryIngredientIds: res.pantry_ingredient_ids || [],
     createdAt: res.created_at
@@ -88,6 +90,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function uploadAvatar(file: File): Promise<string> {
+    const res = await uploadAvatarApi(file)
+    if (user.value) {
+      user.value.avatarUrl = res.avatar_url
+      user.value.avatar_url = res.avatar_url
+    }
+    return res.avatar_url
+  }
+
+  async function deleteAvatar(): Promise<void> {
+    await deleteAvatarApi()
+    if (user.value) {
+      user.value.avatarUrl = null
+      user.value.avatar_url = null
+    }
+  }
+
   async function setAllergen(ingredientId: number | null): Promise<void> {
     const ids = ingredientId !== null ? [ingredientId] : []
     const updated = await updateAllergensApi(ids)
@@ -140,6 +159,8 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchProfile,
+    uploadAvatar,
+    deleteAvatar,
     setAllergen,
     setPantry,
     init,
