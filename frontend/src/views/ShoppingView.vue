@@ -13,6 +13,7 @@ const inventoryStore = useInventoryStore()
 
 const showAddSheet = ref(false)
 const showTransferSheet = ref(false)
+const isBoughtExpanded = ref(false)
 const transferQueue = ref<LocalShoppingItem[]>([])
 const currentTransferIndex = ref(0)
 
@@ -195,22 +196,47 @@ async function onConfirmTransferItem(payload: AddItemData) {
     <div class="shopping-content">
       <!-- Grouped Departments -->
       <div v-if="shoppingStore.groupedCategories.length > 0" class="groups-container">
-        <div
-          v-for="group in shoppingStore.groupedCategories"
-          :key="group.category"
-          class="department-card"
-        >
-          <div class="department-header">
-            <span class="department-title">{{ group.category }}</span>
-            <span class="department-progress">
-              {{ group.boughtCount }}/{{ group.items.length }}
-            </span>
-          </div>
+        <template v-for="group in shoppingStore.groupedCategories" :key="group.category">
+          <div
+            v-if="group.items.filter((i) => !i.isBought).length > 0"
+            class="department-card"
+          >
+            <div class="department-header">
+              <span class="department-title">{{ group.category }}</span>
+              <span class="department-progress">
+                {{ group.boughtCount }}/{{ group.items.length }}
+              </span>
+            </div>
 
-          <div class="department-items">
+            <div class="department-items">
+              <ShoppingItemCard
+                v-for="item in group.items.filter((i) => !i.isBought)"
+                :key="item.id || item.serverId || item.name"
+                :item="item"
+                @toggle="onToggle"
+                @delete="onDelete"
+                @transfer="onSingleTransfer"
+              />
+            </div>
+          </div>
+        </template>
+
+        <div v-if="shoppingStore.boughtCount > 0" class="bought-section mt-4 mb-20 px-4">
+          <button
+            type="button"
+            class="w-full flex items-center justify-between p-3 rounded-squircle-sm bg-white/70 border border-culinary-border text-culinary-textMuted font-medium text-sm transition-all"
+            @click="isBoughtExpanded = !isBoughtExpanded"
+          >
+            <span class="flex items-center gap-2">
+              <van-icon :name="isBoughtExpanded ? 'arrow-down' : 'arrow'" />
+              Куплено ({{ shoppingStore.boughtCount }})
+            </span>
+            <span class="text-xs text-emerald-700 font-semibold">{{ isBoughtExpanded ? 'Скрыть' : 'Показать' }}</span>
+          </button>
+          <div v-if="isBoughtExpanded" class="bought-items-list mt-2 space-y-1">
             <ShoppingItemCard
-              v-for="item in group.items"
-              :key="item.id || item.serverId || item.name"
+              v-for="item in shoppingStore.items.filter((i) => i.isBought)"
+              :key="item.id || item.name"
               :item="item"
               @toggle="onToggle"
               @delete="onDelete"
