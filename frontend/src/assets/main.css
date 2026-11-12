@@ -137,15 +137,29 @@ button,
   font-weight: 500 !important;
 }
 
-/* Nordic Button enhancements */
-.van-button--primary {
-  background-color: #1E3A2F !important;
-  border-color: #1E3A2F !important;
+/* Button enhancements */
+.van-button--primary:not(.van-button--plain) {
+  background-color: var(--van-primary-color) !important;
+  border-color: var(--van-primary-color) !important;
+  color: #FFFFFF !important;
 }
 
-.van-button--success {
-  background-color: #2D5A43 !important;
-  border-color: #2D5A43 !important;
+.van-button--plain.van-button--primary {
+  background-color: #FFFFFF !important;
+  border-color: var(--van-primary-color) !important;
+  color: var(--van-primary-color) !important;
+}
+
+.van-button--success:not(.van-button--plain) {
+  background-color: var(--van-success-color) !important;
+  border-color: var(--van-success-color) !important;
+  color: #FFFFFF !important;
+}
+
+.van-button--plain.van-button--success {
+  background-color: #FFFFFF !important;
+  border-color: var(--van-success-color) !important;
+  color: var(--van-success-color) !important;
 }
 
 /* Nordic Dialog / ActionSheet */
