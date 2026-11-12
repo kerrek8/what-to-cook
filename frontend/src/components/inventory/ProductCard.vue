@@ -68,7 +68,7 @@ function handleDelete() {
 .product-cell {
   margin-bottom: 8px;
   border-radius: 18px;
-  box-shadow: 0 4px 16px -2px rgba(30, 58, 47, 0.05);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
   overflow: hidden;
 }
 
@@ -107,8 +107,8 @@ function handleDelete() {
 .product-qty {
   font-size: 14px;
   font-weight: 600;
-  color: #1E3A2F;
-  background-color: rgba(30, 58, 47, 0.08);
+  color: #064E3B;
+  background-color: rgba(15, 23, 42, 0.08);
   padding: 4px 10px;
   border-radius: 12px;
 }

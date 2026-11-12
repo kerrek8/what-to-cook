@@ -4,29 +4,29 @@
 
 :root {
   /* Nordic Gastro Theme Palette */
-  --van-primary-color: #1E3A2F;
-  --van-success-color: #2D5A43;
-  --van-warning-color: #E8A87C;
-  --van-danger-color: #C0392B;
-  --van-background: #FAF8F5;
+  --van-primary-color: #064E3B;
+  --van-success-color: #065F46;
+  --van-warning-color: #D97706;
+  --van-danger-color: #E11D48;
+  --van-background: #F8FAFC;
   --van-background-2: #FFFFFF;
-  --van-text-color: #1C1917;
-  --van-text-color-2: #57534E;
-  --van-text-color-3: #8C827A;
-  --van-border-color: rgba(30, 58, 47, 0.08);
+  --van-text-color: #0F172A;
+  --van-text-color-2: #475569;
+  --van-text-color-3: #94A3B8;
+  --van-border-color: #E2E8F0;
 
   /* Component specifics */
-  --van-nav-bar-background: rgba(250, 248, 245, 0.92);
-  --van-nav-bar-title-text-color: #1E3A2F;
-  --van-nav-bar-icon-color: #1E3A2F;
+  --van-nav-bar-background: rgba(255, 255, 255, 0.95);
+  --van-nav-bar-title-text-color: #0F172A;
+  --van-nav-bar-icon-color: #064E3B;
   --van-nav-bar-height: 52px;
-  --van-tabbar-background: rgba(250, 248, 245, 0.94);
-  --van-tabbar-item-active-color: #1E3A2F;
-  --van-tabbar-item-text-color: #8C827A;
-  --van-button-primary-background: #1E3A2F;
-  --van-button-primary-border-color: #1E3A2F;
-  --van-button-success-background: #2D5A43;
-  --van-button-success-border-color: #2D5A43;
+  --van-tabbar-background: rgba(255, 255, 255, 0.95);
+  --van-tabbar-item-active-color: #064E3B;
+  --van-tabbar-item-text-color: #64748B;
+  --van-button-primary-background: #064E3B;
+  --van-button-primary-border-color: #064E3B;
+  --van-button-success-background: #065F46;
+  --van-button-success-border-color: #065F46;
   --van-button-danger-background: #C0392B;
   --van-button-danger-border-color: #C0392B;
   --van-button-border-radius: 14px;
@@ -34,25 +34,25 @@
   --van-search-content-background: #FFFFFF;
   --van-search-input-height: 40px;
   --van-cell-background: #FFFFFF;
-  --van-cell-text-color: #1C1917;
+  --van-cell-text-color: #0F172A;
   --van-cell-value-color: #57534E;
   --van-cell-group-background: transparent;
-  --van-badge-background: #D97757;
-  --van-tag-primary-color: #1E3A2F;
+  --van-badge-background: #E11D48;
+  --van-tag-primary-color: #064E3B;
 
   --app-max-width: 480px;
 
   /* Modern Nordic Gastro Tokens */
-  --nordic-canvas: #FAF8F5;
+  --nordic-canvas: #F8FAFC;
   --nordic-card-bg: #FFFFFF;
-  --nordic-sage: #1E3A2F;
-  --nordic-sage-light: #2D5A43;
-  --nordic-peach: #E8A87C;
-  --nordic-terracotta: #D97757;
-  --nordic-linen: #F0ECE4;
+  --nordic-sage: #064E3B;
+  --nordic-sage-light: #065F46;
+  --nordic-peach: #D97706;
+  --nordic-terracotta: #E11D48;
+  --nordic-linen: #F1F5F9;
   --nordic-card-radius: 20px;
-  --nordic-card-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06), 0 2px 6px -1px rgba(30, 58, 47, 0.04);
-  --nordic-card-border: 1px solid rgba(30, 58, 47, 0.06);
+  --nordic-card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --nordic-card-border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 *,
@@ -68,7 +68,7 @@ html,
 body {
   width: 100%;
   height: 100%;
-  background-color: #F0ECE4;
+  background-color: #F1F5F9;
   color: #1C1917;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -87,11 +87,11 @@ body {
   max-width: var(--app-max-width);
   min-height: 100vh;
   min-height: 100dvh;
-  background-color: #FAF8F5;
+  background-color: #F8FAFC;
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 0 24px rgba(30, 58, 47, 0.08);
+  box-shadow: 0 0 24px rgba(15, 23, 42, 0.08);
 }
 
 .safe-area-top {
@@ -118,9 +118,9 @@ button,
 /* Nordic Search styling */
 .van-search__content {
   background-color: #FFFFFF !important;
-  border: 1px solid rgba(30, 58, 47, 0.08) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
   border-radius: 16px !important;
-  box-shadow: 0 1px 3px rgba(30, 58, 47, 0.03) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
 }
 
 .van-search .van-field__control {
@@ -129,11 +129,11 @@ button,
 }
 
 .van-search .van-field__control::placeholder {
-  color: #8C827A !important;
+  color: #94A3B8 !important;
 }
 
 .van-search__action {
-  color: #1E3A2F !important;
+  color: #064E3B !important;
   font-weight: 500 !important;
 }
 

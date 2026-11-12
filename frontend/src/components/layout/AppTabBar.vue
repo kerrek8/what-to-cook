@@ -25,7 +25,7 @@ function handleTabClick(targetPath: string) {
 
 <template>
   <nav v-if="!route.meta.hideTabBar" class="app-tabbar safe-area-bottom">
-    <van-tabbar route :border="false" active-color="#1E3A2F" inactive-color="#8C827A">
+    <van-tabbar route :border="false" active-color="#064E3B" inactive-color="#8C827A">
       <van-tabbar-item replace to="/fridge" icon="apps-o" :dot="hasExpiringProducts" @click="handleTabClick('/fridge')">
         Холодильник
       </van-tabbar-item>
@@ -51,10 +51,11 @@ function handleTabClick(targetPath: string) {
   width: 100%;
   max-width: var(--app-max-width);
   z-index: 100;
-  background-color: rgba(250, 248, 245, 0.94);
+  background-color: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(30, 58, 47, 0.06);
+  border-top: 1px solid #E2E8F0;
+  box-shadow: 0 -1px 3px 0 rgb(0 0 0 / 0.04);
 }
 
 :deep(.van-tabbar) {
@@ -85,7 +86,7 @@ function handleTabClick(targetPath: string) {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #1E3A2F;
+  background-color: #064E3B;
 }
 
 :deep(.van-tabbar-item__icon) {
@@ -99,7 +100,7 @@ function handleTabClick(targetPath: string) {
 }
 
 :deep(.van-badge) {
-  background-color: #D97757;
+  background-color: #E11D48;
   font-weight: 700;
   font-size: 10px;
 }
