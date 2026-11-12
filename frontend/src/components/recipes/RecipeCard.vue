@@ -51,12 +51,16 @@ const difficultyClass = computed(() => {
   }
 })
 
-const matchBadgeClass = computed(() => {
-  if (!props.matchItem) return ''
-  const pct = props.matchItem.match_percentage
-  if (pct === 100) return 'match-perfect'
-  if (pct >= 70) return 'match-high'
-  return 'match-medium'
+type ReadinessTier = 'ready' | 'almost' | 'partial' | 'none'
+const readinessTier = computed<ReadinessTier>(() => {
+  if (!props.matchItem) return 'none'
+  if (props.matchItem.can_cook_now || props.matchItem.match_percentage === 100) {
+    return 'ready'
+  }
+  if (props.matchItem.missing_ingredients?.length === 1 || props.matchItem.match_percentage >= 80) {
+    return 'almost'
+  }
+  return 'partial'
 })
 
 const missingPreview = computed(() => {
@@ -78,7 +82,14 @@ function onFavoriteClick(e: MouseEvent) {
 </script>
 
 <template>
-  <div class="recipe-card" @click="goToDetail">
+  <div
+    class="recipe-card"
+    :class="{
+      'card-ready': readinessTier === 'ready',
+      'card-almost': readinessTier === 'almost'
+    }"
+    @click="goToDetail"
+  >
     <div class="card-media">
       <img
         v-if="recipe.image_url && !imageError"
@@ -94,9 +105,14 @@ function onFavoriteClick(e: MouseEvent) {
       </div>
 
       <div class="badge-overlay">
-        <span v-if="matchItem" class="match-pill" :class="matchBadgeClass">
+        <span v-if="readinessTier === 'ready'" class="match-pill match-ready">
+          ✓ Можно готовить
+        </span>
+        <span v-else-if="readinessTier === 'almost'" class="match-pill match-almost">
+          🟡 {{ matchItem && matchItem.missing_ingredients && matchItem.missing_ingredients.length === 1 ? `Купить: ${matchItem.missing_ingredients[0].name}` : `${matchItem ? matchItem.match_percentage : ''}% ・ 1 докупить` }}
+        </span>
+        <span v-else-if="matchItem" class="match-pill match-partial">
           {{ matchItem.match_percentage }}%
-          <template v-if="matchItem.can_cook_now">・Готово</template>
         </span>
 
         <span
@@ -162,12 +178,22 @@ function onFavoriteClick(e: MouseEvent) {
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   user-select: none;
+  border: 2px solid transparent;
 }
 
 .recipe-card:active {
   transform: scale(0.98);
+}
+
+.card-ready {
+  border: 2px solid #1E392A;
+  box-shadow: 0 4px 16px rgba(30, 57, 42, 0.12);
+}
+
+.card-almost {
+  border: 1.5px solid #F39C12;
 }
 
 .card-media {
@@ -219,16 +245,22 @@ function onFavoriteClick(e: MouseEvent) {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.match-perfect {
-  background-color: #2e7d32;
+.match-ready {
+  background: linear-gradient(135deg, #1E392A 0%, #2D5A43 100%);
+  color: #ffffff;
+  font-weight: 700;
 }
 
-.match-high {
-  background-color: #388e3c;
+.match-almost {
+  background: #FEF9E7;
+  color: #B7950B;
+  font-weight: 600;
+  border: 1px solid #F9E79F;
 }
 
-.match-medium {
-  background-color: #f57c00;
+.match-partial {
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
 }
 
 .saving-pill {
