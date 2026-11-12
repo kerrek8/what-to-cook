@@ -236,4 +236,22 @@ describe('useRecipeStore', () => {
     expect(store.isAllRecipesLoading).toBe(false)
     expect(store.isLoading).toBe(false)
   })
+
+  it('filters out matched recipes with match_percentage <= 60', () => {
+    const store = useRecipeStore()
+    const recipeA: RecipeResponse = { ...mockRecipe, id: 101, title: 'Рецепт 100%' }
+    const recipeB: RecipeResponse = { ...mockRecipe, id: 102, title: 'Рецепт 61%' }
+    const recipeC: RecipeResponse = { ...mockRecipe, id: 103, title: 'Рецепт 60%' }
+    const recipeD: RecipeResponse = { ...mockRecipe, id: 104, title: 'Рецепт 40%' }
+
+    store.matchedRecipes = [
+      { ...mockMatchItem, recipe: recipeA, match_percentage: 100 },
+      { ...mockMatchItem, recipe: recipeB, match_percentage: 61 },
+      { ...mockMatchItem, recipe: recipeC, match_percentage: 60 },
+      { ...mockMatchItem, recipe: recipeD, match_percentage: 40 }
+    ]
+
+    expect(store.filteredMatchedRecipes).toHaveLength(2)
+    expect(store.filteredMatchedRecipes.map((item) => item.recipe.id)).toEqual([101, 102])
+  })
 })

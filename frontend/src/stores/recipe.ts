@@ -113,7 +113,9 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   const filteredMatchedRecipes = computed(() => {
-    return matchedRecipes.value.filter((item) => filterMatched(item.recipe, item.used_ingredients))
+    return matchedRecipes.value.filter(
+      (item) => item.match_percentage > 60 && filterMatched(item.recipe, item.used_ingredients)
+    )
   })
 
   const filteredAllRecipes = computed(() => {
