@@ -151,7 +151,7 @@ onMounted(async () => {
           :class="{ active: recipeStore.activeTab === 'match' }"
           @click="recipeStore.activeTab = 'match'"
         >
-          <span>Что приготовить</span>
+          <span class="tab-title">Подбор</span>
           <span
             v-if="recipeStore.filteredMatchedRecipes.length > 0"
             class="count-badge"
@@ -167,7 +167,7 @@ onMounted(async () => {
           :class="{ active: recipeStore.activeTab === 'all' }"
           @click="recipeStore.activeTab = 'all'"
         >
-          <span>Все рецепты</span>
+          <span class="tab-title">Все рецепты</span>
           <span
             v-if="recipeStore.totalCount > 0"
             class="count-badge"
@@ -183,7 +183,7 @@ onMounted(async () => {
           :class="{ active: recipeStore.activeTab === 'favorites' }"
           @click="recipeStore.activeTab = 'favorites'; recipeStore.loadFavorites()"
         >
-          <span>Избранное</span>
+          <span class="tab-title">Избранное</span>
           <span
             v-if="recipeStore.favoriteRecipes.length > 0"
             class="count-badge"
@@ -483,7 +483,8 @@ onMounted(async () => {
 }
 
 .tabs-segmented {
-  background-color: rgba(231, 229, 228, 0.6);
+  background-color: #EAE6DF;
+  width: 100%;
   padding: 4px;
   border-radius: 16px;
   display: flex;
@@ -491,10 +492,11 @@ onMounted(async () => {
 }
 
 .tab-btn {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
   border: none;
   background: transparent;
-  padding: 8px 8px;
+  padding: 7px 4px;
   min-height: 40px;
   font-size: 13px;
   font-weight: 500;
@@ -503,27 +505,40 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 
-.tab-btn:hover {
+.tab-btn .tab-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #57534e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-btn:hover .tab-title {
   color: #1c1917;
 }
 
 .tab-btn.active {
   background-color: #ffffff;
-  color: #1c1917;
+  box-shadow: 0 1px 4px rgba(30, 58, 47, 0.08), 0 1px 2px rgba(30, 58, 47, 0.04);
+}
+
+.tab-btn.active .tab-title {
+  color: #1E3A2F;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(30, 58, 47, 0.08), 0 1px 2px rgba(30, 58, 47, 0.04);
 }
 
 .count-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 5px;
+  flex-shrink: 0;
   border-radius: 9999px;
   line-height: 1.2;
 }
@@ -618,7 +633,8 @@ onMounted(async () => {
 }
 
 .recipes-content {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
   padding-bottom: 72px;
 }
 
