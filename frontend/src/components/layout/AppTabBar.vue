@@ -73,6 +73,19 @@ function handleTabClick(targetPath: string) {
 
 :deep(.van-tabbar-item--active) {
   font-weight: 600;
+  position: relative;
+}
+
+:deep(.van-tabbar-item--active::after) {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #1E3A2F;
 }
 
 :deep(.van-tabbar-item__icon) {
