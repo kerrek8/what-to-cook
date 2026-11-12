@@ -342,8 +342,15 @@ definitions:
       unit:
         type: string
     type: object
+  dto.UploadAvatarResponse:
+    properties:
+      avatar_url:
+        type: string
+    type: object
   dto.UserResponse:
     properties:
+      avatar_url:
+        type: string
       created_at:
         type: string
       email:
@@ -1321,6 +1328,67 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user allergens / excluded ingredients
+      tags:
+      - users
+  /api/v1/users/me/avatar:
+    delete:
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user avatar
+      tags:
+      - users
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UploadAvatarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload user avatar
       tags:
       - users
   /api/v1/users/me/pantry:

@@ -26,3 +26,8 @@ UPDATE users
 SET pantry_ingredient_ids = $2, updated_at = NOW()
 WHERE id = $1;
 
+-- name: UpdateUserAvatar :one
+UPDATE users
+SET avatar_url = $2, updated_at = NOW()
+WHERE id = $1
+RETURNING *;

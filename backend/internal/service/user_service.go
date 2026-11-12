@@ -101,3 +101,26 @@ func (s *UserService) UpdateAllergens(ctx context.Context, userIDStr string, req
 	return &resp, nil
 }
 
+func (s *UserService) UpdateAvatar(ctx context.Context, userIDStr string, avatarURL *string) (*dto.UserResponse, error) {
+	parsedUUID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
+	var pgAvatar pgtype.Text
+	if avatarURL != nil && *avatarURL != "" {
+		pgAvatar = pgtype.Text{String: *avatarURL, Valid: true}
+	}
+
+	user, err := s.queries.UpdateUserAvatar(ctx, store.UpdateUserAvatarParams{
+		ID:        pgUUID,
+		AvatarUrl: pgAvatar,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update avatar: %w", err)
+	}
+
+	resp := MapUserToDTO(user)
+	return &resp, nil
+}

@@ -86,6 +86,18 @@ func (m *mockQuerier) UpdateUserExcludedIngredients(ctx context.Context, arg sto
 	return nil
 }
 
+func (m *mockQuerier) UpdateUserAvatar(ctx context.Context, arg store.UpdateUserAvatarParams) (store.User, error) {
+	idStr := uuid.UUID(arg.ID.Bytes).String()
+	u, ok := m.usersByID[idStr]
+	if !ok {
+		return store.User{}, pgx.ErrNoRows
+	}
+	u.AvatarUrl = arg.AvatarUrl
+	m.usersByID[idStr] = u
+	m.usersByEmail[u.Email] = u
+	return u, nil
+}
+
 func TestAuthService_RegisterAndLogin(t *testing.T) {
 	secret := "test-secret-at-least-16-bytes"
 	mock := newMockQuerier()
@@ -101,17 +113,17 @@ func TestAuthService_RegisterAndLogin(t *testing.T) {
 
 		resp, refToken, err := authService.Register(ctx, req)
 		require.NoError(t, err)
+		assert.Equal(t, "test@example.com", resp.User.Email)
+		assert.Equal(t, "Test User", resp.User.Name)
 		assert.NotEmpty(t, resp.AccessToken)
 		assert.NotEmpty(t, refToken)
-		assert.Equal(t, req.Email, resp.User.Email)
-		assert.Equal(t, req.Name, resp.User.Name)
 	})
 
 	t.Run("duplicate email fails", func(t *testing.T) {
 		req := dto.RegisterRequest{
 			Email:    "test@example.com",
 			Password: "password123",
-			Name:     "Another Name",
+			Name:     "Test User 2",
 		}
 
 		_, _, err := authService.Register(ctx, req)
@@ -130,10 +142,10 @@ func TestAuthService_RegisterAndLogin(t *testing.T) {
 		assert.NotEmpty(t, refToken)
 	})
 
-	t.Run("invalid password fails", func(t *testing.T) {
+	t.Run("wrong password fails", func(t *testing.T) {
 		req := dto.LoginRequest{
 			Email:    "test@example.com",
-			Password: "wrong-password",
+			Password: "wrongpassword",
 		}
 
 		_, _, err := authService.Login(ctx, req)

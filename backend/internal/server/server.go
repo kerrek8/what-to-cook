@@ -51,7 +51,7 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 
 	healthHandler := handler.NewHealthHandler()
 	authHandler := handler.NewAuthHandler(authService, cfg.Server.Mode == "release")
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, mediaStorage)
 	ingredientHandler := handler.NewIngredientHandler(ingredientService)
 	inventoryHandler := handler.NewInventoryHandler(inventoryService)
 	recipeHandler := handler.NewRecipeHandler(recipeService)
@@ -91,6 +91,8 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 			users := protected.Group("/users")
 			{
 				users.GET("/me", userHandler.GetMe)
+				users.POST("/me/avatar", userHandler.UploadAvatar)
+				users.DELETE("/me/avatar", userHandler.DeleteAvatar)
 				users.PUT("/me/allergens", userHandler.UpdateAllergens)
 				users.PUT("/me/pantry", userHandler.UpdatePantry)
 				users.GET("/me/pantry", userHandler.GetPantry)

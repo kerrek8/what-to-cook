@@ -152,10 +152,15 @@ func (s *AuthService) InvalidateSessions(ctx context.Context, userIDStr string) 
 }
 
 func MapUserToDTO(u store.User) dto.UserResponse {
+	var avatarURL *string
+	if u.AvatarUrl.Valid && u.AvatarUrl.String != "" {
+		avatarURL = &u.AvatarUrl.String
+	}
 	return dto.UserResponse{
 		ID:                    uuid.UUID(u.ID.Bytes).String(),
 		Email:                 u.Email,
 		Name:                  u.Name,
+		AvatarURL:             avatarURL,
 		ExcludedIngredientIDs: u.ExcludedIngredientIds,
 		PantryIngredientIDs:   u.PantryIngredientIds,
 		CreatedAt:             u.CreatedAt.Time.Format(time.RFC3339),
