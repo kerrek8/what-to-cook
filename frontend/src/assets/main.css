@@ -1,9 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --van-primary-color: #2e7d32;
   --van-success-color: #4caf50;
   --van-warning-color: #ff9800;
   --van-danger-color: #f44336;
-  --van-background: #f7f8fa;
+  --van-background: #FAF8F5;
   --van-background-2: #ffffff;
   --app-max-width: 480px;
 }
@@ -21,7 +25,7 @@ html,
 body {
   width: 100%;
   height: 100%;
-  background-color: #eef1f5;
+  background-color: #F0ECE4;
   color: #323233;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -40,7 +44,7 @@ body {
   max-width: var(--app-max-width);
   min-height: 100vh;
   min-height: 100dvh;
-  background-color: var(--van-background);
+  background-color: #FAF8F5;
   display: flex;
   flex-direction: column;
   position: relative;
