@@ -141,52 +141,58 @@ onMounted(async () => {
         clearable
       />
     </div>
-    <!-- Navigation Tabs -->
-    <div class="tabs-nav">
-      <button
-        type="button"
-        class="tab-btn"
-        :class="{ active: recipeStore.activeTab === 'match' }"
-        @click="recipeStore.activeTab = 'match'"
-      >
-        <span>Что приготовить</span>
-        <span
-          v-if="recipeStore.filteredMatchedRecipes.length > 0"
-          class="count-badge green-badge"
-        >
-          {{ recipeStore.filteredMatchedRecipes.length }}
-        </span>
-      </button>
 
-      <button
-        type="button"
-        class="tab-btn"
-        :class="{ active: recipeStore.activeTab === 'all' }"
-        @click="recipeStore.activeTab = 'all'"
-      >
-        <span>Все рецепты</span>
-        <span
-          v-if="recipeStore.totalCount > 0"
-          class="count-badge grey-badge"
+    <!-- Navigation Tabs (Segmented Control) -->
+    <div class="tabs-wrapper">
+      <div class="tabs-segmented">
+        <button
+          type="button"
+          class="tab-btn"
+          :class="{ active: recipeStore.activeTab === 'match' }"
+          @click="recipeStore.activeTab = 'match'"
         >
-          {{ recipeStore.totalCount }}
-        </span>
-      </button>
+          <span>Что приготовить</span>
+          <span
+            v-if="recipeStore.filteredMatchedRecipes.length > 0"
+            class="count-badge"
+            :class="recipeStore.activeTab === 'match' ? 'badge-match-active' : 'badge-inactive'"
+          >
+            {{ recipeStore.filteredMatchedRecipes.length }}
+          </span>
+        </button>
 
-      <button
-        type="button"
-        class="tab-btn"
-        :class="{ active: recipeStore.activeTab === 'favorites' }"
-        @click="recipeStore.activeTab = 'favorites'; recipeStore.loadFavorites()"
-      >
-        <span>Избранное</span>
-        <span
-          v-if="recipeStore.favoriteRecipes.length > 0"
-          class="count-badge red-badge"
+        <button
+          type="button"
+          class="tab-btn"
+          :class="{ active: recipeStore.activeTab === 'all' }"
+          @click="recipeStore.activeTab = 'all'"
         >
-          {{ recipeStore.favoriteRecipes.length }}
-        </span>
-      </button>
+          <span>Все рецепты</span>
+          <span
+            v-if="recipeStore.totalCount > 0"
+            class="count-badge"
+            :class="recipeStore.activeTab === 'all' ? 'badge-all-active' : 'badge-inactive'"
+          >
+            {{ recipeStore.totalCount }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          :class="{ active: recipeStore.activeTab === 'favorites' }"
+          @click="recipeStore.activeTab = 'favorites'; recipeStore.loadFavorites()"
+        >
+          <span>Избранное</span>
+          <span
+            v-if="recipeStore.favoriteRecipes.length > 0"
+            class="count-badge"
+            :class="recipeStore.activeTab === 'favorites' ? 'badge-fav-active' : 'badge-inactive'"
+          >
+            {{ recipeStore.favoriteRecipes.length }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Filter Chips Scroll -->
@@ -238,7 +244,7 @@ onMounted(async () => {
       </div>
 
       <template v-else-if="recipeStore.filteredMatchedRecipes.length > 0">
-        <div v-if="authStore.user?.excludedIngredientIds?.length" class="px-4 pt-3">
+        <div v-if="authStore.user?.excludedIngredientIds?.length" class="px-4 pt-1 pb-2">
           <div class="allergen-note">
             <van-icon name="shield-o" size="16" />
             <span>Рецепты с выбранным в профиле аллергеном исключены из подбора</span>
@@ -274,7 +280,7 @@ onMounted(async () => {
           description="В вашем холодильнике нет продуктов с истекающим сроком годности. Все продукты свежие!"
         >
           <router-link to="/fridge">
-            <van-button round type="primary" color="#2e7d32" class="action-btn">
+            <van-button round type="primary" color="#1E3A2F" class="action-btn">
               Перейти в холодильник
             </van-button>
           </router-link>
@@ -329,7 +335,7 @@ onMounted(async () => {
           description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
         >
           <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
-            <van-button round type="primary" color="#2e7d32" class="action-btn">
+            <van-button round type="primary" color="#1E3A2F" class="action-btn">
               Заполнить холодильник
             </van-button>
           </router-link>
@@ -380,7 +386,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="recipeStore.isAllRecipesLoading" class="loading-more py-3 text-center">
-          <van-loading size="20px" color="#2e7d32">Загрузка рецептов...</van-loading>
+          <van-loading size="20px" color="#1E3A2F">Загрузка рецептов...</van-loading>
         </div>
       </template>
 
@@ -422,7 +428,7 @@ onMounted(async () => {
           <van-button
             round
             type="primary"
-            color="#2e7d32"
+            color="#1E3A2F"
             class="action-btn"
             @click="recipeStore.activeTab = 'all'"
           >
@@ -439,12 +445,12 @@ onMounted(async () => {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #FAF8F5;
 }
 
 .search-header {
-  padding: 10px 16px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e7ece7;
+  padding: 10px 16px 4px;
+  background-color: #FAF8F5;
 }
 
 .search-header :deep(.van-search) {
@@ -454,94 +460,104 @@ onMounted(async () => {
 }
 
 .search-header :deep(.van-search__content) {
-  min-height: 48px;
-  padding: 0 12px;
-  background-color: #f5f7f5;
-  border: 1px solid #e2e9e2;
-  border-radius: 14px;
+  min-height: 46px;
+  padding: 0 14px;
+  background-color: #ffffff;
+  border: 1px solid rgba(30, 58, 47, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(30, 58, 47, 0.03);
 }
 
 .search-header :deep(.van-field__control) {
-  color: #243126;
-  font-size: 15px;
+  color: #1c1917;
+  font-size: 14px;
 }
 
 .search-header :deep(.van-field__control::placeholder) {
-  color: #7c887e;
+  color: #a8a29e;
 }
 
-.tabs-nav {
+.tabs-wrapper {
+  padding: 6px 16px 8px;
+  background-color: #FAF8F5;
+}
+
+.tabs-segmented {
+  background-color: rgba(231, 229, 228, 0.6);
+  padding: 4px;
+  border-radius: 16px;
   display: flex;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 0 8px;
+  gap: 4px;
 }
 
 .tab-btn {
   flex: 1;
   border: none;
-  background: none;
-  padding: 12px 6px;
-  min-height: 44px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #757575;
+  background: transparent;
+  padding: 8px 8px;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #57534e;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: #1c1917;
 }
 
 .tab-btn.active {
-  color: #2e7d32;
-  font-weight: 700;
-}
-
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 20%;
-  right: 20%;
-  height: 3px;
-  background-color: #2e7d32;
-  border-radius: 3px 3px 0 0;
+  background-color: #ffffff;
+  color: #1c1917;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(30, 58, 47, 0.08), 0 1px 2px rgba(30, 58, 47, 0.04);
 }
 
 .count-badge {
   font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.badge-match-active {
+  background-color: #1E3A2F;
   color: #ffffff;
 }
 
-.green-badge {
-  background-color: #2e7d32;
+.badge-all-active {
+  background-color: #44403c;
+  color: #ffffff;
 }
 
-.grey-badge {
-  background-color: #78909c;
+.badge-fav-active {
+  background-color: #ef4444;
+  color: #ffffff;
 }
 
-.red-badge {
-  background-color: #e53935;
+.badge-inactive {
+  background-color: rgba(168, 162, 158, 0.3);
+  color: #57534e;
 }
 
 .allergen-note {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background-color: #f1f8e9;
-  border: 1px solid #c8e6c9;
-  border-radius: 10px;
+  padding: 10px 14px;
+  background-color: rgba(30, 58, 47, 0.05);
+  border: 1px solid rgba(30, 58, 47, 0.12);
+  border-radius: 14px;
   font-size: 12px;
-  color: #2e7d32;
+  color: #1E3A2F;
   font-weight: 500;
 }
 
@@ -549,9 +565,10 @@ onMounted(async () => {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 8px 12px;
+  padding: 4px 16px 12px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  background-color: #FAF8F5;
 }
 
 .filters-scroll::-webkit-scrollbar {
@@ -563,34 +580,40 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
-  min-height: 36px;
-  border-radius: 18px;
-  border: 1px solid #e0e0e0;
+  min-height: 34px;
+  border-radius: 9999px;
+  border: 1px solid rgba(231, 229, 228, 0.8);
   background-color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: #4a4a4a;
+  color: #44403c;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.filter-chip:active {
+  transform: scale(0.95);
 }
 
 .filter-chip.active {
-  background-color: #2e7d32;
-  border-color: #2e7d32;
+  background-color: #1E3A2F;
+  border-color: #1E3A2F;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(30, 58, 47, 0.15);
 }
 
 .expiring-toggle {
-  background-color: #fff3e0;
-  border-color: #ffe082;
-  color: #e65100;
+  background-color: rgba(254, 243, 199, 0.5);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #92400e;
   font-weight: 600;
 }
 
 .expiring-toggle.active {
-  background-color: #e65100;
-  border-color: #e65100;
+  background-color: #1E3A2F;
+  border-color: #1E3A2F;
   color: #ffffff;
 }
 
@@ -600,20 +623,21 @@ onMounted(async () => {
 }
 
 .loading-skeletons {
-  padding: 12px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .skeleton-card {
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 16px;
+  box-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06);
 }
 
 .recipes-list {
-  padding: 12px 16px 16px;
+  padding: 8px 16px 16px;
 }
 
 .fallback-note {
@@ -622,10 +646,11 @@ onMounted(async () => {
   gap: 10px;
   margin: 0 0 14px;
   padding: 12px 14px;
-  border-radius: 12px;
-  background-color: #edf5ee;
-  color: #315d37;
-  font-size: 14px;
+  border-radius: 14px;
+  background-color: rgba(30, 58, 47, 0.05);
+  border: 1px solid rgba(30, 58, 47, 0.1);
+  color: #1E3A2F;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -643,5 +668,6 @@ onMounted(async () => {
   min-height: 44px;
   font-weight: 600;
   margin-top: 8px;
+  border-radius: 14px;
 }
 </style>
