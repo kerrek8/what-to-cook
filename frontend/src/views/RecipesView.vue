@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
@@ -10,10 +10,16 @@ const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
-const matchPage = ref(1)
-const matchPageSize = 15
-
 const scrollContainer = ref<HTMLElement | null>(null)
+
+const matchVirtualizer = useVirtualizer({
+  get count() {
+    return recipeStore.filteredMatchedRecipes.length
+  },
+  getScrollElement: () => scrollContainer.value,
+  estimateSize: () => 360,
+  overscan: 3
+})
 
 const rowVirtualizer = useVirtualizer({
   get count() {
@@ -30,16 +36,6 @@ function scrollToTop() {
     scrollContainer.value.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
-
-function handleMatchPageChange(page: number) {
-  matchPage.value = page
-  scrollToTop()
-}
-
-const visibleMatchedRecipes = computed(() => {
-  const start = (matchPage.value - 1) * matchPageSize
-  return recipeStore.filteredMatchedRecipes.slice(start, start + matchPageSize)
-})
 
 function checkInfiniteScroll() {
   if (recipeStore.activeTab !== 'all') return
@@ -59,19 +55,6 @@ watch(
   () => rowVirtualizer.value.getVirtualItems(),
   () => {
     checkInfiniteScroll()
-  }
-)
-
-watch(
-  [
-    () => recipeStore.searchQuery,
-    () => recipeStore.difficultyFilter,
-    () => recipeStore.timeFilter,
-    () => recipeStore.saveExpiringOnly,
-    () => recipeStore.activeTab
-  ],
-  () => {
-    matchPage.value = 1
   }
 )
 
@@ -254,33 +237,32 @@ onMounted(async () => {
         <van-skeleton title avatar :row="3" class="skeleton-card" />
       </div>
 
-      <div
-        v-else-if="recipeStore.filteredMatchedRecipes.length > 0"
-        class="recipes-list"
-      >
-        <div v-if="authStore.user?.excludedIngredientIds?.length" class="allergen-note">
-          <van-icon name="shield-o" size="16" />
-          <span>Рецепты с выбранным в профиле аллергеном исключены из подбора</span>
+      <template v-else-if="recipeStore.filteredMatchedRecipes.length > 0">
+        <div v-if="authStore.user?.excludedIngredientIds?.length" class="px-4 pt-3">
+          <div class="allergen-note">
+            <van-icon name="shield-o" size="16" />
+            <span>Рецепты с выбранным в профиле аллергеном исключены из подбора</span>
+          </div>
         </div>
-        <RecipeCard
-          v-for="item in visibleMatchedRecipes"
-          :key="item.recipe.id"
-          :recipe="item.recipe"
-          :match-item="item"
-          :saving-ingredients="recipeStore.getSavingIngredients(item.used_ingredients)"
-        />
-      </div>
 
-      <van-pagination
-        v-if="recipeStore.filteredMatchedRecipes.length > matchPageSize"
-        :model-value="matchPage"
-        :total-items="recipeStore.filteredMatchedRecipes.length"
-        :items-per-page="matchPageSize"
-        prev-text="Назад"
-        next-text="Далее"
-        mode="simple"
-        @change="handleMatchPageChange"
-      />
+        <div class="relative w-full" :style="{ height: `${matchVirtualizer.getTotalSize()}px` }">
+          <div
+            v-for="virtualRow in matchVirtualizer.getVirtualItems()"
+            :key="virtualRow.key as number | string"
+            :ref="(el) => matchVirtualizer.measureElement(el as HTMLElement | null)"
+            :data-index="virtualRow.index"
+            class="absolute top-0 left-0 w-full px-4 pb-3"
+            :style="{ transform: `translateY(${virtualRow.start}px)` }"
+          >
+            <RecipeCard
+              v-if="recipeStore.filteredMatchedRecipes[virtualRow.index]"
+              :recipe="recipeStore.filteredMatchedRecipes[virtualRow.index].recipe"
+              :match-item="recipeStore.filteredMatchedRecipes[virtualRow.index]"
+              :saving-ingredients="recipeStore.getSavingIngredients(recipeStore.filteredMatchedRecipes[virtualRow.index]?.recipe.ingredients)"
+            />
+          </div>
+        </div>
+      </template>
 
       <!-- Состояние: фильтр "Спасает продукты" активен, но в холодильнике нет истекающих продуктов -->
       <div
@@ -361,7 +343,6 @@ onMounted(async () => {
               recipeStore.timeFilter = 0;
               recipeStore.difficultyFilter = 'all';
               recipeStore.saveExpiringOnly = false;
-              matchPage = 1;
             "
           >
             Сбросить фильтры
