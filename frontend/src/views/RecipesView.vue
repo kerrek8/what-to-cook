@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
@@ -12,11 +13,21 @@ const authStore = useAuthStore()
 const matchPage = ref(1)
 const matchPageSize = 15
 
+const scrollContainer = ref<HTMLElement | null>(null)
+
+const rowVirtualizer = useVirtualizer({
+  get count() {
+    return recipeStore.allRecipes.length
+  },
+  getScrollElement: () => scrollContainer.value,
+  estimateSize: () => 360,
+  overscan: 3
+})
+
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
-  const scrollContainer = document.querySelector('.content-wrapper')
-  if (scrollContainer) {
-    scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
@@ -25,15 +36,31 @@ function handleMatchPageChange(page: number) {
   scrollToTop()
 }
 
-async function handleAllPageChange(page: number) {
-  await recipeStore.setPage(page)
-  scrollToTop()
-}
-
 const visibleMatchedRecipes = computed(() => {
   const start = (matchPage.value - 1) * matchPageSize
   return recipeStore.filteredMatchedRecipes.slice(start, start + matchPageSize)
 })
+
+function checkInfiniteScroll() {
+  if (recipeStore.activeTab !== 'all') return
+  const virtualItems = rowVirtualizer.value.getVirtualItems()
+  if (!virtualItems || virtualItems.length === 0) return
+  const lastItem = virtualItems[virtualItems.length - 1]
+  if (
+    lastItem.index >= recipeStore.allRecipes.length - 2 &&
+    recipeStore.hasMoreRecipes &&
+    !recipeStore.isAllRecipesLoading
+  ) {
+    recipeStore.loadAllRecipes(recipeStore.page + 1, true)
+  }
+}
+
+watch(
+  () => rowVirtualizer.value.getVirtualItems(),
+  () => {
+    checkInfiniteScroll()
+  }
+)
 
 watch(
   [
@@ -50,26 +77,44 @@ watch(
 
 watch(
   () => recipeStore.activeTab,
-  (tab) => {
+  async (tab) => {
     if (tab !== 'match') {
       recipeStore.saveExpiringOnly = false
+    }
+    if (tab === 'all' && recipeStore.allRecipes.length === 0) {
+      await recipeStore.loadAllRecipes(1, false)
     }
   }
 )
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
-watch([() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter], () => {
+watch(
+  [() => recipeStore.searchQuery, () => recipeStore.difficultyFilter, () => recipeStore.timeFilter],
+  () => {
     if (recipeStore.activeTab !== 'all') return
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
     searchDebounceTimer = setTimeout(async () => {
-      await recipeStore.loadAllRecipes(1)
+      recipeStore.allRecipes = []
+      await recipeStore.loadAllRecipes(1, false)
+      scrollToTop()
     }, 400)
   }
 )
 
+async function resetAllFilters() {
+  recipeStore.searchQuery = ''
+  recipeStore.timeFilter = 0
+  recipeStore.difficultyFilter = 'all'
+  recipeStore.saveExpiringOnly = false
+  recipeStore.allRecipes = []
+  await recipeStore.loadAllRecipes(1, false)
+  scrollToTop()
+}
+
 onUnmounted(() => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  scrollContainer.value?.removeEventListener('scroll', checkInfiniteScroll)
 })
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
@@ -88,12 +133,15 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 ]
 
 onMounted(async () => {
+  scrollContainer.value = document.querySelector('.content-wrapper') as HTMLElement
+  scrollContainer.value?.addEventListener('scroll', checkInfiniteScroll, { passive: true })
+
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
   await Promise.all([
     recipeStore.loadMatchedRecipes(),
-    recipeStore.loadAllRecipes(),
+    recipeStore.loadAllRecipes(1, false),
     recipeStore.loadFavorites()
   ])
 })
@@ -324,42 +372,44 @@ onMounted(async () => {
 
     <!-- Tab: All Recipes -->
     <template v-else-if="recipeStore.activeTab === 'all'">
-      <div v-if="recipeStore.isLoading" class="loading-skeletons">
+      <div v-if="recipeStore.isLoading && recipeStore.allRecipes.length === 0" class="loading-skeletons">
         <van-skeleton title avatar :row="3" class="skeleton-card" />
         <van-skeleton title avatar :row="3" class="skeleton-card" />
       </div>
 
-      <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list">
-        <RecipeCard
-          v-for="r in recipeStore.visibleAllRecipes"
-          :key="r.id"
-          :recipe="r"
-          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-        />
-      </div>
-      <van-pagination
-        v-if="recipeStore.totalCount > recipeStore.pageSize"
-        :model-value="recipeStore.page"
-        :total-items="recipeStore.totalCount"
-        :items-per-page="recipeStore.pageSize"
-        prev-text="Назад"
-        next-text="Далее"
-        mode="simple"
-        @change="handleAllPageChange"
-      />
+      <template v-else-if="recipeStore.allRecipes.length > 0">
+        <div
+          class="relative w-full"
+          :style="{ height: `${rowVirtualizer.getTotalSize()}px` }"
+        >
+          <div
+            v-for="virtualRow in rowVirtualizer.getVirtualItems()"
+            :key="virtualRow.key as number | string"
+            :ref="(el) => rowVirtualizer.measureElement(el as HTMLElement | null)"
+            :data-index="virtualRow.index"
+            class="absolute top-0 left-0 w-full px-4 pb-3"
+            :style="{ transform: `translateY(${virtualRow.start}px)` }"
+          >
+            <RecipeCard
+              v-if="recipeStore.allRecipes[virtualRow.index]"
+              :recipe="recipeStore.allRecipes[virtualRow.index]"
+              :saving-ingredients="recipeStore.getSavingIngredients(recipeStore.allRecipes[virtualRow.index]?.ingredients)"
+            />
+          </div>
+        </div>
 
-      <div v-if="!recipeStore.isLoading && recipeStore.filteredAllRecipes.length === 0" class="empty-state">
+        <div v-if="recipeStore.isAllRecipesLoading" class="loading-more py-3 text-center">
+          <van-loading size="20px" color="#2e7d32">Загрузка рецептов...</van-loading>
+        </div>
+      </template>
+
+      <div v-if="!recipeStore.isLoading && recipeStore.allRecipes.length === 0" class="empty-state">
         <van-empty image="search" description="Рецепты не найдены">
           <van-button
             round
             plain
             class="action-btn"
-            @click="
-              recipeStore.searchQuery = '';
-              recipeStore.timeFilter = 0;
-              recipeStore.difficultyFilter = 'all';
-              recipeStore.saveExpiringOnly = false;
-            "
+            @click="resetAllFilters"
           >
             Сбросить фильтры
           </van-button>

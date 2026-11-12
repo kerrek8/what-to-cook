@@ -181,4 +181,59 @@ describe('useRecipeStore', () => {
     expect(saving).toHaveLength(1)
     expect(saving[0].name).toBe('Томаты')
   })
+
+  it('appends recipes when append is true and resets when append is false', async () => {
+    const recipe2 = { ...mockRecipe, id: 2, title: 'Суп куриный' }
+    vi.mocked(recipeApi.getRecipesApi)
+      .mockResolvedValueOnce({
+        items: [mockRecipe],
+        total: 2
+      })
+      .mockResolvedValueOnce({
+        items: [recipe2],
+        total: 2
+      })
+
+    const store = useRecipeStore()
+    expect(store.hasMoreRecipes).toBe(false)
+
+    await store.loadAllRecipes(1, false)
+    expect(store.allRecipes).toHaveLength(1)
+    expect(store.allRecipes[0].id).toBe(1)
+    expect(store.hasMoreRecipes).toBe(true)
+
+    await store.loadAllRecipes(2, true)
+    expect(store.allRecipes).toHaveLength(2)
+    expect(store.allRecipes[1].id).toBe(2)
+    expect(store.hasMoreRecipes).toBe(false)
+
+    vi.mocked(recipeApi.getRecipesApi).mockResolvedValueOnce({
+      items: [mockRecipe],
+      total: 2
+    })
+    await store.loadAllRecipes(1, false)
+    expect(store.allRecipes).toHaveLength(1)
+  })
+
+  it('tracks isAllRecipesLoading state correctly', async () => {
+    let resolveApi: (value: any) => void = () => {}
+    const pendingPromise = new Promise((resolve) => {
+      resolveApi = resolve
+    })
+    vi.mocked(recipeApi.getRecipesApi).mockReturnValueOnce(pendingPromise as any)
+
+    const store = useRecipeStore()
+    expect(store.isAllRecipesLoading).toBe(false)
+    expect(store.isLoading).toBe(false)
+
+    const loadPromise = store.loadAllRecipes(1, false)
+    expect(store.isAllRecipesLoading).toBe(true)
+    expect(store.isLoading).toBe(true)
+
+    resolveApi({ items: [mockRecipe], total: 1 })
+    await loadPromise
+
+    expect(store.isAllRecipesLoading).toBe(false)
+    expect(store.isLoading).toBe(false)
+  })
 })
