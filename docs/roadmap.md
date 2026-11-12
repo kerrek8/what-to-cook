@@ -688,3 +688,40 @@ flowchart TD
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.1`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Пройдены все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов).
   - Пройдены все тесты фронтенда (`bun run type-check`, `bun run test` — 12 сьютов, 73/73 теста) и продакшен-сборка (`bun run build`).
+
+
+---
+
+## ✅ Завершен: Системный редизайн Modern Nordic Gastro по всему приложению, адаптивный Segmented Control и надёжный Scroll-to-Top
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f22-nordic-system-wide-polish`.
+- **Цель**: Полное системное внедрение скандинавской дизайн-системы Modern Nordic Gastro по всему приложению (глубокий хвойный шалфей `#1E3A2F`, лесной акцент `#2D5A43`, теплая охра `#E8A87C`, холст `#FAF8F5`, лен `#F0ECE4`, 20px сквирклы) с полным искоренением устаревших оттенков `#2e7d32` / `#e8f5e9` на всех экранах (`FridgeView`, `ProductCard`, `ShoppingView`, `ShoppingItemCard`, `ProfileView`, `RecipeDetailView`, `LoginView`, `RegisterView`), исправление наезда надписей в Segmented Control на узких экранах, и реализация централизованного `scrollToTop()` со скроллом по клику на нижний таббар и верхний навбар.
+
+### Выполнено
+
+- [x] **Надёжная утилита `scrollToTop()` и привязка к App Shell**:
+  - Создана утилита `frontend/src/utils/scroll.ts`, гарантированно сбрасывающая скролл в `0` с плавной анимацией для `window`, `document.documentElement`, `document.body` и `.content-wrapper` (устранено расхождение между скроллом окна и контейнера).
+  - Написаны изолированные модульные тесты в `frontend/src/utils/scroll.test.ts`.
+  - В `AppTabBar.vue` подключен скролл наверх по повторному тапу на активную вкладку.
+  - В `AppHeader.vue` подключен вызов `scrollToTop()` по клику на заголовок верхнего бара (нативный паттерн iOS).
+- [x] **Адаптивный Segmented Control без наезда текста в каталоге**:
+  - В `RecipesView.vue` установлены лаконичные, неперегруженные названия табов («Подбор», «Все рецепты», «Избранное»).
+  - Внедрена адаптивная flex-модель (`flex: 1 1 0%`, `min-width: 0`, `overflow: hidden`, `text-overflow: ellipsis`) и компактные микро-пилюли счётчиков (размер 10px, отступы 1px 5px). Текст больше не сталкивается и не переносится даже на узких экранах 320px–360px.
+  - Добавлены модульные тесты шаблона в `frontend/src/views/recipesView.test.ts`.
+- [x] **Глобальная дизайн-система в `main.css`**:
+  - Переопределены все CSS-переменные Vant UI под единую скандинавскую палитру: `--van-primary-color: #1E3A2F;`, `--van-success-color: #2D5A43;`, `--van-warning-color: #E8A87C;`, `--van-danger-color: #C0392B;`, фоны, границы и скругления.
+  - Стилизованы глобальные элементы поиска `.van-search`, кнопок `.van-button`, диалогов `.van-dialog` (сквиркл 20px) и шторок `.van-action-sheet` (24px).
+- [x] **Оболочка приложения (App Shell)**:
+  - `AppHeader.vue`: матовое полупрозрачное стекло Glassmorphism (`backdrop-filter: blur(16px); background-color: rgba(250, 248, 245, 0.92)`), хвойный акцентный заголовок `#1E3A2F` с благородным трекингом, мягкая тень.
+  - `AppTabBar.vue`: нижнее матовое стекло, активный хвойный цвет `#1E3A2F`, индикатор активной вкладки (деликатная точка внизу активной иконки), терракотовые бейджи `#D97757`.
+- [x] **Тотальное искоренение устаревшего зеленого цвета на всех экранах**:
+  - В `FridgeView.vue` и `ProductCard.vue`: FAB-кнопка добавления, фильтры, карточки продуктов со сквирклами 18px и мягкой тенью переведены на Deep Sage `#1E3A2F` и Forest `#2D5A43`.
+  - В `ShoppingView.vue` и `ShoppingItemCard.vue`: чекбоксы, кнопка переноса в холодильник, карточки отделов и FAB-кнопка переведены на `#1E3A2F` с подложками `rgba(30, 58, 47, 0.08)`.
+  - В `ProfileView.vue`: бейдж аватара, переключатели, карточки пользователя и гостя обновлены до 20px сквирклов с тенями Deep Sage.
+  - В `RecipeDetailView.vue`: все иконки таймера, кнопки шагов, плавающий таймер и бейджи переведены на Modern Nordic Gastro.
+  - В `LoginView.vue`, `RegisterView.vue`, `CookingTimer.vue`, `AddProductSheet.vue`, `AddShoppingItemSheet.vue`, `ReloadPrompt.vue`: заменены все оставшиеся вхождения `#2e7d32` и `#e8f5e9`.
+- [x] **Версионирование и верификация**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.2`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Пройдены все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов).
+  - Пройдены все тесты фронтенда (`bun run type-check`, `bun run test` — 14 сьютов, 79/79 тестов) и продакшен-сборка (`bun run build`).
