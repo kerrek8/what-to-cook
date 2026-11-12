@@ -22,7 +22,7 @@ async function close() {
         v-if="needRefresh"
         size="small"
         type="primary"
-        color="#2e7d32"
+        color="#1E3A2F"
         @click="updateServiceWorker()"
       >
         Обновить

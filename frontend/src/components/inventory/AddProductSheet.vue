@@ -325,7 +325,7 @@ watch(() => props.editItem, (item) => {
           block
           plain
           type="primary"
-          color="#2e7d32"
+          color="#1E3A2F"
           class="submit-button continue-button"
           @click="handleSubmit(false)"
         >
@@ -335,7 +335,7 @@ watch(() => props.editItem, (item) => {
           round
           block
           type="primary"
-          color="#2e7d32"
+          color="#1E3A2F"
           class="submit-button"
           @click="handleSubmit(true)"
         >
@@ -425,7 +425,7 @@ watch(() => props.editItem, (item) => {
 .suggestion-name {
   font-size: 14px;
   font-weight: 500;
-  color: #2e7d32;
+  color: #1E3A2F;
 }
 
 .suggestion-cat {
@@ -456,7 +456,7 @@ watch(() => props.editItem, (item) => {
 
 .mode-btn.active {
   background-color: #ffffff;
-  color: #2e7d32;
+  color: #1E3A2F;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -492,7 +492,7 @@ watch(() => props.editItem, (item) => {
 }
 
 .unit-chip.active {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
 }
 
@@ -514,9 +514,9 @@ watch(() => props.editItem, (item) => {
 }
 
 .approx-chip.active {
-  border-color: #2e7d32;
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  border-color: #1E3A2F;
+  background-color: rgba(30, 58, 47, 0.08);
+  color: #1E3A2F;
   font-weight: 600;
 }
 
@@ -530,7 +530,7 @@ watch(() => props.editItem, (item) => {
 .selected-date {
   font-size: 13px;
   font-weight: 600;
-  color: #2e7d32;
+  color: #1E3A2F;
 }
 
 .text-muted {
@@ -561,8 +561,8 @@ watch(() => props.editItem, (item) => {
 }
 
 .calendar-btn {
-  border-color: #2e7d32;
-  color: #2e7d32;
+  border-color: #1E3A2F;
+  color: #1E3A2F;
 }
 
 .clear-btn {

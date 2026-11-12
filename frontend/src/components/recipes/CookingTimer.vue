@@ -218,7 +218,7 @@ defineExpose({
   <div class="timer-card">
     <div class="timer-header">
       <div class="timer-title">
-        <van-icon name="clock-o" color="#2e7d32" size="18" />
+        <van-icon name="clock-o" color="#1E3A2F" size="18" />
         <span>Таймер готовки</span>
       </div>
       <button type="button" class="close-btn" @click="emit('close')">
@@ -267,7 +267,7 @@ defineExpose({
         v-if="!isRunning"
         round
         type="primary"
-        color="#2e7d32"
+        color="#1E3A2F"
         icon="play"
         class="action-btn main-btn"
         @click="startTimer"
@@ -305,7 +305,7 @@ defineExpose({
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e8f5e9;
+  border: 1px solid rgba(30, 58, 47, 0.08);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -347,7 +347,7 @@ defineExpose({
   font-size: 40px;
   font-weight: 800;
   font-family: monospace;
-  color: #2e7d32;
+  color: #1E3A2F;
   letter-spacing: 2px;
 }
 
@@ -372,7 +372,7 @@ defineExpose({
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   transition: width 0.3s ease;
 }
 
@@ -388,8 +388,8 @@ defineExpose({
   min-width: 44px;
   min-height: 38px;
   border: 1px solid #c8e6c9;
-  background-color: #f1f8e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.06);
+  color: #1E3A2F;
   font-weight: 600;
   font-size: 13px;
   border-radius: 8px;
@@ -398,9 +398,9 @@ defineExpose({
 }
 
 .preset-btn.active {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
-  border-color: #2e7d32;
+  border-color: #1E3A2F;
 }
 
 .timer-adjustments {
@@ -438,12 +438,12 @@ defineExpose({
 
 .adjust-btn.btn-increment {
   border: 1px solid #c8e6c9;
-  background-color: #f1f8e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.06);
+  color: #1E3A2F;
 }
 
 .adjust-btn.btn-increment:active:not(:disabled) {
-  background-color: #e8f5e9;
+  background-color: rgba(30, 58, 47, 0.08);
   transform: scale(0.97);
 }
 

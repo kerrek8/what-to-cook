@@ -187,7 +187,7 @@ watch(
           round
           block
           type="primary"
-          color="#2e7d32"
+          color="#1E3A2F"
           class="submit-btn"
           @click="handleSubmit"
         >
@@ -260,7 +260,7 @@ watch(
 }
 
 .suggestion-item:active {
-  background-color: #f1f8e9;
+  background-color: rgba(30, 58, 47, 0.06);
 }
 
 .suggestion-name {
@@ -309,7 +309,7 @@ watch(
 }
 
 .unit-chip.active {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
 }
 
@@ -333,7 +333,7 @@ watch(
 }
 
 .category-chip.active {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
   font-weight: 600;
 }

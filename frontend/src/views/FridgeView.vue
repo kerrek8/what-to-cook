@@ -108,7 +108,7 @@ onMounted(() => {
             <van-button
               round
               type="primary"
-              color="#2e7d32"
+              color="#1E3A2F"
               class="add-first-btn"
               @click="showAddSheet = true"
             >
@@ -124,7 +124,7 @@ onMounted(() => {
         round
         type="primary"
         icon="plus"
-        color="#2e7d32"
+        color="#1E3A2F"
         class="fab-btn"
         @click="showAddSheet = true"
       >
@@ -184,8 +184,8 @@ onMounted(() => {
 }
 
 .filter-chip.active {
-  background-color: #2e7d32;
-  border-color: #2e7d32;
+  background-color: #1E3A2F;
+  border-color: #1E3A2F;
   color: #ffffff;
   font-weight: 600;
 }
@@ -238,7 +238,7 @@ onMounted(() => {
 
 .fab-btn {
   pointer-events: auto;
-  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.4);
+  box-shadow: 0 4px 14px rgba(30, 58, 47, 0.25);
   padding: 0 24px;
   min-height: 44px;
   font-weight: 600;

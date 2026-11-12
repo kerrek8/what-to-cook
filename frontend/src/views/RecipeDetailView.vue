@@ -275,15 +275,15 @@ function onFavoriteToggle() {
         <!-- Meta row -->
         <div class="meta-pills">
           <div class="meta-pill">
-            <van-icon name="clock-o" color="#2e7d32" size="16" />
+            <van-icon name="clock-o" color="#1E3A2F" size="16" />
             <span>{{ recipe.cooking_time_minutes }} мин</span>
           </div>
           <div class="meta-pill">
-            <van-icon name="bar-chart-o" color="#2e7d32" size="16" />
+            <van-icon name="bar-chart-o" color="#1E3A2F" size="16" />
             <span>{{ difficultyLabel }}</span>
           </div>
           <div class="meta-pill servings-pill">
-            <van-icon name="friends-o" color="#2e7d32" size="16" />
+            <van-icon name="friends-o" color="#1E3A2F" size="16" />
             <div class="servings-stepper">
               <button
                 type="button"
@@ -336,7 +336,7 @@ function onFavoriteToggle() {
                 class="ingredient-item"
               >
                 <div class="ing-left">
-                  <van-icon name="passed" color="#2e7d32" size="16" />
+                  <van-icon name="passed" color="#1E3A2F" size="16" />
                   <span class="ing-name">{{ ing.name }}</span>
                 </div>
                 <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
@@ -374,7 +374,7 @@ function onFavoriteToggle() {
               round
               block
               type="primary"
-              color="#2e7d32"
+              color="#1E3A2F"
               icon="cart-o"
               :loading="isAddingToShopping"
               :disabled="shoppingAdded"
@@ -463,7 +463,7 @@ function onFavoriteToggle() {
 
     <div v-else class="not-found">
       <van-empty description="Рецепт не найден">
-        <van-button round type="primary" color="#2e7d32" @click="router.push('/recipes')">
+        <van-button round type="primary" color="#1E3A2F" @click="router.push('/recipes')">
           Вернуться к рецептам
         </van-button>
       </van-empty>
@@ -600,8 +600,8 @@ function onFavoriteToggle() {
   min-height: 36px;
   border-radius: 50%;
   border: 1px solid #c8e6c9;
-  background-color: #f1f8e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.06);
+  color: #1E3A2F;
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
@@ -622,7 +622,7 @@ function onFavoriteToggle() {
 }
 
 .stepper-btn:active:not(:disabled) {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
   transform: scale(0.92);
 }
@@ -640,7 +640,7 @@ function onFavoriteToggle() {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #2e7d32;
+  color: #1E3A2F;
   user-select: none;
 }
 
@@ -682,8 +682,8 @@ function onFavoriteToggle() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.08);
+  color: #1E3A2F;
   border: 1px solid #c8e6c9;
   border-radius: 16px;
   padding: 4px 10px;
@@ -699,7 +699,7 @@ function onFavoriteToggle() {
 }
 
 .in-stock-box {
-  background-color: #f1f8e9;
+  background-color: rgba(30, 58, 47, 0.06);
   border: 1px solid #dcedc8;
 }
 
@@ -725,7 +725,7 @@ function onFavoriteToggle() {
 }
 
 .green-dot {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
 }
 
 .red-dot {
@@ -796,8 +796,8 @@ function onFavoriteToggle() {
 }
 
 .crit-optional {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.08);
+  color: #1E3A2F;
 }
 
 .add-shopping-btn {
@@ -840,8 +840,8 @@ function onFavoriteToggle() {
   height: 28px;
   min-width: 28px;
   border-radius: 50%;
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: rgba(30, 58, 47, 0.08);
+  color: #1E3A2F;
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -852,7 +852,7 @@ function onFavoriteToggle() {
 }
 
 .step-num.done {
-  background-color: #2e7d32;
+  background-color: #1E3A2F;
   color: #ffffff;
 }
 

@@ -75,7 +75,7 @@ export function getFreshnessInfo(expirationDate?: string | null): FreshnessInfo 
     status: 'fresh',
     daysLeft,
     label: `Годен еще ${daysLeft} дн.`,
-    color: '#2e7d32'
+    color: '#2D5A43'
   }
 }
 

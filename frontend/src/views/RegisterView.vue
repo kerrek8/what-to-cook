@@ -106,7 +106,7 @@ async function onSubmit() {
           block
           type="primary"
           native-type="submit"
-          color="#2e7d32"
+          color="#1E3A2F"
           :loading="isSubmitting"
           class="submit-btn"
         >
@@ -177,7 +177,7 @@ async function onSubmit() {
 }
 
 .link-btn {
-  color: #2e7d32;
+  color: #1E3A2F;
   font-weight: 600;
   text-decoration: none;
   min-height: 44px;
