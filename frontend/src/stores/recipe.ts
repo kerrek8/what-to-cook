@@ -37,6 +37,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   const currentRecipe = ref<RecipeResponse | null>(null)
 
   const isLoading = ref(false)
+  const isAllRecipesLoading = ref(false)
   const isFavoritesLoading = ref(false)
   const isMatching = ref(false)
   const isDetailLoading = ref(false)
@@ -120,6 +121,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   })
   const visibleAllRecipes = computed(() => filteredAllRecipes.value)
   const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)))
+  const hasMoreRecipes = computed(() => allRecipes.value.length < totalCount.value)
 
   const favoriteRecipes = computed(() => {
     return favoriteCatalog.value.filter((r) => r.is_favorite && filterMatched(r))
@@ -144,8 +146,12 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
-  async function loadAllRecipes(targetPage = 1) {
-    isLoading.value = true
+  async function loadAllRecipes(targetPage = 1, append = false) {
+    const shouldAppend = append && targetPage > 1
+    if (!shouldAppend) {
+      isLoading.value = true
+    }
+    isAllRecipesLoading.value = true
     try {
       const resp = await getRecipesApi({
         limit: pageSize,
@@ -154,13 +160,20 @@ export const useRecipeStore = defineStore('recipe', () => {
         difficulty: difficultyFilter.value !== 'all' ? difficultyFilter.value : undefined,
         max_time: timeFilter.value > 0 ? timeFilter.value : undefined
       })
-      allRecipes.value = resp.items
+      if (shouldAppend) {
+        allRecipes.value = [...allRecipes.value, ...resp.items]
+      } else {
+        allRecipes.value = resp.items
+      }
       totalCount.value = resp.total
       page.value = targetPage
     } catch {
-      allRecipes.value = []
+      if (!shouldAppend) {
+        allRecipes.value = []
+      }
     } finally {
       isLoading.value = false
+      isAllRecipesLoading.value = false
     }
   }
 
@@ -284,6 +297,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     totalPages,
     currentRecipe,
     isLoading,
+    isAllRecipesLoading,
+    hasMoreRecipes,
     isFavoritesLoading,
     isMatching,
     isDetailLoading,
