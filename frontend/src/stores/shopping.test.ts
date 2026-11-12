@@ -161,4 +161,29 @@ describe('useShoppingStore', () => {
     expect(store.items).toHaveLength(1)
     expect(store.items[0].name).toBe('Чай')
   })
+
+  it('updates pending count when items are reloaded after external recipe addition', async () => {
+    const store = useShoppingStore()
+    expect(store.items).toHaveLength(0)
+    expect(store.pendingCount).toBe(0)
+
+    vi.mocked(shoppingApi.getShoppingListApi).mockResolvedValueOnce([
+      {
+        id: 'mock-id-1',
+        name: 'Мука',
+        amount: 500,
+        unit: 'г',
+        is_bought: false,
+        category: 'Бакалея',
+        created_at: '2026-11-12T00:00:00Z',
+        updated_at: '2026-11-12T00:00:00Z'
+      }
+    ])
+
+    await store.loadItems(true)
+    expect(store.items).toHaveLength(1)
+    expect(store.items.filter((i) => !i.isBought)).toHaveLength(1)
+    expect(store.pendingCount).toBe(1)
+    expect(store.items[0].name).toBe('Мука')
+  })
 })

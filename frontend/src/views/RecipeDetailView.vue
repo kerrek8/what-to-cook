@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
+import { useShoppingStore } from '@/stores/shopping'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
 import { getImageUrl } from '@/utils/imageUrl'
@@ -13,6 +14,7 @@ const route = useRoute()
 const router = useRouter()
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
+const shoppingStore = useShoppingStore()
 
 const recipeId = computed(() => Number(route.params.id))
 const isAddingToShopping = ref(false)
@@ -188,6 +190,7 @@ async function onAddToShoppingList() {
   isAddingToShopping.value = true
   try {
     await recipeStore.addMissingToShopping(recipe.value.id)
+    await shoppingStore.loadItems(true)
     shoppingAdded.value = true
     showToast({
       type: 'success',
