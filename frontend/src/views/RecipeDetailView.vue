@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
@@ -24,48 +24,24 @@ const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
 const timerSectionRef = ref<HTMLElement | null>(null)
+const timerStatus = ref({ isRunning: false, formattedTime: '00:00' })
 const isTimerOutOfView = ref(false)
-let timerObserver: IntersectionObserver | null = null
+let scrollWrapper: Element | null = null
 
-function initTimerObserver() {
-  if (typeof IntersectionObserver === 'undefined') return
-
-  if (timerObserver) {
-    timerObserver.disconnect()
-    timerObserver = null
-  }
-
-  const scrollRoot = document.querySelector('.content-wrapper')
-
-  timerObserver = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0]
-      if (entry) {
-        isTimerOutOfView.value = !entry.isIntersecting
-      }
-    },
-    {
-      root: scrollRoot || null,
-      threshold: 0.1
-    }
-  )
-
-  if (timerSectionRef.value) {
-    timerObserver.observe(timerSectionRef.value)
-  }
+function onTimerStatusChange(status: { isRunning: boolean; formattedTime: string }) {
+  timerStatus.value = status
+  updateTimerVisibility()
 }
 
-watch(timerSectionRef, (el) => {
-  if (timerObserver) {
-    timerObserver.disconnect()
-    timerObserver = null
-  }
-  if (el) {
-    initTimerObserver()
-  } else {
+function updateTimerVisibility() {
+  if (!showTimer.value || !timerSectionRef.value) {
     isTimerOutOfView.value = false
+    return
   }
-})
+  const rect = timerSectionRef.value.getBoundingClientRect()
+  // Если верх таймера ушел выше 70px (под навбар) или низ таймера ниже экрана
+  isTimerOutOfView.value = rect.bottom < 80 || rect.top > window.innerHeight
+}
 
 function scrollToTimer() {
   if (timerSectionRef.value) {
@@ -73,12 +49,24 @@ function scrollToTimer() {
   }
 }
 
-onUnmounted(() => {
-  if (timerObserver) {
-    timerObserver.disconnect()
-    timerObserver = null
+watch(timerSectionRef, (el) => {
+  if (el) {
+    updateTimerVisibility()
+  } else {
+    isTimerOutOfView.value = false
   }
 })
+
+watch(showTimer, async (val) => {
+  if (!val) {
+    isTimerOutOfView.value = false
+    timerStatus.value = { isRunning: false, formattedTime: '00:00' }
+  } else {
+    await nextTick()
+    updateTimerVisibility()
+  }
+})
+
 const heroImageError = ref(false)
 const currentServings = ref(2)
 
@@ -87,10 +75,25 @@ watch(recipeId, () => {
 })
 
 onMounted(async () => {
+  scrollWrapper = document.querySelector('.content-wrapper')
+  if (scrollWrapper) {
+    scrollWrapper.addEventListener('scroll', updateTimerVisibility, { passive: true })
+  }
+  window.addEventListener('scroll', updateTimerVisibility, { passive: true })
+  window.addEventListener('resize', updateTimerVisibility, { passive: true })
+
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
   await recipeStore.loadRecipeById(recipeId.value)
+})
+
+onUnmounted(() => {
+  if (scrollWrapper) {
+    scrollWrapper.removeEventListener('scroll', updateTimerVisibility)
+  }
+  window.removeEventListener('scroll', updateTimerVisibility)
+  window.removeEventListener('resize', updateTimerVisibility)
 })
 
 const recipe = computed(() => recipeStore.currentRecipe)
@@ -393,6 +396,7 @@ function onFavoriteToggle() {
           <CookingTimer
             ref="timerRef"
             :initial-minutes="timerPresetMinutes"
+            @status-change="onTimerStatusChange"
             @close="showTimer = false"
           />
         </div>
@@ -446,13 +450,13 @@ function onFavoriteToggle() {
       <!-- Floating mini-timer pill -->
       <transition name="van-fade">
         <button
-          v-if="showTimer && timerRef?.isRunning && isTimerOutOfView"
+          v-if="showTimer && timerStatus.isRunning && isTimerOutOfView"
           type="button"
           class="floating-timer-pill fixed right-4 bottom-20 z-50 bg-emerald-800 text-white px-4 py-2 rounded-full shadow-elevated flex items-center gap-2"
           @click="scrollToTimer"
         >
           <span class="timer-dot animate-ping"></span>
-          <span class="font-mono font-bold">{{ timerRef.formattedTime }}</span>
+          <span class="font-mono font-bold">{{ timerStatus.formattedTime }}</span>
         </button>
       </transition>
     </template>

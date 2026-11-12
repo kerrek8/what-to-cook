@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { showNotify } from 'vant'
 import { triggerHaptic } from '@/utils/haptics'
 
@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'status-change', status: { isRunning: boolean; formattedTime: string }): void
 }>()
 
 const totalSeconds = ref((props.initialMinutes || 5) * 60)
@@ -28,6 +29,24 @@ const progressPercent = computed(() => {
   return Math.round(((totalSeconds.value - remainingSeconds.value) / totalSeconds.value) * 100)
 })
 
+function emitStatus() {
+  emit('status-change', {
+    isRunning: isRunning.value,
+    formattedTime: formattedTime.value
+  })
+}
+
+watch(
+  () => props.initialMinutes,
+  (val) => {
+    if (val && !isRunning.value) {
+      totalSeconds.value = val * 60
+      remainingSeconds.value = totalSeconds.value
+      emitStatus()
+    }
+  }
+)
+
 function startTimer() {
   if (remainingSeconds.value <= 0) {
     if (totalSeconds.value <= 0) {
@@ -37,6 +56,7 @@ function startTimer() {
   }
   targetEndTime = Date.now() + remainingSeconds.value * 1000
   isRunning.value = true
+  emitStatus()
   if (intervalId) clearInterval(intervalId)
 
   intervalId = setInterval(() => {
@@ -44,6 +64,7 @@ function startTimer() {
     const diff = Math.ceil((targetEndTime - Date.now()) / 1000)
     if (diff > 0) {
       remainingSeconds.value = diff
+      emitStatus()
     } else {
       remainingSeconds.value = 0
       stopTimer()
@@ -62,6 +83,7 @@ function pauseTimer() {
     clearInterval(intervalId)
     intervalId = null
   }
+  emitStatus()
 }
 
 function stopTimer() {
@@ -74,6 +96,7 @@ function resetTimer() {
     totalSeconds.value = (props.initialMinutes || 5) * 60
   }
   remainingSeconds.value = totalSeconds.value
+  emitStatus()
 }
 
 function adjustTime(minutes: number) {
@@ -90,6 +113,7 @@ function adjustTime(minutes: number) {
     if (isRunning.value && targetEndTime) {
       targetEndTime += deltaSeconds * 1000
     }
+    emitStatus()
     return
   }
 
@@ -102,6 +126,8 @@ function adjustTime(minutes: number) {
     if (isRunning.value) {
       stopTimer()
       onTimerFinished()
+    } else {
+      emitStatus()
     }
   } else {
     remainingSeconds.value += deltaSeconds
@@ -109,6 +135,7 @@ function adjustTime(minutes: number) {
     if (isRunning.value && targetEndTime) {
       targetEndTime += deltaSeconds * 1000
     }
+    emitStatus()
   }
 }
 
@@ -163,8 +190,16 @@ function onTimerFinished() {
   })
 }
 
+onMounted(() => {
+  emitStatus()
+})
+
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
+  emit('status-change', {
+    isRunning: false,
+    formattedTime: formattedTime.value
+  })
 })
 
 defineExpose({
