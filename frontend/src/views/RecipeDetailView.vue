@@ -21,6 +21,62 @@ const completedSteps = ref<Record<number, boolean>>({})
 const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
+const timerSectionRef = ref<HTMLElement | null>(null)
+const isTimerOutOfView = ref(false)
+let timerObserver: IntersectionObserver | null = null
+
+function initTimerObserver() {
+  if (typeof IntersectionObserver === 'undefined') return
+
+  if (timerObserver) {
+    timerObserver.disconnect()
+    timerObserver = null
+  }
+
+  const scrollRoot = document.querySelector('.content-wrapper')
+
+  timerObserver = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0]
+      if (entry) {
+        isTimerOutOfView.value = !entry.isIntersecting
+      }
+    },
+    {
+      root: scrollRoot || null,
+      threshold: 0.1
+    }
+  )
+
+  if (timerSectionRef.value) {
+    timerObserver.observe(timerSectionRef.value)
+  }
+}
+
+watch(timerSectionRef, (el) => {
+  if (timerObserver) {
+    timerObserver.disconnect()
+    timerObserver = null
+  }
+  if (el) {
+    initTimerObserver()
+  } else {
+    isTimerOutOfView.value = false
+  }
+})
+
+function scrollToTimer() {
+  if (timerSectionRef.value) {
+    timerSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}
+
+onUnmounted(() => {
+  if (timerObserver) {
+    timerObserver.disconnect()
+    timerObserver = null
+  }
+})
 const heroImageError = ref(false)
 const currentServings = ref(2)
 
@@ -330,7 +386,7 @@ function onFavoriteToggle() {
         </div>
 
         <!-- Timer Widget (embedded if active) -->
-        <div v-if="showTimer" class="timer-section">
+        <div v-if="showTimer" ref="timerSectionRef" class="timer-section">
           <CookingTimer
             ref="timerRef"
             :initial-minutes="timerPresetMinutes"
@@ -384,6 +440,18 @@ function onFavoriteToggle() {
           </div>
         </div>
       </div>
+      <!-- Floating mini-timer pill -->
+      <transition name="van-fade">
+        <button
+          v-if="showTimer && timerRef?.isRunning && isTimerOutOfView"
+          type="button"
+          class="floating-timer-pill fixed right-4 bottom-20 z-50 bg-emerald-800 text-white px-4 py-2 rounded-full shadow-elevated flex items-center gap-2"
+          @click="scrollToTimer"
+        >
+          <span class="timer-dot animate-ping"></span>
+          <span class="font-mono font-bold">{{ timerRef.formattedTime }}</span>
+        </button>
+      </transition>
     </template>
 
     <div v-else class="not-found">
@@ -816,5 +884,35 @@ function onFavoriteToggle() {
 
 .not-found {
   padding: 40px 16px;
+}
+.floating-timer-pill {
+  position: fixed;
+  right: 16px;
+  bottom: 80px;
+  z-index: 50;
+  background-color: #065f46;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px -4px rgba(26, 28, 25, 0.16);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.floating-timer-pill:active {
+  transform: scale(0.96);
+}
+
+.timer-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #34d399;
+  display: inline-block;
 }
 </style>

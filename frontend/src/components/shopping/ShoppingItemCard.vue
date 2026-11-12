@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { LocalShoppingItem } from '@/db/types'
+import { triggerHaptic } from '@/utils/haptics'
 
 const props = defineProps<{
   item: LocalShoppingItem
@@ -20,6 +21,7 @@ const formattedQuantity = computed(() => {
 })
 
 function onToggle() {
+  triggerHaptic('light')
   if (props.item.id != null) {
     emit('toggle', props.item.id)
   }

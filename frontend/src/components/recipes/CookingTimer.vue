@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { showNotify } from 'vant'
+import { triggerHaptic } from '@/utils/haptics'
 
 const props = defineProps<{
   initialMinutes?: number
@@ -154,11 +155,7 @@ function playTimerChime() {
 
 function onTimerFinished() {
   playTimerChime()
-  if ('vibrate' in navigator) {
-    try {
-      navigator.vibrate([300, 150, 300, 150, 500])
-    } catch {}
-  }
+  triggerHaptic('success')
   showNotify({
     type: 'success',
     message: '⏰ Время вышло! Блюдо готово к следующему шагу.',
@@ -171,6 +168,8 @@ onUnmounted(() => {
 })
 
 defineExpose({
+  isRunning,
+  formattedTime,
   setPreset,
   startTimer,
   pauseTimer,
