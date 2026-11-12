@@ -14,6 +14,15 @@ const pendingShoppingCount = computed(() => {
 })
 
 const hasExpiringProducts = computed(() => inventoryStore.expiringCount > 0)
+
+function handleRecipesTabClick() {
+  if (route.path === '/recipes') {
+    const scrollContainer = document.querySelector('.content-wrapper')
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+}
 </script>
 
 <template>
@@ -22,7 +31,7 @@ const hasExpiringProducts = computed(() => inventoryStore.expiringCount > 0)
       <van-tabbar-item replace to="/fridge" icon="apps-o" :dot="hasExpiringProducts">
         Холодильник
       </van-tabbar-item>
-      <van-tabbar-item replace to="/recipes" icon="fire-o">
+      <van-tabbar-item replace to="/recipes" icon="fire-o" @click="handleRecipesTabClick">
         Рецепты
       </van-tabbar-item>
       <van-tabbar-item replace to="/shopping" icon="cart-o" :badge="pendingShoppingCount">
