@@ -11,9 +11,14 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/vue-virtual": "^3.13.52",
+    "autoprefixer": "^10.6.2",
     "axios": "^1.7.9",
     "dexie": "^4.0.11",
+    "lucide-vue-next": "^1.0.0",
     "pinia": "^2.3.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.17",
     "vant": "^4.9.17",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
