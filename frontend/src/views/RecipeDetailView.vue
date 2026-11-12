@@ -7,6 +7,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import type { RecipeIngredientResponse } from '@/types/recipe'
 import CookingTimer from '@/components/recipes/CookingTimer.vue'
 import { getImageUrl } from '@/utils/imageUrl'
+import { formatScaledAmount } from '@/utils/servings'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +22,7 @@ const showTimer = ref(false)
 const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
 const timerPresetMinutes = ref<number | undefined>(undefined)
 const heroImageError = ref(false)
+const currentServings = ref(2)
 
 watch(recipeId, () => {
   heroImageError.value = false
@@ -77,11 +79,11 @@ const difficultyLabel = computed(() => {
 })
 
 function formatIngredientAmount(ing: RecipeIngredientResponse): string {
-  if (ing.display_text) return ing.display_text
-  if (ing.amount != null) {
-    return `${ing.amount} ${ing.unit ?? ''}`.trim()
+  const scaled = formatScaledAmount(ing.amount, ing.unit, ing.display_text, 2, currentServings.value)
+  if (scaled === 'По вкусу' && ing.is_pantry_essential) {
+    return 'По вкусу (Базовый)'
   }
-  return ing.is_pantry_essential ? 'По вкусу (Базовый)' : 'По вкусу'
+  return scaled
 }
 
 function getCriticalityBadge(crit: string): { label: string; class: string } {
@@ -218,9 +220,31 @@ function onFavoriteToggle() {
             <van-icon name="bar-chart-o" color="#2e7d32" size="16" />
             <span>{{ difficultyLabel }}</span>
           </div>
-          <div class="meta-pill">
+          <div class="meta-pill servings-pill">
             <van-icon name="friends-o" color="#2e7d32" size="16" />
-            <span>2-4 порции</span>
+            <div class="servings-stepper">
+              <button
+                type="button"
+                class="stepper-btn"
+                :disabled="currentServings <= 1"
+                aria-label="Уменьшить порции"
+                @click="currentServings--"
+              >
+                -
+              </button>
+              <span class="servings-val">
+                {{ currentServings }} {{ currentServings === 1 ? 'порция' : currentServings < 5 ? 'порции' : 'порций' }}
+              </span>
+              <button
+                type="button"
+                class="stepper-btn"
+                :disabled="currentServings >= 12"
+                aria-label="Увеличить порции"
+                @click="currentServings++"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
 
@@ -479,6 +503,70 @@ function onFavoriteToggle() {
   font-weight: 600;
   color: #424242;
   border: 1px solid #e0e0e0;
+}
+
+.servings-pill {
+  padding: 4px 6px 4px 10px;
+}
+
+.servings-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+  border: 1px solid #c8e6c9;
+  background-color: #f1f8e9;
+  color: #2e7d32;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  position: relative;
+  touch-action: manipulation;
+}
+
+.stepper-btn::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+}
+
+.stepper-btn:active:not(:disabled) {
+  background-color: #2e7d32;
+  color: #ffffff;
+  transform: scale(0.92);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+  background-color: #f5f5f5;
+  color: #9e9e9e;
+}
+
+.servings-val {
+  min-width: 68px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e7d32;
+  user-select: none;
 }
 
 .recipe-desc {
