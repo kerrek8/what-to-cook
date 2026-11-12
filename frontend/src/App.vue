@@ -16,6 +16,8 @@ const onOnline = () => {
 
 onMounted(() => {
   window.addEventListener('online', onOnline)
+  inventoryStore.loadInventory()
+  shoppingStore.loadItems()
 })
 
 onUnmounted(() => {

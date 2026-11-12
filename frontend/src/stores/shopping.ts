@@ -114,13 +114,15 @@ export const useShoppingStore = defineStore('shopping', () => {
       const local = await getLocalShoppingList()
       items.value = local
 
-      if (authStore.isAuthenticated) {
-        syncWithServer(force)
+      if (authStore.isAuthenticated || force) {
+        await syncWithServer(force)
       }
     } finally {
       isLoading.value = false
     }
   }
+
+  const loadItems = loadShoppingList
 
   async function syncWithServer(force = false) {
     if (isSyncing.value && !force) return
@@ -144,7 +146,8 @@ export const useShoppingStore = defineStore('shopping', () => {
         }
       }
 
-      const serverItems = await getShoppingListApi()
+      const raw = await getShoppingListApi()
+      const serverItems = Array.isArray(raw) ? raw : ((raw as any)?.items || [])
       const merged = await syncServerShoppingList(serverItems)
       items.value = merged
     } catch {
@@ -283,6 +286,7 @@ export const useShoppingStore = defineStore('shopping', () => {
     filteredItems,
     groupedCategories,
     loadShoppingList,
+    loadItems,
     syncWithServer,
     addItem,
     toggleBought,
