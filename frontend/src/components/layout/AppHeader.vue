@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { scrollToTop } from '@/utils/scroll'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,15 +22,19 @@ function onClickLeft() {
     }
   }
 }
+
+function onHeaderClick() {
+  scrollToTop()
+}
 </script>
 
 <template>
-  <header v-if="!route.meta.hideHeader" class="app-header safe-area-top">
+  <header v-if="!route.meta.hideHeader" class="app-header safe-area-top" @click="onHeaderClick">
     <van-nav-bar
       :title="title"
       :left-arrow="showBack"
       :border="false"
-      @click-left="onClickLeft"
+      @click-left.stop="onClickLeft"
     />
   </header>
 </template>
@@ -39,16 +44,21 @@ function onClickLeft() {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: var(--van-background-2);
-  border-bottom: 1px solid #ebedf0;
+  background-color: rgba(250, 248, 245, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(30, 58, 47, 0.06);
+  cursor: pointer;
+  user-select: none;
 }
 
 :deep(.van-nav-bar) {
   --van-nav-bar-background: transparent;
-  --van-nav-bar-title-text-color: #1a1a1a;
+  --van-nav-bar-title-text-color: #1E3A2F;
   --van-nav-bar-title-font-size: 17px;
   --van-nav-bar-arrow-size: 20px;
-  --van-nav-bar-icon-color: #2e7d32;
-  font-weight: 600;
+  --van-nav-bar-icon-color: #1E3A2F;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 </style>
