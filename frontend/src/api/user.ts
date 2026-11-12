@@ -6,6 +6,21 @@ export async function getMeApi(): Promise<UserBackendResponse> {
   return data
 }
 
+export async function uploadAvatarApi(file: File): Promise<{ avatar_url: string }> {
+  const formData = new FormData()
+  formData.append('avatar', file)
+  const { data } = await apiClient.post<{ avatar_url: string }>('/api/v1/users/me/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return data
+}
+
+export async function deleteAvatarApi(): Promise<void> {
+  await apiClient.delete('/api/v1/users/me/avatar')
+}
+
 export async function updateAllergensApi(
   excludedIngredientIds: number[]
 ): Promise<UserBackendResponse> {

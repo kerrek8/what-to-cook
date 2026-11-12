@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
+import { getImageUrl } from '@/utils/imageUrl'
+import { getInitials, getAvatarColor } from '@/utils/avatar'
 import type { Ingredient } from '@/types/api'
 
 const router = useRouter()
@@ -13,11 +15,25 @@ const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const pwaStore = usePwaStore()
 
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingAvatar = ref(false)
+const showAvatarSheet = ref(false)
+
 const showAllergenSheet = ref(false)
 const showPantrySheet = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
+
+const avatarActions = computed(() => {
+  const actions: Array<{ name: string; color?: string }> = [
+    { name: 'Загрузить новое фото', color: '#2e7d32' }
+  ]
+  if (authStore.user?.avatarUrl) {
+    actions.push({ name: 'Удалить фото', color: '#f44336' })
+  }
+  return actions
+})
 
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
@@ -36,6 +52,74 @@ const filteredIngredients = computed(() => {
       item.category.toLowerCase().includes(q)
   )
 })
+
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function onAvatarClick() {
+  if (authStore.user?.avatarUrl) {
+    showAvatarSheet.value = true
+  } else {
+    triggerFileInput()
+  }
+}
+
+function onSelectAvatarAction(action: { name: string }) {
+  showAvatarSheet.value = false
+  if (action.name === 'Загрузить новое фото') {
+    triggerFileInput()
+  } else if (action.name === 'Удалить фото') {
+    handleDeleteAvatar()
+  }
+}
+
+async function onFileSelected(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    showToast({ type: 'fail', message: 'Формат должен быть JPG, PNG или WebP' })
+    if (fileInputRef.value) fileInputRef.value.value = ''
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast({ type: 'fail', message: 'Размер файла не должен превышать 5 МБ' })
+    if (fileInputRef.value) fileInputRef.value.value = ''
+    return
+  }
+
+  isUploadingAvatar.value = true
+  try {
+    await authStore.uploadAvatar(file)
+    showToast({ type: 'success', message: 'Аватар успешно обновлен' })
+  } catch (err: any) {
+    const msg = err.response?.data?.error || 'Не удалось загрузить аватар'
+    showToast({ type: 'fail', message: msg })
+  } finally {
+    isUploadingAvatar.value = false
+    if (fileInputRef.value) fileInputRef.value.value = ''
+  }
+}
+
+async function handleDeleteAvatar() {
+  try {
+    await showConfirmDialog({
+      title: 'Удалить аватар',
+      message: 'Вы уверены, что хотите удалить фото профиля?',
+      confirmButtonText: 'Удалить',
+      confirmButtonColor: '#f44336',
+      cancelButtonText: 'Отмена'
+    })
+    await authStore.deleteAvatar()
+    showToast({ type: 'success', message: 'Аватар удален' })
+  } catch {
+    // Cancelled dialog
+  }
+}
 
 async function loadIngredients() {
   if (ingredients.value.length > 0) return
@@ -148,23 +232,69 @@ onMounted(() => {
   <div class="view-container">
     <!-- Authenticated Header -->
     <div v-if="authStore.isAuthenticated && authStore.user" class="user-card">
-      <van-image
-        round
-        width="64px"
-        height="64px"
-        src="https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg"
-      />
+      <div class="avatar-wrapper">
+        <div class="avatar-container" @click="onAvatarClick">
+          <img
+            v-if="authStore.user.avatarUrl"
+            :src="getImageUrl(authStore.user.avatarUrl)"
+            :alt="authStore.user.name"
+            class="avatar-img"
+          />
+          <div
+            v-else
+            class="avatar-placeholder"
+            :style="{ backgroundColor: getAvatarColor(authStore.user.name) }"
+          >
+            <span class="avatar-initials">{{ getInitials(authStore.user.name) }}</span>
+          </div>
+
+          <div v-if="isUploadingAvatar" class="avatar-loading-overlay">
+            <van-loading size="20px" color="#ffffff" />
+          </div>
+
+          <button
+            type="button"
+            class="avatar-upload-badge"
+            aria-label="Сменить фото"
+            @click.stop="triggerFileInput"
+          >
+            <van-icon name="photograph" size="13px" color="#ffffff" />
+          </button>
+        </div>
+
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          class="hidden-file-input"
+          @change="onFileSelected"
+        />
+      </div>
+
       <div class="user-meta">
         <h3 class="user-name">{{ authStore.user.name }}</h3>
         <p class="user-subtitle">{{ authStore.user.email }}</p>
+        <button
+          v-if="authStore.user.avatarUrl"
+          type="button"
+          class="avatar-delete-link"
+          @click="handleDeleteAvatar"
+        >
+          Удалить фото
+        </button>
       </div>
     </div>
 
     <!-- Guest Header -->
     <div v-else class="guest-card">
-      <div class="guest-meta">
-        <h3 class="user-name">Гостевой режим</h3>
-        <p class="user-subtitle">Войдите, чтобы синхронизировать холодильник и рецепты</p>
+      <div class="guest-top">
+        <div class="avatar-container guest-avatar">
+          <van-icon name="user-o" size="28px" color="#969799" />
+        </div>
+        <div class="guest-meta">
+          <h3 class="user-name">Гостевой режим</h3>
+          <p class="user-subtitle">Войдите, чтобы синхронизировать холодильник и рецепты</p>
+        </div>
       </div>
       <div class="guest-actions">
         <router-link to="/login">
@@ -226,6 +356,15 @@ onMounted(() => {
         Выйти из аккаунта
       </van-button>
     </div>
+
+    <!-- Avatar Actions Sheet -->
+    <van-action-sheet
+      v-model:show="showAvatarSheet"
+      :actions="avatarActions"
+      cancel-text="Отмена"
+      close-on-click-action
+      @select="onSelectAvatarAction"
+    />
 
     <!-- Allergen Picker Popup -->
     <van-popup
@@ -316,12 +455,116 @@ onMounted(() => {
   align-items: center;
 }
 
+.avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.avatar-initials {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.avatar-loading-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-upload-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #2e7d32;
+  border: 2px solid var(--van-background-2, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.avatar-upload-badge:active {
+  transform: scale(0.92);
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.avatar-delete-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #f44336;
+  cursor: pointer;
+  display: inline-block;
+  text-align: left;
+}
+
 .user-meta {
   margin-left: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .guest-card {
   gap: 12px;
+}
+
+.guest-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.guest-avatar {
+  background-color: var(--van-gray-2, #f2f3f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
 }
 
 .guest-actions {

@@ -2,6 +2,8 @@ export interface User {
   id: string
   email: string
   name: string
+  avatarUrl?: string | null
+  avatar_url?: string | null
   excludedIngredientIds: number[]
   pantryIngredientIds: number[]
   createdAt: string
@@ -11,6 +13,7 @@ export interface UserBackendResponse {
   id: string
   email: string
   name: string
+  avatar_url?: string | null
   excluded_ingredient_ids: number[]
   pantry_ingredient_ids?: number[]
   created_at: string
