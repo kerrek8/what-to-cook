@@ -3,13 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --van-primary-color: #2e7d32;
-  --van-success-color: #4caf50;
-  --van-warning-color: #ff9800;
+  --van-primary-color: #1E3A2F;
+  --van-success-color: #2e7d32;
+  --van-warning-color: #E8A87C;
   --van-danger-color: #f44336;
   --van-background: #FAF8F5;
   --van-background-2: #ffffff;
   --app-max-width: 480px;
+
+  /* Modern Nordic Gastro Tokens */
+  --nordic-canvas: #FAF8F5;
+  --nordic-card-bg: #FFFFFF;
+  --nordic-sage: #1E3A2F;
+  --nordic-sage-light: #2D5A43;
+  --nordic-peach: #E8A87C;
+  --nordic-card-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06), 0 2px 6px -1px rgba(30, 58, 47, 0.04);
+  --nordic-card-border: 1px solid rgba(30, 58, 47, 0.05);
 }
 
 *,
@@ -26,7 +35,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: #F0ECE4;
-  color: #323233;
+  color: #1c1917;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
