@@ -8,6 +8,7 @@ import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import { getImageUrl } from '@/utils/imageUrl'
 import { getInitials, getAvatarColor } from '@/utils/avatar'
+import { showLocalTestNotification } from '@/utils/push'
 import type { Ingredient } from '@/types/api'
 
 const router = useRouter()
@@ -206,6 +207,15 @@ async function onNotificationSwitch(val: boolean) {
   }
 }
 
+async function handleTestNotification() {
+  const sent = await showLocalTestNotification()
+  if (sent) {
+    showToast({ type: 'success', message: 'Тестовое уведомление отправлено' })
+  } else {
+    showToast({ type: 'fail', message: 'Не удалось показать уведомление. Проверьте настройки браузера.' })
+  }
+}
+
 async function handleLogout() {
   try {
     await showConfirmDialog({
@@ -334,6 +344,13 @@ onMounted(() => {
           />
         </template>
       </van-cell>
+      <van-cell
+        v-if="notificationStore.isSubscribed"
+        title="Тестовое уведомление"
+        value="Отправить"
+        is-link
+        @click="handleTestNotification"
+      />
       <van-cell
         v-if="pwaStore.canInstall"
         title="Установить WhatCook"

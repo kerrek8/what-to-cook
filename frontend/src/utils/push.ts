@@ -71,3 +71,18 @@ export async function unsubscribeFromPush(): Promise<boolean> {
     return false
   }
 }
+
+export async function showLocalTestNotification(): Promise<boolean> {
+  if (!isPushSupported() || Notification.permission !== 'granted') return false
+  try {
+    const reg = await navigator.serviceWorker.ready
+    await reg.showNotification('WhatCook: Проверка уведомлений', {
+      body: 'Уведомления работают! Вы вовремя узнаете об истекающих продуктах.',
+      icon: '/icons/pwa-192x192.png',
+      badge: '/icons/pwa-192x192.png'
+    })
+    return true
+  } catch {
+    return false
+  }
+}
