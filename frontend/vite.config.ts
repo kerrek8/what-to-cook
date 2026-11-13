@@ -20,7 +20,7 @@ export default defineConfig({
         short_name: 'WhatCook',
         description: 'Учет продуктов, контроль сроков годности и подбор рецептов',
         lang: 'ru',
-        theme_color: '#F8FAFC',
+        theme_color: '#FFFFFF',
         background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',

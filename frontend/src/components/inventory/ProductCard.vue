@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import type { SwipeCellInstance } from 'vant'
+import { triggerHaptic } from '@/utils/haptics'
 import type { LocalInventoryItem } from '@/db/types'
 import { getFreshnessInfo, formatQuantity } from '@/utils/freshness'
-
 
 const props = defineProps<{
   item: LocalInventoryItem
@@ -13,10 +14,22 @@ const emit = defineEmits<{
   (e: 'edit', item: LocalInventoryItem): void
 }>()
 
+const swipeCellRef = ref<SwipeCellInstance | null>(null)
+const isOpen = ref(false)
+
 const freshness = computed(() => getFreshnessInfo(props.item.expirationDate))
 const formattedQuantity = computed(() =>
   formatQuantity(props.item.amount, props.item.unit, props.item.approximateQuantity)
 )
+
+function onCardClick() {
+  if (!isOpen.value) {
+    swipeCellRef.value?.open('right')
+    triggerHaptic('light')
+  } else {
+    swipeCellRef.value?.close('cell')
+  }
+}
 
 function handleDelete() {
   if (props.item.id) {
@@ -26,15 +39,23 @@ function handleDelete() {
 </script>
 
 <template>
-  <van-swipe-cell class="product-cell">
-    <div class="product-card">
+  <van-swipe-cell
+    ref="swipeCellRef"
+    class="product-cell"
+    @open="isOpen = true"
+    @close="isOpen = false"
+  >
+    <div class="product-card" @click="onCardClick">
       <div class="card-main">
         <div class="product-info">
           <span class="product-name">{{ item.name }}</span>
           <span class="product-cat">{{ item.category }}</span>
         </div>
-        <div class="product-qty">
-          {{ formattedQuantity }}
+        <div class="product-qty-wrapper">
+          <span class="product-qty">{{ formattedQuantity }}</span>
+          <span class="swipe-hint" :class="{ 'is-open': isOpen }" aria-hidden="true" title="Смахните влево">
+            <van-icon name="arrow-left" />
+          </span>
         </div>
       </div>
 
@@ -79,6 +100,8 @@ function handleDelete() {
   flex-direction: column;
   gap: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  user-select: none;
 }
 
 .card-main {
@@ -104,6 +127,12 @@ function handleDelete() {
   color: #8c8c8c;
 }
 
+.product-qty-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .product-qty {
   font-size: 14px;
   font-weight: 600;
@@ -111,6 +140,20 @@ function handleDelete() {
   background-color: rgba(15, 23, 42, 0.08);
   padding: 4px 10px;
   border-radius: 12px;
+}
+
+.swipe-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  font-size: 13px;
+  transition: transform 0.25s ease, opacity 0.2s ease, color 0.2s ease;
+}
+
+.swipe-hint.is-open {
+  transform: rotate(180deg);
+  color: #064E3B;
 }
 
 .card-footer {

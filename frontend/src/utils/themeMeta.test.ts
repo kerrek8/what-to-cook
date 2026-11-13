@@ -18,8 +18,9 @@ describe('PWA & HTML Theme Meta Configuration', () => {
     expect(viteConfig).not.toContain('#2E7D32')
   })
 
-  it('uses modern light/neutral theme-color for OS system bars', () => {
-    expect(html).toContain('name="theme-color"')
-    expect(viteConfig).toContain('theme_color:')
+  it('uses pure white #FFFFFF theme-color to seamlessly match the header', () => {
+    expect(html).toContain('content="#FFFFFF"')
+    expect(viteConfig).toContain("theme_color: '#FFFFFF'")
+    expect(viteConfig).toContain("background_color: '#FFFFFF'")
   })
 })
