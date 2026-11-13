@@ -725,3 +725,35 @@ flowchart TD
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.2`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Пройдены все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов).
   - Пройдены все тесты фронтенда (`bun run type-check`, `bun run test` — 14 сьютов, 79/79 тестов) и продакшен-сборка (`bun run build`).
+
+---
+
+## ✅ Завершен: Переход на дизайн-систему Shadcn Slate с акцентом Тёмный изумруд, фикс контраста кнопок, системных баров ОС и аудит воркера уведомлений
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f23-shadcn-dark-emerald-and-fixes`.
+- **Цель**: Полный уход от бежевых оттенков (`#FAF8F5`, `#F0ECE4`) в пользу чистой современной эстетики Shadcn Slate/Zinc (белоснежный surface `#FFFFFF`, холодный холст `#F8FAFC`, границы `#E2E8F0`, глубокий текст `#0F172A`) с благородным акцентным цветом **Тёмный изумруд** (`#064E3B` / `#065F46`), исправление нулевого контраста и отображения надписи на кнопке «Регистрация» (`<van-button plain>`), устранение устаревшего зеленого цвета `#2e7d32` в системных статус-барах и нижних полосах ОС через HTML theme-color и манифест PWA, аудит и исправление 24-часовой задержки старта воркера отправки Web Push уведомлений (`ExpirationWorker`) с внедрением немедленной проверки при старте сервера и кнопки отправки тестового уведомления в профиле.
+
+### Выполнено
+
+- [x] **Исправление нулевого контраста на кнопках `<van-button plain>`**:
+  - В `frontend/src/assets/main.css` разграничены селекторы `.van-button--primary:not(.van-button--plain)` (заливка основным цветом) и `.van-button--plain.van-button--primary` (белый фон `#FFFFFF`, граница и текст цвета Dark Emerald `#064E3B`). Текст на кнопке «Регистрация» в `ProfileView.vue` стал четким и контрастным.
+  - Написаны изолированные тесты в `frontend/src/views/buttonContrast.test.ts`.
+- [x] **Устранение старого зеленого `#2e7d32` в системных барах мобильной ОС**:
+  - В `frontend/index.html` обновлены мета-теги: `<meta name="theme-color" content="#F8FAFC">` и `<meta name="apple-mobile-web-app-status-bar-style" content="default">`. Системный статус-бар Android/iOS и подложка нижнего жеста теперь гармонично сливаются с чистым фоном приложения.
+  - В `frontend/vite.config.ts` манифест PWA переведен на `theme_color: '#F8FAFC'` и `background_color: '#FFFFFF'`.
+  - В `frontend/public/favicon.svg` устаревшие зеленые оттенки заменены на Dark Emerald `#064E3B`.
+  - Создан юнит-тест проверки отсутствия устаревшего зеленого в метаданных `frontend/src/utils/themeMeta.test.ts`.
+- [x] **Тотальный переход с бежевых тонов на Shadcn Slate + Тёмный изумруд**:
+  - В `frontend/src/assets/main.css` удалены все упоминания бежевых тонов `#FAF8F5`, `#F0ECE4`. Внедрена палитра токенов Shadcn: Canvas `#F8FAFC` (Slate 50), Surface `#FFFFFF`, Border `#E2E8F0` (Slate 200), Dark Emerald `#064E3B` (Primary), Slate 900 `#0F172A` (Text), Slate 500 `#64748B` (Secondary/Muted).
+  - Оболочка приложения (`AppHeader.vue`, `AppTabBar.vue`): кристально чистое белое стекло `rgba(255, 255, 255, 0.94)`, тонкие разделители `#E2E8F0`, активные иконки в цвете Dark Emerald с мягкой подсветкой.
+  - Каталог и карточки рецептов (`RecipesView.vue`, `RecipeCard.vue`): белоснежные карточки с мягкой тенью Shadcn (`0 1px 3px 0 rgb(0 0 0 / 0.08)`), адаптивный Segmented Control на сером фоне `#F1F5F9`, бейджи совпадения на основе изумрудной палитры.
+  - Все экраны приложения (`FridgeView`, `ProductCard`, `ShoppingView`, `ShoppingItemCard`, `ProfileView`, `RecipeDetailView`, `LoginView`, `RegisterView`, `CookingTimer`): полная унификация с палитрой Dark Emerald.
+- [x] **Аудит и исправление воркера отправки push-уведомлений**:
+  - В `backend/internal/service/notification_service.go` выявлена причина отсутствия уведомлений: `time.NewTicker(24*time.Hour)` ждал 24 часа до первого срабатывания. Любой перезапуск сервера сбрасывал таймер. В `ExpirationWorker.Start()` внедрен немедленный запуск проверки истекающих продуктов на старте сервера.
+  - В `backend/internal/service/notification_service_test.go` добавлен модульный TDD-тест `TestExpirationWorker_ImmediateStartupCheck`, проверяющий немедленный вызов проверки на старте воркера.
+  - В `frontend/src/utils/push.ts` и `ProfileView.vue` добавлена возможность проверки уведомлений: функция `showLocalTestNotification` и кнопка «Тестовое уведомление», позволяющая мгновенно протестировать показ системных уведомлений прямо на смартфоне.
+- [x] **Версионирование и верификация**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.3`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов) пройдены успешно без единого замечания.
+  - Фронтенд: строгая проверка типов TypeScript (`bun run type-check`), все модульные тесты (`bun run test` — 16 сьютов, 84 теста) и продакшен-сборка (`bun run build`) пройдены успешно (100%).

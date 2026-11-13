@@ -159,7 +159,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
         round
         size="small"
         type="primary"
-        color="#1E3A2F"
+        color="#064E3B"
         icon="passed"
         :loading="shoppingStore.isTransferring"
         class="transfer-btn"
@@ -255,7 +255,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
           <van-button
             round
             type="primary"
-            color="#1E3A2F"
+            color="#064E3B"
             class="add-first-btn"
             @click="showAddSheet = true"
           >
@@ -271,7 +271,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
         round
         type="primary"
         icon="plus"
-        color="#1E3A2F"
+        color="#064E3B"
         class="fab-btn"
         @click="showAddSheet = true"
       >
@@ -323,7 +323,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
 
 .transfer-btn {
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(30, 58, 47, 0.2);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
   min-height: 36px;
 }
 
@@ -357,8 +357,8 @@ async function onConfirmTransferItem(payload: AddItemData) {
 }
 
 .filter-chip.active {
-  background-color: #1E3A2F;
-  border-color: #1E3A2F;
+  background-color: #064E3B;
+  border-color: #064E3B;
   color: #ffffff;
   font-weight: 600;
 }
@@ -378,7 +378,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
 .department-card {
   background-color: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -389,13 +389,13 @@ async function onConfirmTransferItem(payload: AddItemData) {
   justify-content: space-between;
   padding: 10px 14px;
   background-color: #f9fbe7;
-  border-bottom: 1px solid rgba(30, 58, 47, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .department-title {
   font-size: 14px;
   font-weight: 700;
-  color: #1E3A2F;
+  color: #064E3B;
 }
 
 .department-progress {
@@ -435,7 +435,7 @@ async function onConfirmTransferItem(payload: AddItemData) {
 
 .fab-btn {
   pointer-events: auto;
-  box-shadow: 0 4px 14px rgba(30, 58, 47, 0.25);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
   padding: 0 24px;
   min-height: 44px;
   font-weight: 600;

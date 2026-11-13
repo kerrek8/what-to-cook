@@ -83,10 +83,10 @@ describe('getAvatarColor', () => {
 
   it('has exact culinary palette defined', () => {
     expect(AVATAR_PALETTE).toEqual([
-      '#1E392A',
-      '#2D5A43',
+      '#022C22',
+      '#065F46',
       '#D35400',
-      '#1E3A2F',
+      '#064E3B',
       '#C0392B',
       '#7D6608',
       '#117A65',

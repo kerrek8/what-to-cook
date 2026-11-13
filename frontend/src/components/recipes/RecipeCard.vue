@@ -195,10 +195,11 @@ function onFavoriteClick(e: MouseEvent) {
 <style scoped>
 .recipe-card {
   background-color: #ffffff;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06), 0 2px 6px -1px rgba(30, 58, 47, 0.04);
-  border: 1px solid rgba(30, 58, 47, 0.05);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
   margin-bottom: 14px;
   display: flex;
   flex-direction: column;
@@ -212,19 +213,19 @@ function onFavoriteClick(e: MouseEvent) {
 }
 
 .card-ready {
-  border-color: rgba(30, 58, 47, 0.28);
-  box-shadow: 0 6px 24px -2px rgba(30, 58, 47, 0.12), 0 2px 8px -1px rgba(30, 58, 47, 0.06);
+  border-color: #064E3B;
+  box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.12), 0 2px 8px -1px rgba(15, 23, 42, 0.06);
 }
 
 .card-almost {
-  border-color: rgba(232, 168, 124, 0.45);
+  border-color: #D97706;
 }
 
 .card-media {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background-color: #f5f2eb;
+  background-color: #f1f5f9;
   overflow: hidden;
 }
 
@@ -241,7 +242,7 @@ function onFavoriteClick(e: MouseEvent) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #FAF8F5 0%, #EFEAE1 100%);
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
 }
 
 .placeholder-icon {

@@ -44,7 +44,7 @@ function onTransfer() {
       <van-button
         square
         type="primary"
-        color="#1E3A2F"
+        color="#064E3B"
         text="В холод."
         icon="passed"
         class="swipe-action-btn"
@@ -79,7 +79,7 @@ function onTransfer() {
         aria-label="Перенести в холодильник"
         @click.stop="onTransfer"
       >
-        <van-icon name="logistics" size="18" color="#1E3A2F" />
+        <van-icon name="logistics" size="18" color="#064E3B" />
       </button>
     </div>
 
@@ -138,8 +138,8 @@ function onTransfer() {
 }
 
 .custom-checkbox.checked {
-  background-color: #1E3A2F;
-  border-color: #1E3A2F;
+  background-color: #064E3B;
+  border-color: #064E3B;
   transform: scale(1.05);
 }
 
@@ -170,8 +170,8 @@ function onTransfer() {
 .quantity-pill {
   font-size: 12px;
   font-weight: 600;
-  background-color: rgba(30, 58, 47, 0.06);
-  color: #1E3A2F;
+  background-color: rgba(15, 23, 42, 0.06);
+  color: #064E3B;
   padding: 3px 8px;
   border-radius: 12px;
   white-space: nowrap;
@@ -183,7 +183,7 @@ function onTransfer() {
 }
 
 .transfer-item-btn {
-  background: rgba(30, 58, 47, 0.08);
+  background: rgba(15, 23, 42, 0.08);
   border: none;
   border-radius: 50%;
   width: 34px;

@@ -8,6 +8,7 @@ import { usePwaStore } from '@/stores/pwa'
 import { getIngredientsApi } from '@/api/ingredients'
 import { getImageUrl } from '@/utils/imageUrl'
 import { getInitials, getAvatarColor } from '@/utils/avatar'
+import { showLocalTestNotification } from '@/utils/push'
 import type { Ingredient } from '@/types/api'
 
 const router = useRouter()
@@ -27,7 +28,7 @@ const isLoadingIngredients = ref(false)
 
 const avatarActions = computed(() => {
   const actions: Array<{ name: string; color?: string }> = [
-    { name: 'Загрузить новое фото', color: '#1E3A2F' }
+    { name: 'Загрузить новое фото', color: '#064E3B' }
   ]
   if (authStore.user?.avatarUrl) {
     actions.push({ name: 'Удалить фото', color: '#f44336' })
@@ -206,6 +207,15 @@ async function onNotificationSwitch(val: boolean) {
   }
 }
 
+async function handleTestNotification() {
+  const sent = await showLocalTestNotification()
+  if (sent) {
+    showToast({ type: 'success', message: 'Тестовое уведомление отправлено' })
+  } else {
+    showToast({ type: 'fail', message: 'Не удалось показать уведомление. Проверьте настройки браузера.' })
+  }
+}
+
 async function handleLogout() {
   try {
     await showConfirmDialog({
@@ -298,10 +308,10 @@ onMounted(() => {
       </div>
       <div class="guest-actions">
         <router-link to="/login">
-          <van-button round size="small" type="primary" color="#1E3A2F">Войти</van-button>
+          <van-button round size="small" type="primary" color="#064E3B">Войти</van-button>
         </router-link>
         <router-link to="/register">
-          <van-button round size="small" plain type="primary" color="#1E3A2F">Регистрация</van-button>
+          <van-button round size="small" plain type="primary" color="#064E3B">Регистрация</van-button>
         </router-link>
       </div>
     </div>
@@ -329,11 +339,18 @@ onMounted(() => {
             :model-value="notificationStore.isSubscribed"
             :loading="notificationStore.isLoading"
             size="22px"
-            active-color="#1E3A2F"
+            active-color="#064E3B"
             @update:model-value="onNotificationSwitch"
           />
         </template>
       </van-cell>
+      <van-cell
+        v-if="notificationStore.isSubscribed"
+        title="Тестовое уведомление"
+        value="Отправить"
+        is-link
+        @click="handleTestNotification"
+      />
       <van-cell
         v-if="pwaStore.canInstall"
         title="Установить WhatCook"
@@ -347,7 +364,7 @@ onMounted(() => {
       />
       <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
       <van-cell title="Каталог рецептов" value="Русская кухня + Sber GigaChat" />
-      <van-cell title="О приложении" value="WhatCook v0.8.2" />
+      <van-cell title="О приложении" value="WhatCook v0.8.3" />
     </van-cell-group>
 
     <!-- Logout Action for Authenticated User -->
@@ -407,7 +424,7 @@ onMounted(() => {
               <van-icon
                 v-if="authStore.primaryAllergenId === item.id"
                 name="success"
-                color="#1E3A2F"
+                color="#064E3B"
               />
             </template>
           </van-cell>
@@ -447,7 +464,7 @@ onMounted(() => {
   margin: 0 16px 16px;
   background-color: var(--van-background-2);
   border-radius: 20px;
-  box-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -513,7 +530,7 @@ onMounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: #1E3A2F;
+  background-color: #064E3B;
   border: 2px solid var(--van-background-2, #ffffff);
   display: flex;
   align-items: center;

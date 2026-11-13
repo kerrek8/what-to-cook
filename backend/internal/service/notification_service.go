@@ -240,6 +240,12 @@ func NewExpirationWorker(svc NotificationService, interval time.Duration) *Expir
 func (w *ExpirationWorker) Start() {
 	go func() {
 		defer close(w.doneChan)
+
+		// Run immediate check on worker startup
+		initCtx, initCancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		_, _ = w.service.CheckAndNotifyExpiring(initCtx, time.Now())
+		initCancel()
+
 		ticker := time.NewTicker(w.interval)
 		defer ticker.Stop()
 

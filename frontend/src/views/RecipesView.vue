@@ -280,7 +280,7 @@ onMounted(async () => {
           description="В вашем холодильнике нет продуктов с истекающим сроком годности. Все продукты свежие!"
         >
           <router-link to="/fridge">
-            <van-button round type="primary" color="#1E3A2F" class="action-btn">
+            <van-button round type="primary" color="#064E3B" class="action-btn">
               Перейти в холодильник
             </van-button>
           </router-link>
@@ -335,7 +335,7 @@ onMounted(async () => {
           description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
         >
           <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
-            <van-button round type="primary" color="#1E3A2F" class="action-btn">
+            <van-button round type="primary" color="#064E3B" class="action-btn">
               Заполнить холодильник
             </van-button>
           </router-link>
@@ -386,7 +386,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="recipeStore.isAllRecipesLoading" class="loading-more py-3 text-center">
-          <van-loading size="20px" color="#1E3A2F">Загрузка рецептов...</van-loading>
+          <van-loading size="20px" color="#064E3B">Загрузка рецептов...</van-loading>
         </div>
       </template>
 
@@ -428,7 +428,7 @@ onMounted(async () => {
           <van-button
             round
             type="primary"
-            color="#1E3A2F"
+            color="#064E3B"
             class="action-btn"
             @click="recipeStore.activeTab = 'all'"
           >
@@ -445,12 +445,12 @@ onMounted(async () => {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #FAF8F5;
+  background-color: #F8FAFC;
 }
 
 .search-header {
   padding: 10px 16px 4px;
-  background-color: #FAF8F5;
+  background-color: #F8FAFC;
 }
 
 .search-header :deep(.van-search) {
@@ -463,9 +463,9 @@ onMounted(async () => {
   min-height: 46px;
   padding: 0 14px;
   background-color: #ffffff;
-  border: 1px solid rgba(30, 58, 47, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(30, 58, 47, 0.03);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
 
 .search-header :deep(.van-field__control) {
@@ -479,11 +479,12 @@ onMounted(async () => {
 
 .tabs-wrapper {
   padding: 6px 16px 8px;
-  background-color: #FAF8F5;
+  background-color: #F8FAFC;
 }
 
 .tabs-segmented {
-  background-color: #EAE6DF;
+  background-color: #F1F5F9;
+  border: 1px solid #E2E8F0;
   width: 100%;
   padding: 4px;
   border-radius: 16px;
@@ -526,11 +527,11 @@ onMounted(async () => {
 
 .tab-btn.active {
   background-color: #ffffff;
-  box-shadow: 0 1px 4px rgba(30, 58, 47, 0.08), 0 1px 2px rgba(30, 58, 47, 0.04);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .tab-btn.active .tab-title {
-  color: #1E3A2F;
+  color: #064E3B;
   font-weight: 600;
 }
 
@@ -544,7 +545,7 @@ onMounted(async () => {
 }
 
 .badge-match-active {
-  background-color: #1E3A2F;
+  background-color: #064E3B;
   color: #ffffff;
 }
 
@@ -568,11 +569,11 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background-color: rgba(30, 58, 47, 0.05);
-  border: 1px solid rgba(30, 58, 47, 0.12);
+  background-color: rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 14px;
   font-size: 12px;
-  color: #1E3A2F;
+  color: #064E3B;
   font-weight: 500;
 }
 
@@ -583,7 +584,7 @@ onMounted(async () => {
   padding: 4px 16px 12px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  background-color: #FAF8F5;
+  background-color: #F8FAFC;
 }
 
 .filters-scroll::-webkit-scrollbar {
@@ -597,7 +598,7 @@ onMounted(async () => {
   padding: 6px 14px;
   min-height: 34px;
   border-radius: 9999px;
-  border: 1px solid rgba(231, 229, 228, 0.8);
+  border: 1px solid #E2E8F0;
   background-color: #ffffff;
   font-size: 12px;
   font-weight: 500;
@@ -612,11 +613,11 @@ onMounted(async () => {
 }
 
 .filter-chip.active {
-  background-color: #1E3A2F;
-  border-color: #1E3A2F;
+  background-color: #064E3B;
+  border-color: #064E3B;
   color: #ffffff;
   font-weight: 500;
-  box-shadow: 0 1px 4px rgba(30, 58, 47, 0.15);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
 }
 
 .expiring-toggle {
@@ -627,8 +628,8 @@ onMounted(async () => {
 }
 
 .expiring-toggle.active {
-  background-color: #1E3A2F;
-  border-color: #1E3A2F;
+  background-color: #064E3B;
+  border-color: #064E3B;
   color: #ffffff;
 }
 
@@ -649,7 +650,7 @@ onMounted(async () => {
   background-color: #ffffff;
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 4px 20px -2px rgba(30, 58, 47, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
 }
 
 .recipes-list {
@@ -663,9 +664,9 @@ onMounted(async () => {
   margin: 0 0 14px;
   padding: 12px 14px;
   border-radius: 14px;
-  background-color: rgba(30, 58, 47, 0.05);
-  border: 1px solid rgba(30, 58, 47, 0.1);
-  color: #1E3A2F;
+  background-color: rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: #064E3B;
   font-size: 13px;
   line-height: 1.45;
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -248,4 +249,24 @@ func TestExpirationWorker_StartAndStop(t *testing.T) {
 	worker.Start()
 	time.Sleep(50 * time.Millisecond)
 	worker.Stop()
+}
+
+func TestExpirationWorker_ImmediateStartupCheck(t *testing.T) {
+	var called atomic.Int32
+	mockStore := &mockNotificationQuerier{
+		listExpiringFunc: func(ctx context.Context, arg store.ListExpiringInventoryItemsParams) ([]store.ListExpiringInventoryItemsRow, error) {
+			called.Add(1)
+			return nil, nil
+		},
+	}
+
+	svc := service.NewNotificationService(mockStore, &mockPushSender{})
+	// Set interval to 24 hours to prove it runs without waiting for ticker
+	worker := service.NewExpirationWorker(svc, 24*time.Hour)
+
+	worker.Start()
+	time.Sleep(50 * time.Millisecond)
+	worker.Stop()
+
+	assert.GreaterOrEqual(t, called.Load(), int32(1), "worker must execute check immediately on startup")
 }
