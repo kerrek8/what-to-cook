@@ -44,7 +44,7 @@ function handleDelete() {
   <van-swipe-cell
     ref="swipeCellRef"
     class="product-cell"
-    :right-width="154"
+    :right-width="128"
     @open="isOpen = true"
     @close="isOpen = false"
   >
@@ -75,15 +75,28 @@ function handleDelete() {
     </div>
 
     <template #right>
-      <van-button square type="primary" text="Изменить" icon="edit" class="edit-button" @click="emit('edit', item)" />
+      <van-button
+        square
+        type="primary"
+        class="swipe-action-btn edit-btn"
+        @click="emit('edit', item)"
+      >
+        <div class="action-btn-content">
+          <van-icon name="edit" size="18" />
+          <span class="action-btn-text">Изменить</span>
+        </div>
+      </van-button>
       <van-button
         square
         type="danger"
-        text="Удалить"
-        icon="delete-o"
-        class="delete-button"
+        class="swipe-action-btn delete-btn"
         @click="handleDelete"
-      />
+      >
+        <div class="action-btn-content">
+          <van-icon name="delete-o" size="18" />
+          <span class="action-btn-text">Удалить</span>
+        </div>
+      </van-button>
     </template>
   </van-swipe-cell>
 </template>
@@ -188,9 +201,28 @@ function handleDelete() {
   align-items: center;
 }
 
-.delete-button {
-  height: 100%;
-  min-width: 72px;
+.swipe-action-btn {
+  height: 100% !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  padding: 0 !important;
+  border: none !important;
 }
-.edit-button { height: 100%; min-width: 82px; }
+
+.action-btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.action-btn-text {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+}
 </style>

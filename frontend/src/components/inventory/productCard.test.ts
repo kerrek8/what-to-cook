@@ -15,7 +15,12 @@ describe('ProductCard Tap-to-Open and Swipe Hint Affordance', () => {
     expect(content).toContain('@click.stop="onCardClick"')
     expect(content).toContain("swipeCellRef.value?.open('right')")
     expect(content).toContain('triggerHaptic')
-    expect(content).toContain(':right-width="154"')
+    expect(content).toContain(':right-width="128"')
+  })
+
+  it('renders compact action buttons with vertical icon-text layout for full visibility', () => {
+    expect(content).toContain('class="swipe-action-btn')
+    expect(content).toContain('action-btn-text')
   })
 
   it('renders visual swipe affordance chevron in template', () => {
