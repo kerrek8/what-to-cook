@@ -25,9 +25,11 @@ const formattedQuantity = computed(() =>
 function onCardClick() {
   if (!isOpen.value) {
     swipeCellRef.value?.open('right')
+    isOpen.value = true
     triggerHaptic('light')
   } else {
     swipeCellRef.value?.close('cell')
+    isOpen.value = false
   }
 }
 
@@ -42,10 +44,11 @@ function handleDelete() {
   <van-swipe-cell
     ref="swipeCellRef"
     class="product-cell"
+    :right-width="154"
     @open="isOpen = true"
     @close="isOpen = false"
   >
-    <div class="product-card" @click="onCardClick">
+    <div class="product-card" @click.stop="onCardClick">
       <div class="card-main">
         <div class="product-info">
           <span class="product-name">{{ item.name }}</span>
