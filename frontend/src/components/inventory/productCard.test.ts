@@ -11,10 +11,11 @@ describe('ProductCard Tap-to-Open and Swipe Hint Affordance', () => {
     expect(content).toContain('const swipeCellRef = ref')
   })
 
-  it('implements tap-to-open click handler with haptics', () => {
-    expect(content).toContain('@click="onCardClick"')
+  it('implements tap-to-open click handler with haptics and stops click bubbling to prevent instant close', () => {
+    expect(content).toContain('@click.stop="onCardClick"')
     expect(content).toContain("swipeCellRef.value?.open('right')")
     expect(content).toContain('triggerHaptic')
+    expect(content).toContain(':right-width="154"')
   })
 
   it('renders visual swipe affordance chevron in template', () => {

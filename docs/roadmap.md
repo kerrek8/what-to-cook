@@ -781,3 +781,22 @@ flowchart TD
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.4`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов) пройдены успешно без замечаний.
   - Фронтенд: строгая проверка типов TypeScript (`bun run type-check`), все модульные тесты (`bun run test` — 17 сьютов, 88 тестов) и продакшен-сборка (`bun run build`) пройдены успешно (100%).
+
+---
+
+## ✅ Завершен: Исправление всплытия клика Tap-to-Open в карточках холодильника
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f25-fix-product-card-tap-to-open`.
+- **Цель**: Устранение бага мгновенного закрытия свайп-ячейки в `ProductCard.vue`. Событие `click` на `.product-card` всплывало до корневого контейнера `<van-swipe-cell>`, где встроенный обработчик Vant UI сразу вызывал `close('cell')` в том же кадре события.
+
+### Выполнено
+
+- [x] **Изоляция клика через `@click.stop`**:
+  - На контейнере карточки в `frontend/src/components/inventory/ProductCard.vue` добавлен модификатор `@click.stop="onCardClick"`, блокирующий всплытие события до `van-swipe-cell`.
+  - Зафиксирована явная ширина слота действий `:right-width="154"` для мгновенного и детерминированного сдвига ячейки.
+  - Синхронизировано локальное состояние `isOpen` при программном открытии/закрытии.
+- [x] **Тестирование и верификация**:
+  - Дополнены тесты в `frontend/src/components/inventory/productCard.test.ts`.
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.5`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов) и фронтенда (`bun run type-check`, `bun run test` — 17 сьютов, 88 тестов) пройдены со 100% успехом.
