@@ -3,6 +3,7 @@ import { onMounted, onUnmounted } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppTabBar from '@/components/layout/AppTabBar.vue'
 import ReloadPrompt from '@/components/common/ReloadPrompt.vue'
+import BaseToast from '@/components/common/BaseToast.vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useShoppingStore } from '@/stores/shopping'
 
@@ -33,6 +34,7 @@ onUnmounted(() => {
     </main>
     <AppTabBar />
     <ReloadPrompt />
+    <BaseToast />
   </div>
 </template>
 

@@ -2,15 +2,18 @@ import { describe, it, expect } from 'vitest'
 import fs from 'fs'
 import path from 'path'
 
-describe('Button Contrast & Plain Styling', () => {
-  const cssPath = path.resolve(__dirname, '../assets/main.css')
-  const css = fs.readFileSync(cssPath, 'utf-8')
+describe('Button Contrast & Plain Styling (Tailwind Design System)', () => {
+  const tailwindPath = path.resolve(__dirname, '../../tailwind.config.js')
+  const tailwindConfig = fs.readFileSync(tailwindPath, 'utf-8')
 
-  it('does not force solid background onto plain buttons with blanket .van-button--primary', () => {
-    expect(css).toContain('.van-button--primary:not(.van-button--plain)')
+  it('defines high-contrast emerald colors in tailwind config', () => {
+    expect(tailwindConfig).toContain("950: '#064E3B'")
+    expect(tailwindConfig).toContain("700: '#047857'")
+    expect(tailwindConfig).toContain("500: '#10B981'")
   })
 
-  it('explicitly styles .van-button--plain with white background and primary text/border', () => {
-    expect(css).toContain('.van-button--plain.van-button--primary')
+  it('defines kitchen dark theme colors for high contrast reading', () => {
+    expect(tailwindConfig).toContain("dark: '#0F172A'")
+    expect(tailwindConfig).toContain("surface: '#022C22'")
   })
 })

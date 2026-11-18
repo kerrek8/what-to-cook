@@ -39,7 +39,7 @@
 * **Сборщик**: **Vite** (высокая скорость сборки и мгновенный Hot Module Replacement).
 * **Язык**: **TypeScript** (строгая типизация данных продуктов, сроков годности и DTO ответов API).
 * **Рантайм и пакетный менеджер**: **Bun** (сверхбыстрая установка зависимостей, нативная поддержка TypeScript, замена Node.js и pnpm).
-* **Мобильная UI-библиотека**: **Vant UI** (специализированная библиотека мобильных компонентов: выбор дат для сроков годности, свайп-ячейки `SwipeCell`, шторки `ActionSheet`, диалоги и встроенные векторные иллюстрации `Empty`).
+* **Мобильный UI и стилизация**: **Tailwind CSS v3 + Lucide Icons (`lucide-vue-next`)** + кастомные легковесные компоненты (`BaseBottomSheet`, `BaseToast`, Action Drawer для карточек, `FridgeSummaryCard`, `CookModeView`). Полный отказ от тяжелых сторонних UI-библиотек (Vant UI удален), нулевые накладные расходы, минимальный вес бандла и соответствие макету Figma.
 * **Стейт-менеджмент**: **Pinia** (модульные реактивные хранилища `auth`, `inventory`, `recipe`, `shopping`, `notification`).
 * **Маршрутизация**: **Vue Router 4** (клиентский роутинг с мобильными анимациями и навигационными гардами).
 * **PWA & Офлайн**:
@@ -111,7 +111,7 @@
 ```mermaid
 graph TD
     subgraph Client ["Клиент (Смартфон / Mobile PWA)"]
-        UI["Vue 3 + Vant UI (Mobile-First)"]
+        UI["Vue 3 + Tailwind CSS + Lucide Icons (Mobile-First)"]
         Pinia["Pinia Store (Auth, Inventory, Recipe, Shopping)"]
         SW["Service Worker (Workbox Cache)"]
         IDB[("IndexedDB / Dexie.js (Офлайн-хранилище)")]

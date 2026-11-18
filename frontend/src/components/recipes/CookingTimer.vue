@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { showNotify } from 'vant'
 import { triggerHaptic } from '@/utils/haptics'
+import { useToastStore } from '@/stores/toast'
+import { Clock, X, Play, Pause, RotateCcw } from 'lucide-vue-next'
 
 const props = defineProps<{
   initialMinutes?: number
@@ -11,6 +12,8 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'status-change', status: { isRunning: boolean; formattedTime: string }): void
 }>()
+
+const toast = useToastStore()
 
 const totalSeconds = ref((props.initialMinutes || 5) * 60)
 const remainingSeconds = ref(totalSeconds.value)
@@ -117,9 +120,7 @@ function adjustTime(minutes: number) {
     return
   }
 
-  if (remainingSeconds.value <= 0) {
-    return
-  }
+  if (remainingSeconds.value <= 0) return
 
   if (remainingSeconds.value + deltaSeconds <= 0) {
     remainingSeconds.value = 0
@@ -176,18 +177,14 @@ function playTimerChime() {
     playTone(880, 0, 0.25)
     playTone(1046.5, 0.22, 0.45)
   } catch {
-    // AudioContext fallback
+    // Audio fallback
   }
 }
 
 function onTimerFinished() {
   playTimerChime()
   triggerHaptic('success')
-  showNotify({
-    type: 'success',
-    message: '⏰ Время вышло! Блюдо готово к следующему шагу.',
-    duration: 5000
-  })
+  toast.show('⏰ Время вышло! Блюдо готово к следующему шагу.', 'success', 5000)
 }
 
 onMounted(() => {
@@ -215,46 +212,69 @@ defineExpose({
 </script>
 
 <template>
-  <div class="timer-card">
-    <div class="timer-header">
-      <div class="timer-title">
-        <van-icon name="clock-o" color="#064E3B" size="18" />
+  <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3.5">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+      <div class="flex items-center gap-2 text-emerald-950 font-bold text-sm">
+        <Clock class="w-4 h-4 text-emerald-800" />
         <span>Таймер готовки</span>
       </div>
-      <button type="button" class="close-btn" @click="emit('close')">
-        <van-icon name="cross" size="16" color="#757575" />
+      <button
+        type="button"
+        class="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+        aria-label="Закрыть таймер"
+        @click="emit('close')"
+      >
+        <X class="w-4 h-4" />
       </button>
     </div>
 
-    <div class="timer-display">
-      <span class="digits" :class="{ 'time-over': remainingSeconds === 0 }">
+    <!-- Digits & Progress -->
+    <div class="flex flex-col items-center justify-center py-2">
+      <span
+        class="text-4xl font-black font-mono tracking-tight"
+        :class="remainingSeconds === 0 ? 'text-rose-600' : 'text-slate-900'"
+      >
         {{ formattedTime }}
       </span>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" :style="{ width: `${progressPercent}%` }"></div>
+      <div class="w-full max-w-xs h-1.5 rounded-full bg-slate-100 mt-2 overflow-hidden">
+        <div
+          class="h-full bg-gradient-to-r from-emerald-700 to-emerald-500 rounded-full transition-all duration-300"
+          :style="{ width: `${progressPercent}%` }"
+        />
       </div>
     </div>
 
-    <div class="timer-presets">
+    <!-- Presets -->
+    <div class="flex items-center justify-center gap-1.5 overflow-x-auto no-scrollbar">
       <button
         v-for="m in [1, 3, 5, 10, 15, 20]"
         :key="m"
         type="button"
-        class="preset-btn"
-        :class="{ active: remainingSeconds === m * 60 && totalSeconds === m * 60 }"
+        class="px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all"
+        :class="
+          remainingSeconds === m * 60 && totalSeconds === m * 60
+            ? 'bg-emerald-950 text-white border-emerald-950'
+            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+        "
         @click="setPreset(m)"
       >
         {{ m }}м
       </button>
     </div>
 
-    <div class="timer-adjustments">
+    <!-- Adjustments -->
+    <div class="grid grid-cols-4 gap-1.5">
       <button
         v-for="delta in [-5, -1, 1, 5]"
         :key="delta"
         type="button"
-        class="adjust-btn"
-        :class="{ 'btn-decrement': delta < 0, 'btn-increment': delta > 0 }"
+        class="py-1.5 rounded-xl border text-xs font-bold transition-all"
+        :class="
+          delta < 0
+            ? 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 disabled:opacity-30'
+            : 'bg-emerald-50 text-emerald-900 border-emerald-200/80 hover:bg-emerald-100'
+        "
         :disabled="delta < 0 && remainingSeconds <= 0"
         @click="adjustTime(delta)"
       >
@@ -262,214 +282,31 @@ defineExpose({
       </button>
     </div>
 
-    <div class="timer-actions">
-      <van-button
-        v-if="!isRunning"
-        round
-        type="primary"
-        color="#064E3B"
-        icon="play"
-        class="action-btn main-btn"
-        @click="startTimer"
+    <!-- Actions -->
+    <div class="flex items-center gap-2 pt-1">
+      <button
+        type="button"
+        class="flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-98 transition-all"
+        :class="
+          isRunning
+            ? 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+            : 'bg-emerald-950 hover:bg-emerald-900 text-white'
+        "
+        @click="isRunning ? pauseTimer() : startTimer()"
       >
-        Старт
-      </van-button>
+        <component :is="isRunning ? Pause : Play" class="w-4 h-4 fill-current" />
+        <span>{{ isRunning ? 'Пауза' : 'Старт' }}</span>
+      </button>
 
-      <van-button
-        v-else
-        round
-        type="warning"
-        icon="pause"
-        class="action-btn main-btn"
-        @click="pauseTimer"
-      >
-        Пауза
-      </van-button>
-
-      <van-button
-        round
-        plain
-        icon="replay"
-        class="action-btn sec-btn"
+      <button
+        type="button"
+        class="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+        aria-label="Сброс"
         @click="resetTimer"
       >
-        Сброс
-      </van-button>
+        <RotateCcw class="w-4 h-4" />
+        <span>Сброс</span>
+      </button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.timer-card {
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.timer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.timer-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 700;
-  font-size: 15px;
-  color: #1a1a1a;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  padding: 4px;
-  min-width: 32px;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.timer-display {
-  text-align: center;
-  padding: 8px 0;
-}
-
-.digits {
-  font-size: 40px;
-  font-weight: 800;
-  font-family: monospace;
-  color: #064E3B;
-  letter-spacing: 2px;
-}
-
-.digits.time-over {
-  color: #d32f2f;
-  animation: pulse 1s infinite alternate;
-}
-
-@keyframes pulse {
-  from { opacity: 1; }
-  to { opacity: 0.4; }
-}
-
-.progress-bar-bg {
-  width: 100%;
-  height: 6px;
-  background-color: #e0e0e0;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background-color: #064E3B;
-  transition: width 0.3s ease;
-}
-
-.timer-presets {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 2px 0;
-}
-
-.preset-btn {
-  flex: 1;
-  min-width: 44px;
-  min-height: 38px;
-  border: 1px solid #c8e6c9;
-  background-color: rgba(15, 23, 42, 0.06);
-  color: #064E3B;
-  font-weight: 600;
-  font-size: 13px;
-  border-radius: 8px;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.preset-btn.active {
-  background-color: #064E3B;
-  color: #ffffff;
-  border-color: #064E3B;
-}
-
-.timer-adjustments {
-  display: flex;
-  gap: 8px;
-  justify-content: space-between;
-}
-
-.adjust-btn {
-  flex: 1;
-  min-height: 44px;
-  min-width: 44px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.adjust-btn.btn-decrement {
-  border: 1px solid #e0e0e0;
-  background-color: #f7f9fa;
-  color: #455a64;
-}
-
-.adjust-btn.btn-decrement:active:not(:disabled) {
-  background-color: #eceff1;
-  transform: scale(0.97);
-}
-
-.adjust-btn.btn-increment {
-  border: 1px solid #c8e6c9;
-  background-color: rgba(15, 23, 42, 0.06);
-  color: #064E3B;
-}
-
-.adjust-btn.btn-increment:active:not(:disabled) {
-  background-color: rgba(15, 23, 42, 0.08);
-  transform: scale(0.97);
-}
-
-.adjust-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  border-color: #eeeeee;
-  background-color: #f5f5f5;
-  color: #9e9e9e;
-}
-
-.timer-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.main-btn {
-  flex: 2;
-  min-height: 44px;
-  font-weight: 700;
-}
-
-.sec-btn {
-  flex: 1;
-  min-height: 44px;
-  font-weight: 600;
-}
-</style>

@@ -819,3 +819,52 @@ flowchart TD
   - Обновлены тесты в `frontend/src/components/inventory/productCard.test.ts`.
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.8.6`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Все тесты бэкенда (`go test -count=1 ./...`, `go vet ./...` — 13 пакетов) и фронтенда (`bun run type-check`, `bun run test` — 17 сьютов, 89 тестов) и продакшен-сборка (`bun run build`) пройдены успешно (100%).
+
+---
+
+## ✅ Завершен: Полный редизайн по макету Figma, режим готовки Cook Mode и 100% отказ от Vant UI (v0.9.0)
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f27-figma-redesign-and-vant-removal`.
+- **Цель**: Полный редизайн клиентского PWA в строгом соответствии с концепцией Figma: современная эстетика темного изумруда (`#064E3B`, `#047857`, `#10B981`) и сланцевого фона (`#F8FAFC`, `#0F172A`), добавление сводки холодильника `FridgeSummaryCard`, быстрых пресетов срока годности в `AddProductSheet`, выделенного режима готовки `CookModeView` (`/recipes/:id/cook`) с каруселью шагов и кухонным таймером, прогресс-бара и сворачиваемой секции покупок в `ShoppingView`, а также полный отказ от библиотеки Vant UI (100% удаление зависимости и стилей) в пользу нативных компонентов Tailwind CSS + Lucide Icons.
+
+### Выполнено
+
+- [x] **Дизайн-токены, базовые компоненты и хранилище тостов (Task 1)**:
+  - В `frontend/tailwind.config.js` зарегистрирована расширенная палитра изумруда (`emerald-950` `#022C22`, `emerald-900` `#064E3B`, `emerald-700` `#047857`, `emerald-500` `#10B981`, `emerald-50` `#ECFDF5`) и кухонного темного фона (`kitchen-dark` `#0B1511`).
+  - Разработано хранилище уведомлений `useToastStore` (`frontend/src/stores/toast.ts`) и компонент `frontend/src/components/common/BaseToast.vue` с типами `success`, `error`, `info`.
+  - Создан мобильный компонент модальной шторки `frontend/src/components/common/BaseBottomSheet.vue` с поддержкой Teleport, полупрозрачного бэкдропа, индикатора свайпа (drag handle) и плавной анимации выезда снизу.
+  - Нижняя навигация `frontend/src/components/layout/AppTabBar.vue` переписана на чистый Tailwind CSS + Lucide Icons с микро-бейджами и скроллом вверх по повторному тапу.
+  - Написаны модульные тесты `frontend/src/stores/toast.test.ts`.
+- [x] **Дашборд холодильника и карточка продукта (Task 2)**:
+  - Разработан темно-изумрудный Hero-блок `frontend/src/components/inventory/FridgeSummaryCard.vue` с метриками (всего продуктов / свежие / скоро испортятся).
+  - Карточка продукта `frontend/src/components/inventory/ProductCard.vue` переписана на Tailwind CSS: Tap-to-Open drawer с кнопками «Изменить» и «Удалить», цветовые бейджи свежести, тактильный отклик и шеврон-подсказка.
+  - Экран `frontend/src/views/FridgeView.vue` обновлен: Hero-дашборд, поиск, фильтр-пилюли и список продуктов.
+  - Обновлены тесты `frontend/src/components/inventory/productCard.test.ts`.
+- [x] **Шторка добавления продукта с пресетами срока годности (Task 3)**:
+  - `frontend/src/components/inventory/AddProductSheet.vue` переписан с использованием `BaseBottomSheet`: пресеты срока годности (`+3 дня`, `1 неделя`, `2 недели`, `В заморозку`), нативный `<input type="date">`, валидация и серийное добавление.
+  - Написаны модульные тесты `frontend/src/components/inventory/addProductSheet.test.ts`.
+- [x] **Каталог рецептов и детальный экран (Task 4)**:
+  - Экран каталога `frontend/src/views/RecipesView.vue` переписан на Tailwind CSS: Segmented Control («Подбор», «Все рецепты», «Избранное»), чипы фильтров по времени и сложности, пульсирующие скелетоны загрузки и отображение процента совпадения.
+  - Экран детального рецепта `frontend/src/views/RecipeDetailView.vue` обновлен: Hero-обложка, степпер изменения порций, интерактивный чек-лист ингредиентов («Есть дома» / «Нужно докупить») и CTA-кнопка «Начать готовить» для перехода в Cook Mode.
+  - Обновлены тесты `frontend/src/views/recipesView.test.ts`.
+- [x] **Режим готовки Cook Mode и хранилище таймера (Task 5)**:
+  - Разработано хранилище `useCookingTimerStore` (`frontend/src/stores/cookingTimer.ts`) с поддержкой фонового отсчета, паузы, сброса, регулировки минут (`-5`, `-1`, `+1`, `+5`) и звукового сигнала по окончании.
+  - Создан полноэкранный кухонный экран `frontend/src/views/CookModeView.vue` (`/recipes/:id/cook`) в контрастной темной теме (`#0B1511`) с гигантскими цифрами таймера, каруселью пошагового приготовления и крупными кнопками навигации.
+  - Зарегистрирован новый маршрут в `frontend/src/router/index.ts`.
+  - Написаны тесты `frontend/src/stores/cookingTimer.test.ts`.
+- [x] **Список покупок, профиль и экраны авторизации (Task 6)**:
+  - Компоненты покупок `ShoppingItemCard.vue`, `AddShoppingItemSheet.vue` и экран `ShoppingView.vue` переписаны на Tailwind: прогресс-бар («Куплено X из Y»), сворачиваемая секция купленного и мгновенный перенос в холодильник.
+  - `AppHeader.vue` переписан на чистый Tailwind с нативным бейвелом и кнопкой «Назад».
+  - `LoginView.vue`, `RegisterView.vue` и `ProfileView.vue` переписаны на Tailwind: шторки аллергенов и базовой корзины на `BaseBottomSheet`, всплывающие тосты и отображение версии `WhatCook v0.9.0`.
+- [x] **Тотальный отказ от Vant UI и аудит бандла (Task 7)**:
+  - Удалены все импорты и стили Vant UI из `frontend/src/main.ts`, `frontend/src/assets/main.css`, `frontend/src/components/common/ReloadPrompt.vue` и `frontend/src/components/recipes/CookingTimer.vue`.
+  - Зависимость `vant` полностью удалена из `frontend/package.json` и `bun.lock`.
+  - Статический аудит подтвердил 0 вхождений `van-` и 0 импортов `vant` во всей кодовой базе.
+  - Размер основного JS-бандла сократился более чем на 30% (с 450+ кБ до 306 кБ, 109 кБ gzip).
+- [x] **Версионирование, документация и гигиена репозитория (Task 8)**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.9.0`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Актуализированы и сжаты `README.md`, `docs/tech-stack.md` и `docs/roadmap.md`.
+  - Исключены из отслеживания git (`.gitignore` и `git rm --cached`) файлы инструментов агентов разработки (`AGENTS.md`, `docs/superpowers/`), что позволяет удалить их из удаленного репозитория при отправке, сохранив локально на компьютере разработчика.
+  - Пройдены все 94 юнит-теста фронтенда (`bun run test`), проверка типов (`bun run type-check`), продакшен-сборка (`bun run build`), а также тесты бэкенда (`go test ./...` и `go vet ./...`).
+

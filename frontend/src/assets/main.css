@@ -3,56 +3,14 @@
 @tailwind utilities;
 
 :root {
-  /* Nordic Gastro Theme Palette */
-  --van-primary-color: #064E3B;
-  --van-success-color: #065F46;
-  --van-warning-color: #D97706;
-  --van-danger-color: #E11D48;
-  --van-background: #F8FAFC;
-  --van-background-2: #FFFFFF;
-  --van-text-color: #0F172A;
-  --van-text-color-2: #475569;
-  --van-text-color-3: #94A3B8;
-  --van-border-color: #E2E8F0;
-
-  /* Component specifics */
-  --van-nav-bar-background: rgba(255, 255, 255, 0.95);
-  --van-nav-bar-title-text-color: #0F172A;
-  --van-nav-bar-icon-color: #064E3B;
-  --van-nav-bar-height: 52px;
-  --van-tabbar-background: rgba(255, 255, 255, 0.95);
-  --van-tabbar-item-active-color: #064E3B;
-  --van-tabbar-item-text-color: #64748B;
-  --van-button-primary-background: #064E3B;
-  --van-button-primary-border-color: #064E3B;
-  --van-button-success-background: #065F46;
-  --van-button-success-border-color: #065F46;
-  --van-button-danger-background: #C0392B;
-  --van-button-danger-border-color: #C0392B;
-  --van-button-border-radius: 14px;
-  --van-search-background: transparent;
-  --van-search-content-background: #FFFFFF;
-  --van-search-input-height: 40px;
-  --van-cell-background: #FFFFFF;
-  --van-cell-text-color: #0F172A;
-  --van-cell-value-color: #57534E;
-  --van-cell-group-background: transparent;
-  --van-badge-background: #E11D48;
-  --van-tag-primary-color: #064E3B;
-
   --app-max-width: 480px;
 
-  /* Modern Nordic Gastro Tokens */
-  --nordic-canvas: #F8FAFC;
-  --nordic-card-bg: #FFFFFF;
-  --nordic-sage: #064E3B;
-  --nordic-sage-light: #065F46;
-  --nordic-peach: #D97706;
-  --nordic-terracotta: #E11D48;
-  --nordic-linen: #F1F5F9;
-  --nordic-card-radius: 20px;
-  --nordic-card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  --nordic-card-border: 1px solid rgba(15, 23, 42, 0.06);
+  /* Emerald Gastro Theme Tokens */
+  --primary-emerald: #064E3B;
+  --primary-light: #047857;
+  --accent-mint: #10B981;
+  --canvas-bg: #F8FAFC;
+  --card-bg: #FFFFFF;
 }
 
 *,
@@ -69,7 +27,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: #F1F5F9;
-  color: #1C1917;
+  color: #0F172A;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -106,99 +64,13 @@ body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0));
 }
 
-button,
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-/* Nordic Search styling */
-.van-search__content {
-  background-color: #FFFFFF !important;
-  border: 1px solid rgba(15, 23, 42, 0.08) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
-}
-
-.van-search .van-field__control {
-  color: #1C1917 !important;
-  font-size: 14px !important;
-}
-
-.van-search .van-field__control::placeholder {
-  color: #94A3B8 !important;
-}
-
-.van-search__action {
-  color: #064E3B !important;
-  font-weight: 500 !important;
-}
-
-/* Button enhancements */
-.van-button--primary:not(.van-button--plain) {
-  background-color: var(--van-primary-color) !important;
-  border-color: var(--van-primary-color) !important;
-  color: #FFFFFF !important;
-}
-
-.van-button--plain.van-button--primary {
-  background-color: #FFFFFF !important;
-  border-color: var(--van-primary-color) !important;
-  color: var(--van-primary-color) !important;
-}
-
-.van-button--success:not(.van-button--plain) {
-  background-color: var(--van-success-color) !important;
-  border-color: var(--van-success-color) !important;
-  color: #FFFFFF !important;
-}
-
-.van-button--plain.van-button--success {
-  background-color: #FFFFFF !important;
-  border-color: var(--van-success-color) !important;
-  color: var(--van-success-color) !important;
-}
-
-/* Nordic Dialog / ActionSheet */
-.van-dialog {
-  border-radius: 20px !important;
-}
-
-.van-action-sheet {
-  border-radius: 24px 24px 0 0 !important;
-}
-
-.van-popup--round {
-  border-radius: 24px 24px 0 0 !important;
-}
-
-/* Typography & Word Break Rules for Russian text across Vant mobile components */
-.van-toast,
-.van-toast__text,
-.van-dialog__message,
-.van-notify,
-.van-action-sheet__item,
-.van-cell__title,
-.van-cell__value {
-  word-break: normal !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  white-space: normal !important;
-  hyphens: manual !important;
-}
-
-.van-toast {
-  max-width: 88% !important;
-  width: auto !important;
-  min-width: 200px !important;
-  text-align: center !important;
-  line-height: 1.45 !important;
-  padding: 12px 18px !important;
-}
-
-.van-dialog__message {
-  line-height: 1.5 !important;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

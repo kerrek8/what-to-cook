@@ -12,54 +12,30 @@ async function close() {
 </script>
 
 <template>
-  <div v-if="offlineReady || needRefresh" class="pwa-toast">
-    <div class="message">
+  <div
+    v-if="offlineReady || needRefresh"
+    class="fixed right-4 bottom-20 left-4 max-w-sm mx-auto p-4 rounded-2xl bg-white border border-slate-200 shadow-elevated flex items-center justify-between gap-3 z-50 select-none"
+  >
+    <div class="text-xs font-medium text-slate-800 leading-snug">
       <span v-if="offlineReady">Приложение готово к работе офлайн</span>
       <span v-else>Доступно обновление приложения</span>
     </div>
-    <div class="actions">
-      <van-button
+    <div class="flex items-center gap-2 shrink-0">
+      <button
         v-if="needRefresh"
-        size="small"
-        type="primary"
-        color="#064E3B"
+        type="button"
+        class="py-1.5 px-3 rounded-xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 active:scale-95 transition-all"
         @click="updateServiceWorker()"
       >
         Обновить
-      </van-button>
-      <van-button size="small" plain @click="close">
+      </button>
+      <button
+        type="button"
+        class="py-1.5 px-3 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 active:scale-95 transition-all"
+        @click="close"
+      >
         Закрыть
-      </van-button>
+      </button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.pwa-toast {
-  position: fixed;
-  right: 16px;
-  bottom: calc(64px + env(safe-area-inset-bottom, 0));
-  left: 16px;
-  max-width: 448px;
-  margin: 0 auto;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  z-index: 200;
-}
-
-.message {
-  font-size: 13px;
-  color: #323233;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-</style>

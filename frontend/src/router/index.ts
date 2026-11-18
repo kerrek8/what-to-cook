@@ -25,6 +25,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Рецепт', hideHeader: true, hideTabBar: true }
   },
   {
+    path: '/recipes/:id/cook',
+    name: 'cook-mode',
+    component: () => import('@/views/CookModeView.vue'),
+    meta: { title: 'Готовка', hideHeader: true, hideTabBar: true }
+  },
+  {
     path: '/shopping',
     name: 'shopping',
     component: () => import('@/views/ShoppingView.vue'),

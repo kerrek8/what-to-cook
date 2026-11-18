@@ -10,13 +10,27 @@ export default {
         culinary: {
           bg: '#FAF8F5',
           card: '#FFFFFF',
-          primary: '#1E392A',
-          primaryLight: '#2D5A43',
-          accent: '#E67E22',
-          accentMuted: '#FFF8F0',
-          border: '#EBE7DF',
-          textMain: '#1A1C19',
-          textMuted: '#71766F'
+          primary: '#064E3B',
+          primaryLight: '#047857',
+          accent: '#10B981',
+          accentMuted: '#ECFDF5',
+          border: '#E2E8F0',
+          textMain: '#0F172A',
+          textMuted: '#64748B'
+        },
+        emerald: {
+          950: '#064E3B',
+          800: '#065F46',
+          700: '#047857',
+          600: '#059669',
+          500: '#10B981',
+          100: '#D1FAE5',
+          50: '#ECFDF5'
+        },
+        kitchen: {
+          dark: '#0F172A',
+          surface: '#022C22',
+          card: '#064E3B'
         }
       },
       borderRadius: {

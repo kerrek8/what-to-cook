@@ -1,99 +1,46 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { showToast } from 'vant'
 import { useRecipeStore } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useShoppingStore } from '@/stores/shopping'
+import { useToastStore } from '@/stores/toast'
 import type { RecipeIngredientResponse } from '@/types/recipe'
-import CookingTimer from '@/components/recipes/CookingTimer.vue'
 import { getImageUrl } from '@/utils/imageUrl'
 import { formatScaledAmount } from '@/utils/servings'
+import {
+  ArrowLeft,
+  Heart,
+  Clock,
+  BarChart2,
+  Users,
+  CheckCircle2,
+  Plus,
+  Play,
+  Flame,
+  ChefHat,
+  ShoppingBag
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const shoppingStore = useShoppingStore()
+const toast = useToastStore()
 
 const recipeId = computed(() => Number(route.params.id))
 const isAddingToShopping = ref(false)
 const shoppingAdded = ref(false)
 const completedSteps = ref<Record<number, boolean>>({})
-const showTimer = ref(false)
-const timerRef = ref<InstanceType<typeof CookingTimer> | null>(null)
-const timerPresetMinutes = ref<number | undefined>(undefined)
-const timerSectionRef = ref<HTMLElement | null>(null)
-const timerStatus = ref({ isRunning: false, formattedTime: '00:00' })
-const isTimerOutOfView = ref(false)
-let scrollWrapper: Element | null = null
-
-function onTimerStatusChange(status: { isRunning: boolean; formattedTime: string }) {
-  timerStatus.value = status
-  updateTimerVisibility()
-}
-
-function updateTimerVisibility() {
-  if (!showTimer.value || !timerSectionRef.value) {
-    isTimerOutOfView.value = false
-    return
-  }
-  const rect = timerSectionRef.value.getBoundingClientRect()
-  // Если верх таймера ушел выше 70px (под навбар) или низ таймера ниже экрана
-  isTimerOutOfView.value = rect.bottom < 80 || rect.top > window.innerHeight
-}
-
-function scrollToTimer() {
-  if (timerSectionRef.value) {
-    timerSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-}
-
-watch(timerSectionRef, (el) => {
-  if (el) {
-    updateTimerVisibility()
-  } else {
-    isTimerOutOfView.value = false
-  }
-})
-
-watch(showTimer, async (val) => {
-  if (!val) {
-    isTimerOutOfView.value = false
-    timerStatus.value = { isRunning: false, formattedTime: '00:00' }
-  } else {
-    await nextTick()
-    updateTimerVisibility()
-  }
-})
-
-const heroImageError = ref(false)
 const currentServings = ref(2)
-
-watch(recipeId, () => {
-  heroImageError.value = false
-})
+const heroImageError = ref(false)
 
 onMounted(async () => {
-  scrollWrapper = document.querySelector('.content-wrapper')
-  if (scrollWrapper) {
-    scrollWrapper.addEventListener('scroll', updateTimerVisibility, { passive: true })
-  }
-  window.addEventListener('scroll', updateTimerVisibility, { passive: true })
-  window.addEventListener('resize', updateTimerVisibility, { passive: true })
-
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
   await recipeStore.loadRecipeById(recipeId.value)
-})
-
-onUnmounted(() => {
-  if (scrollWrapper) {
-    scrollWrapper.removeEventListener('scroll', updateTimerVisibility)
-  }
-  window.removeEventListener('scroll', updateTimerVisibility)
-  window.removeEventListener('resize', updateTimerVisibility)
 })
 
 const recipe = computed(() => recipeStore.currentRecipe)
@@ -147,38 +94,6 @@ function formatIngredientAmount(ing: RecipeIngredientResponse): string {
   return scaled
 }
 
-function getCriticalityBadge(crit: string): { label: string; class: string } {
-  switch (crit) {
-    case 'critical':
-    case 'основной':
-      return { label: 'Основной', class: 'crit-critical' }
-    case 'essential':
-    case 'важный':
-      return { label: 'Важный', class: 'crit-essential' }
-    default:
-      return { label: 'Опциональный', class: 'crit-optional' }
-  }
-}
-
-function extractTimerMinutes(stepText: string): number | null {
-  const match = stepText.match(/(\d+)\s*(?:мин|минут|минуты)/i)
-  if (match && match[1]) {
-    const mins = parseInt(match[1], 10)
-    if (!isNaN(mins) && mins > 0 && mins <= 180) {
-      return mins
-    }
-  }
-  return null
-}
-
-function startStepTimer(mins: number) {
-  timerPresetMinutes.value = mins
-  showTimer.value = true
-  setTimeout(() => {
-    timerRef.value?.setPreset(mins)
-  }, 100)
-}
-
 function toggleStep(index: number) {
   completedSteps.value[index] = !completedSteps.value[index]
 }
@@ -186,7 +101,7 @@ function toggleStep(index: number) {
 async function onAddToShoppingList() {
   if (!recipe.value) return
   if (missingIngredients.value.length === 0) {
-    showToast('Все ингредиенты уже есть дома!')
+    toast.show('Все ингредиенты уже есть дома!', 'info')
     return
   }
 
@@ -195,15 +110,9 @@ async function onAddToShoppingList() {
     await recipeStore.addMissingToShopping(recipe.value.id)
     await shoppingStore.loadItems(true)
     shoppingAdded.value = true
-    showToast({
-      type: 'success',
-      message: 'Недостающие ингредиенты добавлены в список покупок!'
-    })
+    toast.show('Недостающие ингредиенты добавлены в список покупок', 'success')
   } catch {
-    showToast({
-      type: 'fail',
-      message: 'Не удалось добавить ингредиенты'
-    })
+    toast.show('Не удалось добавить ингредиенты', 'fail')
   } finally {
     isAddingToShopping.value = false
   }
@@ -214,94 +123,126 @@ function onFavoriteToggle() {
     recipeStore.toggleFavorite(recipe.value.id)
   }
 }
+
+function startCooking() {
+  router.push(`/recipes/${recipeId.value}/cook`)
+}
 </script>
 
 <template>
-  <div class="detail-container">
-    <van-nav-bar
-      title="Рецепт"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="router.back()"
-    />
-
-    <div v-if="recipeStore.isDetailLoading" class="skeleton">
-      <van-skeleton title avatar :row="6" />
+  <div class="min-h-full pb-28 bg-slate-50">
+    <!-- Loading skeleton -->
+    <div v-if="recipeStore.isDetailLoading" class="p-4 flex flex-col gap-4">
+      <div class="w-full h-72 rounded-3xl bg-slate-200 animate-pulse" />
+      <div class="h-8 w-2/3 bg-slate-200 rounded-xl animate-pulse" />
+      <div class="h-20 bg-slate-200 rounded-2xl animate-pulse" />
+      <div class="h-40 bg-slate-200 rounded-2xl animate-pulse" />
     </div>
 
-    <template v-else-if="recipe">
-      <div class="hero-wrapper">
+    <!-- Loaded Recipe View -->
+    <div v-else-if="recipe" class="flex flex-col">
+      <!-- Hero Image & Navigation Header Overlay -->
+      <div class="relative w-full h-80 bg-slate-900 overflow-hidden">
         <img
           v-if="recipe.image_url && !heroImageError"
           :src="getImageUrl(recipe.image_url)"
           :alt="recipe.title"
-          class="hero-img"
+          class="w-full h-full object-cover"
           @error="heroImageError = true"
         />
-        <div v-else class="hero-img placeholder-hero">
-          <van-icon name="photograph" size="48" color="#78909c" />
-          <span class="placeholder-cat">{{ recipe.description || 'Рецепт' }}</span>
+        <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-800">
+          <ChefHat class="w-16 h-16 stroke-[1.5px] text-slate-400 mb-2" />
+          <span class="text-sm font-medium">{{ recipe.description || 'Рецепт' }}</span>
         </div>
 
-        <button
-          type="button"
-          class="fav-btn"
-          :class="{ active: recipe.is_favorite }"
-          aria-label="В избранное"
-          @click="onFavoriteToggle"
-        >
-          <van-icon
-            :name="recipe.is_favorite ? 'like' : 'like-o'"
-            :color="recipe.is_favorite ? '#e53935' : '#424242'"
-            size="22"
-          />
-        </button>
+        <!-- Gradient Vignette -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/40 pointer-events-none" />
+
+        <!-- Top Navigation Overlay -->
+        <div class="absolute top-4 inset-x-4 flex items-center justify-between z-10">
+          <button
+            type="button"
+            class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md text-white flex items-center justify-center border border-white/20 active:scale-95 transition-all"
+            aria-label="Назад"
+            @click="router.back()"
+          >
+            <ArrowLeft class="w-5 h-5 stroke-[2.2px]" />
+          </button>
+
+          <button
+            type="button"
+            class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md text-white flex items-center justify-center border border-white/20 active:scale-95 transition-all"
+            aria-label="В избранное"
+            @click="onFavoriteToggle"
+          >
+            <Heart
+              class="w-5 h-5 transition-colors"
+              :class="recipe.is_favorite ? 'text-rose-500 fill-rose-500' : 'text-white'"
+            />
+          </button>
+        </div>
+
+        <!-- Recipe Title inside Hero Bottom -->
+        <div class="absolute bottom-4 inset-x-4 z-10">
+          <h1 class="text-2xl font-black text-white leading-tight drop-shadow-md">
+            {{ recipe.title }}
+          </h1>
+        </div>
       </div>
 
-      <div class="detail-content safe-area-bottom">
-        <h1 class="recipe-title">{{ recipe.title }}</h1>
-
-        <!-- Saving banner -->
-        <div v-if="savingProducts.length > 0" class="saving-banner">
-          <span class="fire-icon">🔥</span>
-          <div class="saving-text">
-            <strong>Спасает продукты!</strong>
-            Использует скоропортящиеся:
-            {{ savingProducts.map((p) => p.name).join(', ') }}
+      <!-- Main Body Container -->
+      <div class="p-4 flex flex-col gap-4 -mt-3 bg-slate-50 rounded-t-3xl relative z-10 shadow-lg">
+        <!-- Saving Products Alert Banner -->
+        <div
+          v-if="savingProducts.length > 0"
+          class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-950"
+        >
+          <Flame class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div class="flex flex-col text-xs leading-relaxed">
+            <span class="font-bold text-amber-900">🔥 Спасает продукты!</span>
+            <span class="text-amber-800">
+              Использует скоропортящиеся:
+              <strong>{{ savingProducts.map((p) => p.name).join(', ') }}</strong>
+            </span>
           </div>
         </div>
 
-        <!-- Meta row -->
-        <div class="meta-pills">
-          <div class="meta-pill">
-            <van-icon name="clock-o" color="#064E3B" size="16" />
-            <span>{{ recipe.cooking_time_minutes }} мин</span>
+        <!-- Meta Information Cards Row -->
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Time -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+            <Clock class="w-4 h-4 text-emerald-800 mb-1" />
+            <span class="text-[11px] text-slate-400 font-medium">Время</span>
+            <span class="text-xs font-bold text-slate-800">{{ recipe.cooking_time_minutes }} мин</span>
           </div>
-          <div class="meta-pill">
-            <van-icon name="bar-chart-o" color="#064E3B" size="16" />
-            <span>{{ difficultyLabel }}</span>
+
+          <!-- Difficulty -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+            <BarChart2 class="w-4 h-4 text-emerald-800 mb-1" />
+            <span class="text-[11px] text-slate-400 font-medium">Сложность</span>
+            <span class="text-xs font-bold text-slate-800">{{ difficultyLabel }}</span>
           </div>
-          <div class="meta-pill servings-pill">
-            <van-icon name="friends-o" color="#064E3B" size="16" />
-            <div class="servings-stepper">
+
+          <!-- Servings Stepper -->
+          <div class="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+            <div class="flex items-center gap-1 mb-1 text-slate-400">
+              <Users class="w-3.5 h-3.5 text-emerald-800" />
+              <span class="text-[11px] font-medium">Порции</span>
+            </div>
+            <div class="flex items-center gap-1.5">
               <button
                 type="button"
-                class="stepper-btn"
+                class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 text-xs"
                 :disabled="currentServings <= 1"
-                aria-label="Уменьшить порции"
                 @click="currentServings--"
               >
                 -
               </button>
-              <span class="servings-val">
-                {{ currentServings }} {{ currentServings === 1 ? 'порция' : currentServings < 5 ? 'порции' : 'порций' }}
-              </span>
+              <span class="text-xs font-bold text-slate-800 w-4 text-center">{{ currentServings }}</span>
               <button
                 type="button"
-                class="stepper-btn"
+                class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 text-xs"
                 :disabled="currentServings >= 12"
-                aria-label="Увеличить порции"
                 @click="currentServings++"
               >
                 +
@@ -310,616 +251,110 @@ function onFavoriteToggle() {
           </div>
         </div>
 
-        <p v-if="recipe.description" class="recipe-desc">
+        <!-- Description -->
+        <p v-if="recipe.description" class="text-xs text-slate-600 leading-relaxed px-1">
           {{ recipe.description }}
         </p>
 
         <!-- Ingredients Section -->
-        <div class="section-block">
-          <div class="section-header">
-            <h2 class="section-title">Ингредиенты</h2>
-            <span class="ingredients-summary">
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h2 class="text-base font-bold text-slate-900">Ингредиенты</h2>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100">
               {{ availableIngredients.length }}/{{ recipe.ingredients?.length || 0 }} в наличии
             </span>
           </div>
 
-          <!-- Есть дома -->
-          <div v-if="availableIngredients.length > 0" class="group-box in-stock-box">
-            <h3 class="group-title">
-              <span class="badge-dot green-dot"></span>
+          <!-- In-Stock Ingredients List -->
+          <div v-if="availableIngredients.length > 0" class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Есть дома ({{ availableIngredients.length }})
-            </h3>
-            <ul class="ingredient-list">
-              <li
-                v-for="ing in availableIngredients"
-                :key="ing.ingredient_id"
-                class="ingredient-item"
-              >
-                <div class="ing-left">
-                  <van-icon name="passed" color="#064E3B" size="16" />
-                  <span class="ing-name">{{ ing.name }}</span>
-                </div>
-                <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
-              </li>
-            </ul>
+            </span>
+            <div
+              v-for="ing in availableIngredients"
+              :key="ing.ingredient_id || ing.name"
+              class="flex items-center justify-between py-1.5 px-2 rounded-xl bg-emerald-50/40 text-xs text-slate-800"
+            >
+              <div class="flex items-center gap-2">
+                <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+                <span class="font-medium">{{ ing.name }}</span>
+              </div>
+              <span class="text-slate-500 font-semibold">{{ formatIngredientAmount(ing) }}</span>
+            </div>
           </div>
 
-          <!-- Нужно купить -->
-          <div v-if="missingIngredients.length > 0" class="group-box missing-box">
-            <h3 class="group-title">
-              <span class="badge-dot red-dot"></span>
-              Нужно купить ({{ missingIngredients.length }})
-            </h3>
-            <ul class="ingredient-list">
-              <li
-                v-for="ing in missingIngredients"
-                :key="ing.ingredient_id"
-                class="ingredient-item"
+          <!-- Missing Ingredients List -->
+          <div v-if="missingIngredients.length > 0" class="flex flex-col gap-1.5 pt-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                Не хватает ({{ missingIngredients.length }})
+              </span>
+              <button
+                type="button"
+                class="text-[11px] font-bold text-emerald-800 flex items-center gap-1 hover:underline"
+                :disabled="isAddingToShopping"
+                @click="onAddToShoppingList"
               >
-                <div class="ing-left">
-                  <span
-                    class="crit-badge"
-                    :class="getCriticalityBadge(ing.criticality).class"
-                  >
-                    {{ getCriticalityBadge(ing.criticality).label }}
-                  </span>
-                  <span class="ing-name">{{ ing.name }}</span>
-                </div>
-                <span class="ing-amount">{{ formatIngredientAmount(ing) }}</span>
-              </li>
-            </ul>
+                <ShoppingBag class="w-3.5 h-3.5" />
+                {{ shoppingAdded ? 'Добавлено!' : 'Купить всё' }}
+              </button>
+            </div>
 
-            <!-- 1-Click Shopping List Button -->
-            <van-button
-              round
-              block
-              type="primary"
-              color="#064E3B"
-              icon="cart-o"
-              :loading="isAddingToShopping"
-              :disabled="shoppingAdded"
-              class="add-shopping-btn"
-              @click="onAddToShoppingList"
+            <div
+              v-for="ing in missingIngredients"
+              :key="ing.ingredient_id || ing.name"
+              class="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-50 text-xs text-slate-600"
             >
-              <template v-if="shoppingAdded">
-                ✓ Добавлено в список покупок
-              </template>
-              <template v-else>
-                Добавить недостающие ({{ missingIngredients.length }}) в список
-              </template>
-            </van-button>
+              <span class="font-medium text-slate-700">{{ ing.name }}</span>
+              <span class="text-slate-400">{{ formatIngredientAmount(ing) }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Timer Widget (embedded if active) -->
-        <div v-if="showTimer" ref="timerSectionRef" class="timer-section">
-          <CookingTimer
-            ref="timerRef"
-            :initial-minutes="timerPresetMinutes"
-            @status-change="onTimerStatusChange"
-            @close="showTimer = false"
-          />
-        </div>
+        <!-- Cooking Steps Checklist -->
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+          <h2 class="text-base font-bold text-slate-900 border-b border-slate-100 pb-2.5">
+            Шаги приготовления
+          </h2>
 
-        <!-- Instructions Section -->
-        <div class="section-block">
-          <div class="section-header">
-            <h2 class="section-title">Приготовление</h2>
-            <button
-              v-if="!showTimer"
-              type="button"
-              class="open-timer-btn"
-              @click="showTimer = true"
-            >
-              <van-icon name="clock-o" />
-              Таймер
-            </button>
-          </div>
-
-          <div class="steps-list">
+          <div class="flex flex-col gap-3">
             <div
               v-for="(step, idx) in recipe.instructions"
               :key="idx"
-              class="step-item"
-              :class="{ completed: completedSteps[idx] }"
+              class="flex items-start gap-3 p-3 rounded-2xl border transition-all cursor-pointer"
+              :class="completedSteps[idx] ? 'bg-emerald-50/40 border-emerald-200/60 opacity-70' : 'bg-slate-50/60 border-slate-200/60'"
               @click="toggleStep(idx)"
             >
-              <div class="step-num" :class="{ done: completedSteps[idx] }">
-                <van-icon v-if="completedSteps[idx]" name="success" size="14" />
-                <span v-else>{{ idx + 1 }}</span>
+              <div
+                class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border"
+                :class="completedSteps[idx] ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-600 border-slate-300'"
+              >
+                {{ idx + 1 }}
               </div>
-              <div class="step-body">
-                <p class="step-text">{{ step }}</p>
-                <div
-                  v-if="extractTimerMinutes(step)"
-                  class="step-timer-row"
-                >
-                  <button
-                    type="button"
-                    class="step-timer-chip"
-                    @click.stop="startStepTimer(extractTimerMinutes(step)!)"
-                  >
-                    ⏱️ Запустить {{ extractTimerMinutes(step) }} мин
-                  </button>
-                </div>
-              </div>
+              <p
+                class="text-xs text-slate-700 leading-relaxed flex-1 select-none"
+                :class="{ 'line-through text-slate-400': completedSteps[idx] }"
+              >
+                {{ step }}
+              </p>
             </div>
           </div>
         </div>
       </div>
-      <!-- Floating mini-timer pill -->
-      <transition name="van-fade">
-        <button
-          v-if="showTimer && timerStatus.isRunning && isTimerOutOfView"
-          type="button"
-          class="floating-timer-pill fixed right-4 bottom-20 z-50 bg-emerald-800 text-white px-4 py-2 rounded-full shadow-elevated flex items-center gap-2"
-          @click="scrollToTimer"
-        >
-          <span class="timer-dot animate-ping"></span>
-          <span class="font-mono font-bold">{{ timerStatus.formattedTime }}</span>
-        </button>
-      </transition>
-    </template>
 
-    <div v-else class="not-found">
-      <van-empty description="Рецепт не найден">
-        <van-button round type="primary" color="#064E3B" @click="router.push('/recipes')">
-          Вернуться к рецептам
-        </van-button>
-      </van-empty>
+      <!-- Bottom Floating Cook CTA Button (Figma Row 4/5) -->
+      <div class="fixed bottom-4 inset-x-4 max-w-lg mx-auto z-30 safe-area-bottom">
+        <button
+          type="button"
+          class="w-full py-4 px-6 rounded-2xl bg-emerald-950 text-white font-bold text-base flex items-center justify-center gap-2.5 shadow-elevated hover:bg-emerald-900 active:scale-98 transition-all border border-emerald-800"
+          @click="startCooking"
+        >
+          <Play class="w-5 h-5 fill-white" />
+          <span>Начать готовить (Cook Mode)</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.detail-container {
-  min-height: 100%;
-  background-color: #f7f8fa;
-  padding-bottom: 72px;
-}
-
-.skeleton {
-  padding: 24px 16px;
-}
-
-.hero-wrapper {
-  position: relative;
-  width: 100%;
-  height: 220px;
-  background-color: #e0e0e0;
-}
-
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.placeholder-hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fav-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 5;
-}
-
-.fav-btn:active {
-  transform: scale(0.92);
-}
-
-.detail-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.recipe-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #1a1a1a;
-  line-height: 1.25;
-}
-
-.saving-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background-color: #ffebee;
-  border: 1px solid #ffcdd2;
-  border-radius: 12px;
-  padding: 10px 14px;
-}
-
-.fire-icon {
-  font-size: 20px;
-}
-
-.saving-text {
-  font-size: 13px;
-  color: #c62828;
-  line-height: 1.4;
-}
-
-.saving-text strong {
-  display: block;
-}
-
-.meta-pills {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.meta-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #424242;
-  border: 1px solid #e0e0e0;
-}
-
-.servings-pill {
-  padding: 4px 6px 4px 10px;
-}
-
-.servings-stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.stepper-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  border-radius: 50%;
-  border: 1px solid #c8e6c9;
-  background-color: rgba(15, 23, 42, 0.06);
-  color: #064E3B;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  position: relative;
-  touch-action: manipulation;
-}
-
-.stepper-btn::after {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-}
-
-.stepper-btn:active:not(:disabled) {
-  background-color: #064E3B;
-  color: #ffffff;
-  transform: scale(0.92);
-}
-
-.stepper-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  border-color: #e0e0e0;
-  background-color: #f5f5f5;
-  color: #9e9e9e;
-}
-
-.servings-val {
-  min-width: 68px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #064E3B;
-  user-select: none;
-}
-
-.recipe-desc {
-  margin: 0;
-  font-size: 14px;
-  color: #616161;
-  line-height: 1.5;
-}
-
-.section-block {
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-
-.ingredients-summary {
-  font-size: 12px;
-  color: #757575;
-  font-weight: 500;
-}
-
-.open-timer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: rgba(15, 23, 42, 0.08);
-  color: #064E3B;
-  border: 1px solid #c8e6c9;
-  border-radius: 16px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.group-box {
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.in-stock-box {
-  background-color: rgba(15, 23, 42, 0.06);
-  border: 1px solid #dcedc8;
-}
-
-.missing-box {
-  background-color: #fff8e1;
-  border: 1px solid #ffe082;
-}
-
-.group-title {
-  margin: 0 0 10px;
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #212121;
-}
-
-.badge-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.green-dot {
-  background-color: #064E3B;
-}
-
-.red-dot {
-  background-color: #f57c00;
-}
-
-.ingredient-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ingredient-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 42%);
-  align-items: start;
-  font-size: 13px;
-  gap: 10px;
-}
-
-.ing-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.ing-name {
-  color: #212121;
-  font-weight: 500;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  line-height: 1.35;
-}
-
-.ing-amount {
-  color: #616161;
-  font-weight: 600;
-  min-width: 0;
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-align: right;
-  line-height: 1.35;
-}
-
-.crit-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.crit-critical {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.crit-essential {
-  background-color: #fff3e0;
-  color: #ef6c00;
-}
-
-.crit-optional {
-  background-color: rgba(15, 23, 42, 0.08);
-  color: #064E3B;
-}
-
-.add-shopping-btn {
-  margin-top: 14px;
-  min-height: 44px;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.timer-section {
-  margin-bottom: 8px;
-}
-
-.steps-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.step-item {
-  display: flex;
-  gap: 12px;
-  padding: 8px 6px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.step-item:active {
-  background-color: #f5f5f5;
-}
-
-.step-item.completed .step-text {
-  text-decoration: line-through;
-  color: #9e9e9e;
-}
-
-.step-num {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  border-radius: 50%;
-  background-color: rgba(15, 23, 42, 0.08);
-  color: #064E3B;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  transition: all 0.2s ease;
-}
-
-.step-num.done {
-  background-color: #064E3B;
-  color: #ffffff;
-}
-
-.step-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.step-text {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #212121;
-}
-
-.step-timer-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #bbdefb;
-  border-radius: 14px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  min-height: 32px;
-}
-
-.step-timer-chip:active {
-  background-color: #bbdefb;
-}
-
-.not-found {
-  padding: 40px 16px;
-}
-.floating-timer-pill {
-  position: fixed;
-  right: 16px;
-  bottom: 80px;
-  z-index: 50;
-  background-color: #065f46;
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  box-shadow: 0 10px 30px -4px rgba(26, 28, 25, 0.16);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  cursor: pointer;
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-.floating-timer-pill:active {
-  transform: scale(0.96);
-}
-
-.timer-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #34d399;
-  display: inline-block;
-}
-</style>

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { LocalShoppingItem } from '@/db/types'
 import { triggerHaptic } from '@/utils/haptics'
+import { Check, Trash2, Refrigerator } from 'lucide-vue-next'
 
 const props = defineProps<{
   item: LocalShoppingItem
@@ -28,189 +29,86 @@ function onToggle() {
 }
 
 function onDelete() {
+  triggerHaptic('warning')
   if (props.item.id != null) {
     emit('delete', props.item.id)
   }
 }
 
 function onTransfer() {
+  triggerHaptic('success')
   emit('transfer', props.item)
 }
 </script>
 
 <template>
-  <van-swipe-cell class="shopping-item-cell">
-    <template #left>
-      <van-button
-        square
-        type="primary"
-        color="#064E3B"
-        text="В холод."
-        icon="passed"
-        class="swipe-action-btn"
-        @click="onTransfer"
-      />
-    </template>
-
-    <div
-      class="item-row"
-      :class="{ bought: item.isBought }"
-      @click="onToggle"
-    >
-      <div class="checkbox-wrapper" @click.stop="onToggle">
-        <div class="custom-checkbox" :class="{ checked: item.isBought }">
-          <van-icon v-if="item.isBought" name="success" size="14" color="#ffffff" />
-        </div>
+  <div
+    class="flex items-center justify-between p-3.5 mb-2 rounded-2xl border transition-all cursor-pointer select-none"
+    :class="
+      item.isBought
+        ? 'bg-slate-50/70 border-slate-200/60 opacity-60'
+        : 'bg-white border-slate-100 shadow-xs hover:border-slate-200'
+    "
+    @click="onToggle"
+  >
+    <!-- Left Checkbox & Name -->
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <div
+        class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-all"
+        :class="
+          item.isBought
+            ? 'bg-emerald-950 text-white border-emerald-950'
+            : 'bg-white border-slate-300 hover:border-slate-400'
+        "
+        @click.stop="onToggle"
+      >
+        <Check v-if="item.isBought" class="w-3.5 h-3.5 stroke-[3px]" />
       </div>
 
-      <div class="item-info">
-        <span class="item-name">{{ item.name }}</span>
+      <div class="flex flex-col min-w-0">
+        <span
+          class="text-sm font-semibold text-slate-800 truncate"
+          :class="{ 'line-through text-slate-400': item.isBought }"
+        >
+          {{ item.name }}
+        </span>
+        <span class="text-xs text-slate-400">
+          {{ item.category || 'Продукты' }}
+        </span>
       </div>
+    </div>
 
-      <div v-if="formattedQuantity" class="item-quantity">
-        <span class="quantity-pill">{{ formattedQuantity }}</span>
-      </div>
+    <!-- Right: Quantity Pill & Action Buttons -->
+    <div class="flex items-center gap-2 shrink-0">
+      <span
+        v-if="formattedQuantity"
+        class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
+      >
+        {{ formattedQuantity }}
+      </span>
 
+      <!-- Transfer to Fridge Button -->
       <button
         v-if="item.isBought"
         type="button"
-        class="transfer-item-btn"
+        class="p-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/60 active:scale-95 transition-all"
         title="Перенести в холодильник"
-        aria-label="Перенести в холодильник"
+        aria-label="В холодильник"
         @click.stop="onTransfer"
       >
-        <van-icon name="logistics" size="18" color="#064E3B" />
+        <Refrigerator class="w-4 h-4 stroke-[2px]" />
+      </button>
+
+      <!-- Delete Button -->
+      <button
+        type="button"
+        class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 transition-all"
+        title="Удалить из списка"
+        aria-label="Удалить"
+        @click.stop="onDelete"
+      >
+        <Trash2 class="w-4 h-4 stroke-[1.8px]" />
       </button>
     </div>
-
-    <template #right>
-      <van-button
-        square
-        type="danger"
-        text="Удалить"
-        icon="delete-o"
-        class="delete-btn"
-        @click="onDelete"
-      />
-    </template>
-  </van-swipe-cell>
+  </div>
 </template>
-
-<style scoped>
-.shopping-item-cell {
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.item-row {
-  display: flex;
-  align-items: center;
-  padding: 12px 14px;
-  min-height: 52px;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.15s ease;
-}
-
-.item-row:active {
-  background-color: #f9f9f9;
-}
-
-.checkbox-wrapper {
-  padding: 4px 10px 4px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.custom-checkbox {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 2px solid #b0bec5;
-  background-color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.custom-checkbox.checked {
-  background-color: #064E3B;
-  border-color: #064E3B;
-  transform: scale(1.05);
-}
-
-.item-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-right: 8px;
-}
-
-.item-name {
-  font-size: 15px;
-  font-weight: 500;
-  color: #212121;
-  line-height: 1.3;
-  transition: color 0.2s ease, text-decoration 0.2s ease;
-}
-
-.item-row.bought .item-name {
-  text-decoration: line-through;
-  color: #9e9e9e;
-}
-
-.item-quantity {
-  margin-left: auto;
-}
-
-.quantity-pill {
-  font-size: 12px;
-  font-weight: 600;
-  background-color: rgba(15, 23, 42, 0.06);
-  color: #064E3B;
-  padding: 3px 8px;
-  border-radius: 12px;
-  white-space: nowrap;
-}
-
-.item-row.bought .quantity-pill {
-  background-color: #eeeeee;
-  color: #9e9e9e;
-}
-
-.transfer-item-btn {
-  background: rgba(15, 23, 42, 0.08);
-  border: none;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-.transfer-item-btn:active {
-  transform: scale(0.92);
-  background-color: #c8e6c9;
-}
-
-.swipe-action-btn {
-  height: 100%;
-  min-width: 72px;
-  font-weight: 600;
-}
-
-.delete-btn {
-  height: 100%;
-  min-width: 72px;
-  font-weight: 600;
-}
-</style>

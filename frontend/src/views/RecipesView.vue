@@ -5,6 +5,7 @@ import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
+import { Search, X, Flame, BookOpen, Heart, Sparkles, ChefHat, RefreshCw } from 'lucide-vue-next'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
@@ -131,560 +132,213 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="recipes-view">
-    <!-- Search Bar -->
-    <div class="search-header">
-      <van-search
-        v-model="recipeStore.searchQuery"
-        placeholder="Поиск рецептов..."
-        shape="round"
-        clearable
-      />
-    </div>
+  <div class="min-h-full pb-20 flex flex-col">
+    <!-- Sticky Search & Tabs Header -->
+    <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 pt-3 pb-2 flex flex-col gap-2.5 shadow-xs">
+      <!-- Search Bar -->
+      <div class="relative flex items-center">
+        <Search class="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none stroke-[2.2px]" />
+        <input
+          v-model="recipeStore.searchQuery"
+          type="text"
+          placeholder="Поиск рецептов по названию или ингредиенту..."
+          class="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white transition-all"
+        />
+        <button
+          v-if="recipeStore.searchQuery"
+          type="button"
+          class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 rounded-full"
+          aria-label="Очистить поиск"
+          @click="recipeStore.searchQuery = ''"
+        >
+          <X class="w-4 h-4" />
+        </button>
+      </div>
 
-    <!-- Navigation Tabs (Segmented Control) -->
-    <div class="tabs-wrapper">
-      <div class="tabs-segmented">
+      <!-- Segmented Control Tabs (Подбор / Все / Избранное) -->
+      <div class="grid grid-cols-3 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60 text-xs font-semibold">
         <button
           type="button"
-          class="tab-btn"
-          :class="{ active: recipeStore.activeTab === 'match' }"
+          class="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          :class="recipeStore.activeTab === 'match' ? 'bg-white text-emerald-950 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
           @click="recipeStore.activeTab = 'match'"
         >
-          <span class="tab-title">Подбор</span>
+          <Flame class="w-3.5 h-3.5" :class="recipeStore.activeTab === 'match' ? 'text-emerald-800' : 'text-slate-400'" />
+          <span class="truncate">Подбор</span>
           <span
-            v-if="recipeStore.filteredMatchedRecipes.length > 0"
-            class="count-badge"
-            :class="recipeStore.activeTab === 'match' ? 'badge-match-active' : 'badge-inactive'"
+            v-if="recipeStore.matchedRecipes.length > 0"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+            :class="recipeStore.activeTab === 'match' ? 'bg-emerald-950 text-white' : 'bg-slate-200 text-slate-600'"
           >
-            {{ recipeStore.filteredMatchedRecipes.length }}
+            {{ recipeStore.matchedRecipes.length }}
           </span>
         </button>
 
         <button
           type="button"
-          class="tab-btn"
-          :class="{ active: recipeStore.activeTab === 'all' }"
+          class="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          :class="recipeStore.activeTab === 'all' ? 'bg-white text-emerald-950 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
           @click="recipeStore.activeTab = 'all'"
         >
-          <span class="tab-title">Все рецепты</span>
-          <span
-            v-if="recipeStore.totalCount > 0"
-            class="count-badge"
-            :class="recipeStore.activeTab === 'all' ? 'badge-all-active' : 'badge-inactive'"
-          >
-            {{ recipeStore.totalCount }}
-          </span>
+          <BookOpen class="w-3.5 h-3.5" :class="recipeStore.activeTab === 'all' ? 'text-emerald-800' : 'text-slate-400'" />
+          <span class="truncate">Каталог</span>
         </button>
 
         <button
           type="button"
-          class="tab-btn"
-          :class="{ active: recipeStore.activeTab === 'favorites' }"
-          @click="recipeStore.activeTab = 'favorites'; recipeStore.loadFavorites()"
+          class="py-2 px-2 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          :class="recipeStore.activeTab === 'favorites' ? 'bg-white text-emerald-950 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+          @click="recipeStore.activeTab = 'favorites'"
         >
-          <span class="tab-title">Избранное</span>
+          <Heart class="w-3.5 h-3.5" :class="recipeStore.activeTab === 'favorites' ? 'text-rose-600 fill-rose-600' : 'text-slate-400'" />
+          <span class="truncate">Избранное</span>
           <span
             v-if="recipeStore.favoriteRecipes.length > 0"
-            class="count-badge"
-            :class="recipeStore.activeTab === 'favorites' ? 'badge-fav-active' : 'badge-inactive'"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+            :class="recipeStore.activeTab === 'favorites' ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600'"
           >
             {{ recipeStore.favoriteRecipes.length }}
           </span>
         </button>
       </div>
+
+      <!-- Quick Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-0.5">
+        <!-- Expiring Only Filter for Match Tab -->
+        <button
+          v-if="recipeStore.activeTab === 'match'"
+          type="button"
+          class="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all"
+          :class="recipeStore.saveExpiringOnly ? 'bg-emerald-950 text-white border-emerald-950' : 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100'"
+          @click="recipeStore.saveExpiringOnly = !recipeStore.saveExpiringOnly"
+        >
+          <span>🔥 Спасает продукты</span>
+        </button>
+
+        <!-- Time Filters -->
+        <button
+          v-for="opt in timeOptions"
+          :key="opt.value"
+          type="button"
+          class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap"
+          :class="recipeStore.timeFilter === opt.value ? 'bg-emerald-950 text-white border-emerald-950' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+          @click="recipeStore.timeFilter = opt.value"
+        >
+          {{ opt.label }}
+        </button>
+
+        <!-- Difficulty Filters -->
+        <button
+          v-for="diff in difficultyOptions"
+          :key="diff.value"
+          type="button"
+          class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap"
+          :class="recipeStore.difficultyFilter === diff.value ? 'bg-emerald-950 text-white border-emerald-950' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+          @click="recipeStore.difficultyFilter = diff.value"
+        >
+          {{ diff.label }}
+        </button>
+      </div>
     </div>
 
-    <!-- Filter Chips Scroll -->
-    <div class="filters-scroll">
-      <!-- Expiring Toggle Chip (только для вкладки "Что приготовить") -->
-      <button
-        v-if="recipeStore.activeTab === 'match'"
-        type="button"
-        class="filter-chip expiring-toggle"
-        :class="{ active: recipeStore.saveExpiringOnly }"
-        @click="recipeStore.saveExpiringOnly = !recipeStore.saveExpiringOnly"
-      >
-        <span>🔥 Спасает продукты</span>
-      </button>
-
-      <!-- Time Filter Chips -->
-      <button
-        v-for="opt in timeOptions"
-        :key="opt.value"
-        type="button"
-        class="filter-chip"
-        :class="{ active: recipeStore.timeFilter === opt.value }"
-        @click="recipeStore.timeFilter = opt.value"
-      >
-        {{ opt.label }}
-      </button>
-
-      <!-- Difficulty Filter Chips -->
-      <button
-        v-for="opt in difficultyOptions"
-        :key="opt.value"
-        type="button"
-        class="filter-chip"
-        :class="{ active: recipeStore.difficultyFilter === opt.value }"
-        @click="recipeStore.difficultyFilter = opt.value"
-      >
-        {{ opt.label }}
-      </button>
-    </div>
-
-    <!-- Tab: Smart Match -->
-    <template v-if="recipeStore.activeTab === 'match'">
-      <div
-        v-if="recipeStore.isMatching && recipeStore.allRecipes.length === 0"
-        class="loading-skeletons"
-      >
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
+    <!-- Tab 1: Match ("Подбор") Content -->
+    <div v-if="recipeStore.activeTab === 'match'" class="p-4 flex flex-col gap-3">
+      <!-- Loading Skeletons -->
+      <div v-if="recipeStore.isMatching" class="flex flex-col gap-3">
+        <div v-for="n in 3" :key="n" class="h-64 rounded-3xl bg-slate-100 animate-pulse border border-slate-200" />
       </div>
 
+      <!-- Matched Recipe Cards -->
       <template v-else-if="recipeStore.filteredMatchedRecipes.length > 0">
-        <div v-if="authStore.user?.excludedIngredientIds?.length" class="px-4 pt-1 pb-2">
-          <div class="allergen-note">
-            <van-icon name="shield-o" size="16" />
-            <span>Рецепты с выбранным в профиле аллергеном исключены из подбора</span>
-          </div>
-        </div>
-
-        <div class="relative w-full" :style="{ height: `${matchVirtualizer.getTotalSize()}px` }">
-          <div
-            v-for="virtualRow in matchVirtualizer.getVirtualItems()"
-            :key="virtualRow.key as number | string"
-            :ref="(el) => matchVirtualizer.measureElement(el as HTMLElement | null)"
-            :data-index="virtualRow.index"
-            class="absolute top-0 left-0 w-full px-4 pb-3"
-            :style="{ transform: `translateY(${virtualRow.start}px)` }"
-          >
-            <RecipeCard
-              v-if="recipeStore.filteredMatchedRecipes[virtualRow.index]"
-              :recipe="recipeStore.filteredMatchedRecipes[virtualRow.index].recipe"
-              :match-item="recipeStore.filteredMatchedRecipes[virtualRow.index]"
-              :saving-ingredients="recipeStore.getSavingIngredients(recipeStore.filteredMatchedRecipes[virtualRow.index]?.recipe.ingredients)"
-            />
-          </div>
-        </div>
+        <RecipeCard
+          v-for="item in recipeStore.filteredMatchedRecipes"
+          :key="item.recipe.id"
+          :recipe="item.recipe"
+          :match-item="item"
+          :saving-ingredients="recipeStore.getSavingIngredients(item.recipe.ingredients)"
+        />
       </template>
 
-      <!-- Состояние: фильтр "Спасает продукты" активен, но в холодильнике нет истекающих продуктов -->
-      <div
-        v-else-if="recipeStore.saveExpiringOnly && recipeStore.expiringItems.length === 0"
-        class="empty-state"
-      >
-        <van-empty
-          image="search"
-          description="В вашем холодильнике нет продуктов с истекающим сроком годности. Все продукты свежие!"
-        >
-          <router-link to="/fridge">
-            <van-button round type="primary" color="#064E3B" class="action-btn">
-              Перейти в холодильник
-            </van-button>
-          </router-link>
-          <van-button
-            round
-            plain
-            class="action-btn"
-            style="margin-top: 10px;"
-            @click="recipeStore.saveExpiringOnly = false"
-          >
-            Сбросить фильтр
-          </van-button>
-        </van-empty>
-      </div>
-
-      <!-- Состояние: фильтр "Спасает продукты" активен, но рецепты с ними не подобрались -->
-      <div
-        v-else-if="recipeStore.saveExpiringOnly && recipeStore.filteredMatchedRecipes.length === 0"
-        class="empty-state"
-      >
-        <van-empty
-          image="search"
-          description="Не найдено рецептов с продуктами, требующими срочного использования."
-        >
-          <van-button
-            round
-            plain
-            class="action-btn"
-            @click="recipeStore.saveExpiringOnly = false"
-          >
-            Сбросить фильтр
-          </van-button>
-        </van-empty>
-      </div>
-
-      <div v-else-if="recipeStore.filteredAllRecipes.length > 0" class="recipes-list suggestions-fallback">
-        <div class="fallback-note">
-          <van-icon name="info-o" size="18" />
-          <span>Пока нет рецептов, которые можно приготовить только из продуктов в холодильнике. Вот подходящие варианты:</span>
+      <!-- Empty State -->
+      <div v-else class="py-16 text-center flex flex-col items-center">
+        <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4">
+          <ChefHat class="w-8 h-8 stroke-[1.8px]" />
         </div>
-        <RecipeCard
-          v-for="r in recipeStore.visibleAllRecipes"
-          :key="r.id"
-          :recipe="r"
-          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-        />
-      </div>
-
-      <div v-else class="empty-state">
-        <van-empty
-          image="search"
-          description="В каталоге пока нет рецептов. Попробуйте обновить список позже."
+        <h3 class="text-base font-bold text-slate-900 mb-1">Нет подходящих рецептов</h3>
+        <p class="text-xs text-slate-500 max-w-xs mb-5">
+          Добавьте больше продуктов в холодильник или сбросьте фильтры времени и сложности.
+        </p>
+        <button
+          type="button"
+          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all"
+          @click="resetAllFilters"
         >
-          <router-link v-if="inventoryStore.items.length === 0" to="/fridge">
-            <van-button round type="primary" color="#064E3B" class="action-btn">
-              Заполнить холодильник
-            </van-button>
-          </router-link>
-          <van-button
-            v-if="recipeStore.searchQuery || recipeStore.timeFilter || recipeStore.difficultyFilter !== 'all' || recipeStore.saveExpiringOnly"
-            round
-            plain
-            class="action-btn"
-            @click="
-              recipeStore.searchQuery = '';
-              recipeStore.timeFilter = 0;
-              recipeStore.difficultyFilter = 'all';
-              recipeStore.saveExpiringOnly = false;
-            "
-          >
-            Сбросить фильтры
-          </van-button>
-        </van-empty>
+          Сбросить фильтры
+        </button>
       </div>
-    </template>
+    </div>
 
-    <!-- Tab: All Recipes -->
-    <template v-else-if="recipeStore.activeTab === 'all'">
-      <div v-if="recipeStore.isLoading && recipeStore.allRecipes.length === 0" class="loading-skeletons">
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
+    <!-- Tab 2: Catalog ("Все рецепты") Content -->
+    <div v-else-if="recipeStore.activeTab === 'all'" class="p-4 flex flex-col gap-3">
+      <!-- Loading Skeletons -->
+      <div v-if="recipeStore.isAllRecipesLoading && recipeStore.allRecipes.length === 0" class="flex flex-col gap-3">
+        <div v-for="n in 3" :key="n" class="h-64 rounded-3xl bg-slate-100 animate-pulse border border-slate-200" />
       </div>
 
       <template v-else-if="recipeStore.allRecipes.length > 0">
-        <div
-          class="relative w-full"
-          :style="{ height: `${rowVirtualizer.getTotalSize()}px` }"
-        >
-          <div
-            v-for="virtualRow in rowVirtualizer.getVirtualItems()"
-            :key="virtualRow.key as number | string"
-            :ref="(el) => rowVirtualizer.measureElement(el as HTMLElement | null)"
-            :data-index="virtualRow.index"
-            class="absolute top-0 left-0 w-full px-4 pb-3"
-            :style="{ transform: `translateY(${virtualRow.start}px)` }"
-          >
-            <RecipeCard
-              v-if="recipeStore.allRecipes[virtualRow.index]"
-              :recipe="recipeStore.allRecipes[virtualRow.index]"
-              :saving-ingredients="recipeStore.getSavingIngredients(recipeStore.allRecipes[virtualRow.index]?.ingredients)"
-            />
-          </div>
-        </div>
-
-        <div v-if="recipeStore.isAllRecipesLoading" class="loading-more py-3 text-center">
-          <van-loading size="20px" color="#064E3B">Загрузка рецептов...</van-loading>
-        </div>
+        <RecipeCard
+          v-for="recipe in recipeStore.allRecipes"
+          :key="recipe.id"
+          :recipe="recipe"
+        />
       </template>
 
-      <div v-if="!recipeStore.isLoading && recipeStore.allRecipes.length === 0" class="empty-state">
-        <van-empty image="search" description="Рецепты не найдены">
-          <van-button
-            round
-            plain
-            class="action-btn"
-            @click="resetAllFilters"
-          >
-            Сбросить фильтры
-          </van-button>
-        </van-empty>
-      </div>
-    </template>
-
-    <!-- Tab: Favorites -->
-    <template v-else-if="recipeStore.activeTab === 'favorites'">
-      <div v-if="recipeStore.isFavoritesLoading" class="loading-skeletons">
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
-        <van-skeleton title avatar :row="3" class="skeleton-card" />
-      </div>
-
-      <div v-else-if="recipeStore.favoriteRecipes.length > 0" class="recipes-list">
-        <RecipeCard
-          v-for="r in recipeStore.favoriteRecipes"
-          :key="r.id"
-          :recipe="r"
-          :saving-ingredients="recipeStore.getSavingIngredients(r.ingredients)"
-        />
-      </div>
-
-      <div v-else-if="!recipeStore.isFavoritesLoading" class="empty-state">
-        <van-empty
-          image="default"
-          description="У вас пока нет сохраненных рецептов. Нажмите на сердечко на карточке рецепта, чтобы добавить его сюда."
+      <!-- Empty State -->
+      <div v-else class="py-16 text-center flex flex-col items-center">
+        <div class="w-16 h-16 rounded-3xl bg-slate-100 text-slate-600 flex items-center justify-center mb-4">
+          <BookOpen class="w-8 h-8 stroke-[1.8px]" />
+        </div>
+        <h3 class="text-base font-bold text-slate-900 mb-1">Рецепты не найдены</h3>
+        <p class="text-xs text-slate-500 max-w-xs mb-5">
+          По запросу "{{ recipeStore.searchQuery }}" ничего не найдено.
+        </p>
+        <button
+          type="button"
+          class="py-2.5 px-5 rounded-2xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all"
+          @click="resetAllFilters"
         >
-          <van-button
-            round
-            type="primary"
-            color="#064E3B"
-            class="action-btn"
-            @click="recipeStore.activeTab = 'all'"
-          >
-            Смотреть каталог рецептов
-          </van-button>
-        </van-empty>
+          Сбросить поиск
+        </button>
       </div>
-    </template>
+    </div>
+
+    <!-- Tab 3: Favorites Content -->
+    <div v-else-if="recipeStore.activeTab === 'favorites'" class="p-4 flex flex-col gap-3">
+      <template v-if="recipeStore.favoriteRecipes.length > 0">
+        <RecipeCard
+          v-for="recipe in recipeStore.favoriteRecipes"
+          :key="recipe.id"
+          :recipe="recipe"
+        />
+      </template>
+
+      <!-- Empty Favorites -->
+      <div v-else class="py-16 text-center flex flex-col items-center">
+        <div class="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+          <Heart class="w-8 h-8 stroke-[1.8px]" />
+        </div>
+        <h3 class="text-base font-bold text-slate-900 mb-1">Нет сохраненных рецептов</h3>
+        <p class="text-xs text-slate-500 max-w-xs mb-5">
+          Нажмите на сердечко в любом рецепте, чтобы сохранить его в избранное для быстрой готовки.
+        </p>
+        <button
+          type="button"
+          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all"
+          @click="recipeStore.activeTab = 'all'"
+        >
+          Перейти в каталог
+        </button>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.recipes-view {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #F8FAFC;
-}
-
-.search-header {
-  padding: 10px 16px 4px;
-  background-color: #F8FAFC;
-}
-
-.search-header :deep(.van-search) {
-  width: 100%;
-  padding: 0;
-  background: transparent;
-}
-
-.search-header :deep(.van-search__content) {
-  min-height: 46px;
-  padding: 0 14px;
-  background-color: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-}
-
-.search-header :deep(.van-field__control) {
-  color: #1c1917;
-  font-size: 14px;
-}
-
-.search-header :deep(.van-field__control::placeholder) {
-  color: #a8a29e;
-}
-
-.tabs-wrapper {
-  padding: 6px 16px 8px;
-  background-color: #F8FAFC;
-}
-
-.tabs-segmented {
-  background-color: #F1F5F9;
-  border: 1px solid #E2E8F0;
-  width: 100%;
-  padding: 4px;
-  border-radius: 16px;
-  display: flex;
-  gap: 4px;
-}
-
-.tab-btn {
-  flex: 1 1 0%;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  padding: 7px 4px;
-  min-height: 40px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #57534e;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
-}
-
-.tab-btn .tab-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: #57534e;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tab-btn:hover .tab-title {
-  color: #1c1917;
-}
-
-.tab-btn.active {
-  background-color: #ffffff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.tab-btn.active .tab-title {
-  color: #064E3B;
-  font-weight: 600;
-}
-
-.count-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 5px;
-  flex-shrink: 0;
-  border-radius: 9999px;
-  line-height: 1.2;
-}
-
-.badge-match-active {
-  background-color: #064E3B;
-  color: #ffffff;
-}
-
-.badge-all-active {
-  background-color: #44403c;
-  color: #ffffff;
-}
-
-.badge-fav-active {
-  background-color: #ef4444;
-  color: #ffffff;
-}
-
-.badge-inactive {
-  background-color: rgba(168, 162, 158, 0.3);
-  color: #57534e;
-}
-
-.allergen-note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background-color: rgba(15, 23, 42, 0.05);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 14px;
-  font-size: 12px;
-  color: #064E3B;
-  font-weight: 500;
-}
-
-.filters-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 16px 12px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  background-color: #F8FAFC;
-}
-
-.filters-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.filter-chip {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  min-height: 34px;
-  border-radius: 9999px;
-  border: 1px solid #E2E8F0;
-  background-color: #ffffff;
-  font-size: 12px;
-  font-weight: 500;
-  color: #44403c;
-  cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-}
-
-.filter-chip:active {
-  transform: scale(0.95);
-}
-
-.filter-chip.active {
-  background-color: #064E3B;
-  border-color: #064E3B;
-  color: #ffffff;
-  font-weight: 500;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
-}
-
-.expiring-toggle {
-  background-color: rgba(254, 243, 199, 0.5);
-  border-color: rgba(251, 191, 36, 0.5);
-  color: #92400e;
-  font-weight: 600;
-}
-
-.expiring-toggle.active {
-  background-color: #064E3B;
-  border-color: #064E3B;
-  color: #ffffff;
-}
-
-.recipes-content {
-  flex: 1 1 0%;
-  min-width: 0;
-  padding-bottom: 72px;
-}
-
-.loading-skeletons {
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.skeleton-card {
-  background-color: #ffffff;
-  border-radius: 20px;
-  padding: 16px;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
-}
-
-.recipes-list {
-  padding: 8px 16px 16px;
-}
-
-.fallback-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background-color: rgba(15, 23, 42, 0.05);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  color: #064E3B;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.fallback-note :deep(.van-icon) {
-  flex: 0 0 auto;
-  margin-top: 1px;
-}
-
-.empty-state {
-  padding: 24px 16px;
-}
-
-.action-btn {
-  min-width: 180px;
-  min-height: 44px;
-  font-weight: 600;
-  margin-top: 8px;
-  border-radius: 14px;
-}
-</style>

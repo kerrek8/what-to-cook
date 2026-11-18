@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { showToast, showConfirmDialog } from 'vant'
 import { useShoppingStore, type AddShoppingItemPayload } from '@/stores/shopping'
 import { useInventoryStore, type AddItemData } from '@/stores/inventory'
+import { useToastStore } from '@/stores/toast'
 import type { LocalShoppingItem } from '@/db/types'
 import ShoppingItemCard from '@/components/shopping/ShoppingItemCard.vue'
 import AddShoppingItemSheet from '@/components/shopping/AddShoppingItemSheet.vue'
 import AddProductSheet from '@/components/inventory/AddProductSheet.vue'
+import { Search, X, Plus, ShoppingCart, Refrigerator, ChevronDown, CheckCheck } from 'lucide-vue-next'
 
 const shoppingStore = useShoppingStore()
 const inventoryStore = useInventoryStore()
+const toast = useToastStore()
 
 const showAddSheet = ref(false)
 const showTransferSheet = ref(false)
-const isBoughtExpanded = ref(false)
+const isBoughtExpanded = ref(true)
 const transferQueue = ref<LocalShoppingItem[]>([])
 const currentTransferIndex = ref(0)
+const searchQuery = ref('')
+
+onMounted(() => {
+  shoppingStore.loadShoppingList()
+})
 
 const currentTransferItem = computed(() => {
   if (currentTransferIndex.value >= 0 && currentTransferIndex.value < transferQueue.value.length) {
@@ -47,16 +54,37 @@ const transferSheetTitle = computed(() => {
   return `В холодильник (${currentTransferIndex.value + 1} из ${total}): ${currentTransferItem.value?.name || ''}`
 })
 
-onMounted(() => {
-  shoppingStore.loadShoppingList()
+const activeItems = computed(() => {
+  let list = shoppingStore.items.filter((i) => !i.isBought)
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.trim().toLowerCase()
+    list = list.filter((i) => i.name.toLowerCase().includes(q))
+  }
+  return list
+})
+
+const boughtItems = computed(() => {
+  let list = shoppingStore.items.filter((i) => i.isBought)
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.trim().toLowerCase()
+    list = list.filter((i) => i.name.toLowerCase().includes(q))
+  }
+  return list
+})
+
+const totalCount = computed(() => shoppingStore.items.length)
+const boughtCount = computed(() => shoppingStore.boughtCount)
+const progressPercent = computed(() => {
+  if (totalCount.value === 0) return 0
+  return Math.round((boughtCount.value / totalCount.value) * 100)
 })
 
 async function onAddItem(payload: AddShoppingItemPayload) {
   try {
     await shoppingStore.addItem(payload)
-    showToast({ type: 'success', message: `${payload.name} добавлен` })
+    toast.show(`${payload.name} добавлен в список`, 'success')
   } catch {
-    showToast({ type: 'fail', message: 'Ошибка при добавлении' })
+    toast.show('Ошибка при добавлении', 'fail')
   }
 }
 
@@ -67,9 +95,9 @@ async function onToggle(id: number) {
 async function onDelete(id: number) {
   try {
     await shoppingStore.deleteItem(id)
-    showToast('Продукт удален')
+    toast.show('Удалено из списка', 'info')
   } catch {
-    showToast({ type: 'fail', message: 'Ошибка при удалении' })
+    toast.show('Ошибка при удалении', 'fail')
   }
 }
 
@@ -79,366 +107,178 @@ function onSingleTransfer(item: LocalShoppingItem) {
   showTransferSheet.value = true
 }
 
-async function onQuickTransfer() {
-  if (shoppingStore.boughtCount === 0) return
+async function onQuickTransferAll() {
+  if (boughtCount.value === 0) return
   try {
-    await showConfirmDialog({
-      title: "Перенос в холодильник",
-      message: `Перенести все купленные товары (${shoppingStore.boughtCount} шт.) в холодильник?`
-    })
     const count = await shoppingStore.transferBoughtToInventory()
-    showToast({
-      type: "success",
-      message: `Перенесено в холодильник: ${count}`
-    })
+    toast.show(`Перенесено в холодильник: ${count}`, 'success')
   } catch {
-    // cancelled
+    toast.show('Не удалось перенести товары', 'fail')
   }
 }
 
-function onTransferToInventory() {
-  const bought = shoppingStore.items.filter((i) => i.isBought)
-  if (bought.length === 0) return
-
-  transferQueue.value = [...bought]
-  currentTransferIndex.value = 0
-  showTransferSheet.value = true
-}
-
-async function onConfirmTransferItem(payload: AddItemData) {
-  const currentItem = currentTransferItem.value
-  if (!currentItem) return
+async function onConfirmTransferItem(data: AddItemData) {
+  const item = currentTransferItem.value
+  if (!item || item.id == null) return
 
   try {
-    await inventoryStore.addItem(payload)
+    await inventoryStore.addItem(data)
+    await shoppingStore.deleteItem(item.id)
 
-    if (currentItem.id != null) {
-      await shoppingStore.deleteItem(currentItem.id)
-    }
-
-    if (currentTransferIndex.value + 1 < transferQueue.value.length) {
+    if (currentTransferIndex.value < transferQueue.value.length - 1) {
       currentTransferIndex.value++
-      showToast({
-        type: 'success',
-        message: `${payload.name} перенесен (${currentTransferIndex.value}/${transferQueue.value.length})`
-      })
     } else {
       showTransferSheet.value = false
-      transferQueue.value = []
-      currentTransferIndex.value = 0
-      showToast({ type: 'success', message: 'Продукты успешно перенесены в холодильник!' })
+      toast.show('Товары перенесены в холодильник!', 'success')
     }
   } catch {
-    showToast({ type: 'fail', message: 'Ошибка при переносе' })
+    toast.show('Ошибка при переносе', 'fail')
   }
 }
 </script>
 
 <template>
-  <div class="shopping-view">
-    <!-- Search Bar -->
-    <div class="search-header">
-      <van-search
-        v-model="shoppingStore.searchQuery"
-        placeholder="Поиск по списку покупок..."
-        shape="round"
-        clearable
-      />
-    </div>
-
-    <!-- Summary & Transfer Bar -->
-    <div v-if="shoppingStore.totalCount > 0" class="summary-bar">
-      <div class="summary-stat">
-        <span class="stat-badge">
-          Куплено {{ shoppingStore.boughtCount }} из {{ shoppingStore.totalCount }}
+  <div class="min-h-full pb-28 px-4 pt-3 flex flex-col gap-4">
+    <!-- Progress Header Card (Figma Row 7) -->
+    <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          Прогресс покупок
+        </span>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100">
+          {{ boughtCount }} из {{ totalCount }} ({{ progressPercent }}%)
         </span>
       </div>
 
-      <van-button
-        v-if="shoppingStore.boughtCount > 0"
-        round
-        size="small"
-        type="primary"
-        color="#064E3B"
-        icon="passed"
-        :loading="shoppingStore.isTransferring"
-        class="transfer-btn"
-        @click="onQuickTransfer"
-      >
-        В холодильник ({{ shoppingStore.boughtCount }})
-      </van-button>
-    </div>
+      <!-- Progress Line -->
+      <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div
+          class="h-full bg-gradient-to-r from-emerald-700 to-emerald-500 transition-all duration-300 rounded-full"
+          :style="{ width: `${progressPercent}%` }"
+        />
+      </div>
 
-    <!-- Category Filter Chips -->
-    <div v-if="shoppingStore.categories.length > 1" class="categories-scroll">
+      <!-- Quick Transfer All Button if items bought -->
       <button
+        v-if="boughtCount > 0"
         type="button"
-        class="filter-chip"
-        :class="{ active: shoppingStore.activeCategory === 'all' }"
-        @click="shoppingStore.activeCategory = 'all'"
+        class="mt-1 py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-emerald-100 active:scale-98 transition-all"
+        @click="onQuickTransferAll"
       >
-        Все ({{ shoppingStore.totalCount }})
-      </button>
-
-      <button
-        v-for="cat in shoppingStore.categories"
-        :key="cat"
-        type="button"
-        class="filter-chip"
-        :class="{ active: shoppingStore.activeCategory === cat }"
-        @click="shoppingStore.activeCategory = cat"
-      >
-        {{ cat }}
+        <Refrigerator class="w-4 h-4 text-emerald-700" />
+        <span>Перенести все купленные в холодильник ({{ boughtCount }})</span>
       </button>
     </div>
 
-    <!-- Pull to Refresh List -->
-    <div class="shopping-content">
-      <!-- Grouped Departments -->
-      <div v-if="shoppingStore.groupedCategories.length > 0" class="groups-container">
-        <template v-for="group in shoppingStore.groupedCategories" :key="group.category">
-          <div
-            v-if="group.items.filter((i) => !i.isBought).length > 0"
-            class="department-card"
-          >
-            <div class="department-header">
-              <span class="department-title">{{ group.category }}</span>
-              <span class="department-progress">
-                {{ group.boughtCount }}/{{ group.items.length }}
-              </span>
-            </div>
+    <!-- Search Input -->
+    <div class="relative flex items-center">
+      <Search class="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none stroke-[2.2px]" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Поиск по списку покупок..."
+        class="w-full pl-10 pr-9 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 transition-all shadow-xs"
+      />
+      <button
+        v-if="searchQuery"
+        type="button"
+        class="absolute right-3 p-1 text-slate-400 hover:text-slate-600 rounded-full"
+        aria-label="Очистить поиск"
+        @click="searchQuery = ''"
+      >
+        <X class="w-4 h-4" />
+      </button>
+    </div>
 
-            <div class="department-items">
-              <ShoppingItemCard
-                v-for="item in group.items.filter((i) => !i.isBought)"
-                :key="item.id || item.serverId || item.name"
-                :item="item"
-                @toggle="onToggle"
-                @delete="onDelete"
-                @transfer="onSingleTransfer"
-              />
-            </div>
-          </div>
-        </template>
+    <!-- Active To-Buy Items List -->
+    <div v-if="activeItems.length > 0" class="flex flex-col">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">
+        Нужно купить ({{ activeItems.length }})
+      </span>
+      <ShoppingItemCard
+        v-for="item in activeItems"
+        :key="item.id || item.serverId || item.name"
+        :item="item"
+        @toggle="onToggle"
+        @delete="onDelete"
+        @transfer="onSingleTransfer"
+      />
+    </div>
 
-        <div v-if="shoppingStore.boughtCount > 0" class="bought-section mt-4 mb-20 px-4">
-          <button
-            type="button"
-            class="w-full flex items-center justify-between p-3 rounded-squircle-sm bg-white/70 border border-culinary-border text-culinary-textMuted font-medium text-sm transition-all"
-            @click="isBoughtExpanded = !isBoughtExpanded"
-          >
-            <span class="flex items-center gap-2">
-              <van-icon :name="isBoughtExpanded ? 'arrow-down' : 'arrow'" />
-              Куплено ({{ shoppingStore.boughtCount }})
-            </span>
-            <span class="text-xs text-emerald-700 font-semibold">{{ isBoughtExpanded ? 'Скрыть' : 'Показать' }}</span>
-          </button>
-          <div v-if="isBoughtExpanded" class="bought-items-list mt-2 space-y-1">
-            <ShoppingItemCard
-              v-for="item in shoppingStore.items.filter((i) => i.isBought)"
-              :key="item.id || item.name"
-              :item="item"
-              @toggle="onToggle"
-              @delete="onDelete"
-              @transfer="onSingleTransfer"
-            />
-          </div>
-        </div>
-      </div>
+    <!-- Bought Items List (Collapsible) -->
+    <div v-if="boughtItems.length > 0" class="flex flex-col pt-1">
+      <button
+        type="button"
+        class="flex items-center justify-between py-2 px-1 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-700 transition-colors"
+        @click="isBoughtExpanded = !isBoughtExpanded"
+      >
+        <span class="flex items-center gap-1.5 text-emerald-800">
+          <CheckCheck class="w-4 h-4" />
+          Куплено ({{ boughtItems.length }})
+        </span>
+        <ChevronDown
+          class="w-4 h-4 transition-transform duration-200"
+          :class="{ 'rotate-180': isBoughtExpanded }"
+        />
+      </button>
 
-      <!-- Empty State -->
-      <div v-else class="empty-state">
-        <van-empty
-          image="default"
-          description="Список покупок пуст. Добавляйте недостающие продукты из рецептов или вручную!"
-        >
-          <van-button
-            round
-            type="primary"
-            color="#064E3B"
-            class="add-first-btn"
-            @click="showAddSheet = true"
-          >
-            Добавить продукт
-          </van-button>
-        </van-empty>
+      <div v-if="isBoughtExpanded" class="flex flex-col mt-1">
+        <ShoppingItemCard
+          v-for="item in boughtItems"
+          :key="item.id || item.serverId || item.name"
+          :item="item"
+          @toggle="onToggle"
+          @delete="onDelete"
+          @transfer="onSingleTransfer"
+        />
       </div>
     </div>
 
-    <!-- Floating Action Button (FAB) -->
-    <div class="fab-wrapper safe-area-bottom">
-      <van-button
-        round
-        type="primary"
-        icon="plus"
-        color="#064E3B"
-        class="fab-btn"
+    <!-- Empty State -->
+    <div
+      v-if="activeItems.length === 0 && boughtItems.length === 0"
+      class="flex flex-col items-center justify-center py-16 px-4 text-center"
+    >
+      <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4">
+        <ShoppingCart class="w-8 h-8 stroke-[1.8px]" />
+      </div>
+      <h3 class="text-base font-bold text-slate-900 mb-1">Список покупок пуст</h3>
+      <p class="text-xs text-slate-500 max-w-xs mb-5">
+        Добавляйте продукты вручную или отправляйте недостающие ингредиенты из рецептов в один тап.
+      </p>
+      <button
+        type="button"
+        class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all flex items-center gap-2"
         @click="showAddSheet = true"
       >
-        Добавить в список
-      </van-button>
+        <Plus class="w-4 h-4 stroke-[2.5px]" />
+        <span>Добавить товар</span>
+      </button>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-20 inset-x-0 max-w-lg mx-auto flex justify-center pointer-events-none z-30 px-4">
+      <button
+        type="button"
+        class="pointer-events-auto py-3 px-6 rounded-full bg-emerald-950 text-white text-sm font-bold flex items-center gap-2 shadow-elevated hover:bg-emerald-900 active:scale-95 transition-all"
+        @click="showAddSheet = true"
+      >
+        <Plus class="w-4 h-4 stroke-[3px]" />
+        <span>Добавить товар</span>
+      </button>
     </div>
 
     <!-- Add Item Bottom Sheet -->
     <AddShoppingItemSheet v-model:show="showAddSheet" @add="onAddItem" />
 
-    <!-- Sheet for transferring bought item to inventory with expiration date & amount -->
+    <!-- Transfer to Fridge Bottom Sheet -->
     <AddProductSheet
       v-model:show="showTransferSheet"
-      :initial-item="transferInitialData"
       :title="transferSheetTitle"
       submit-text="Перенести в холодильник"
+      :initial-item="transferInitialData"
       :hide-add-more="true"
       @add="onConfirmTransferItem"
     />
   </div>
 </template>
-
-<style scoped>
-.shopping-view {
-  min-height: 100%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.search-header {
-  padding: 4px 8px 0;
-}
-
-.summary-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.stat-badge {
-  font-size: 13px;
-  font-weight: 600;
-  color: #424242;
-}
-
-.transfer-btn {
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
-  min-height: 36px;
-}
-
-.categories-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 8px 12px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.categories-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.filter-chip {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  min-height: 36px;
-  border-radius: 18px;
-  border: 1px solid #e0e0e0;
-  background-color: #ffffff;
-  font-size: 13px;
-  font-weight: 500;
-  color: #4a4a4a;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-chip.active {
-  background-color: #064E3B;
-  border-color: #064E3B;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.shopping-content {
-  flex: 1;
-  padding-bottom: 84px;
-}
-
-.groups-container {
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.department-card {
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.department-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background-color: #f9fbe7;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.department-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #064E3B;
-}
-
-.department-progress {
-  font-size: 12px;
-  font-weight: 600;
-  color: #689f38;
-}
-
-.department-items {
-  display: flex;
-  flex-direction: column;
-}
-
-.empty-state {
-  padding: 32px 16px;
-}
-
-.add-first-btn {
-  min-width: 180px;
-  min-height: 44px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.fab-wrapper {
-  position: fixed;
-  bottom: calc(64px + env(safe-area-inset-bottom, 0));
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--app-max-width);
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 90;
-}
-
-.fab-btn {
-  pointer-events: auto;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
-  padding: 0 24px;
-  min-height: 44px;
-  font-weight: 600;
-  font-size: 15px;
-}
-</style>

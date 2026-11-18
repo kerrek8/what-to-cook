@@ -2,34 +2,25 @@ import { describe, it, expect } from 'vitest'
 import fs from 'fs'
 import path from 'path'
 
-describe('ProductCard Tap-to-Open and Swipe Hint Affordance', () => {
+describe('ProductCard Tailwind Implementation', () => {
   const filePath = path.resolve(__dirname, 'ProductCard.vue')
   const content = fs.readFileSync(filePath, 'utf-8')
 
-  it('declares swipeCellRef and connects it to van-swipe-cell', () => {
-    expect(content).toContain('ref="swipeCellRef"')
-    expect(content).toContain('const swipeCellRef = ref')
+  it('does not contain any van- components', () => {
+    expect(content).not.toContain('van-swipe-cell')
+    expect(content).not.toContain('van-button')
+    expect(content).not.toContain('van-icon')
+    expect(content).not.toContain("from 'vant'")
   })
 
-  it('implements tap-to-open click handler with haptics and stops click bubbling to prevent instant close', () => {
-    expect(content).toContain('@click.stop="onCardClick"')
-    expect(content).toContain("swipeCellRef.value?.open('right')")
-    expect(content).toContain('triggerHaptic')
-    expect(content).toContain(':right-width="128"')
+  it('emits edit and delete events and handles card tap', () => {
+    expect(content).toContain("emit('edit', props.item)")
+    expect(content).toContain("emit('delete', props.item.id)")
+    expect(content).toContain('onCardClick')
   })
 
-  it('renders compact action buttons with vertical icon-text layout for full visibility', () => {
-    expect(content).toContain('class="swipe-action-btn')
-    expect(content).toContain('action-btn-text')
-  })
-
-  it('renders visual swipe affordance chevron in template', () => {
-    expect(content).toContain('class="swipe-hint"')
-    expect(content).toContain('name="arrow-left"')
-  })
-
-  it('styles swipe-hint with transition and open rotation', () => {
-    expect(content).toContain('.swipe-hint')
-    expect(content).toContain('rotate(180deg)')
+  it('renders freshness badge and category icon', () => {
+    expect(content).toContain('getCategoryIcon')
+    expect(content).toContain('freshness')
   })
 })

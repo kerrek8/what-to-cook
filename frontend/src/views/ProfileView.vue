@@ -1,24 +1,39 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { showToast, showConfirmDialog } from 'vant'
+import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import { usePwaStore } from '@/stores/pwa'
+import { useToastStore } from '@/stores/toast'
 import { getIngredientsApi } from '@/api/ingredients'
 import { getImageUrl } from '@/utils/imageUrl'
 import { getInitials, getAvatarColor } from '@/utils/avatar'
 import { showLocalTestNotification } from '@/utils/push'
 import type { Ingredient } from '@/types/api'
+import BaseBottomSheet from '@/components/common/BaseBottomSheet.vue'
+import {
+  Camera,
+  User,
+  ShieldAlert,
+  ShoppingBag,
+  Bell,
+  Download,
+  Info,
+  LogOut,
+  ChevronRight,
+  Search,
+  Check,
+  X
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const pwaStore = usePwaStore()
+const toast = useToastStore()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isUploadingAvatar = ref(false)
-const showAvatarSheet = ref(false)
 
 const showAllergenSheet = ref(false)
 const showPantrySheet = ref(false)
@@ -26,23 +41,18 @@ const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
 
-const avatarActions = computed(() => {
-  const actions: Array<{ name: string; color?: string }> = [
-    { name: 'Загрузить новое фото', color: '#064E3B' }
-  ]
-  if (authStore.user?.avatarUrl) {
-    actions.push({ name: 'Удалить фото', color: '#f44336' })
-  }
-  return actions
-})
-
 const currentAllergenName = computed(() => {
   const allergenId = authStore.primaryAllergenId
   if (!allergenId) return 'Не выбрано'
   const found = ingredients.value.find((item) => item.id === allergenId)
   return found ? (found.name || `ID: ${allergenId}`) : `ID: ${allergenId}`
 })
-const pantryNames = computed(() => ingredients.value.filter(i => authStore.user?.pantryIngredientIds.includes(i.id)).map(i => i.name))
+
+const pantryNames = computed(() =>
+  ingredients.value
+    .filter((i) => authStore.user?.pantryIngredientIds.includes(i.id))
+    .map((i) => i.name)
+)
 
 const filteredIngredients = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -58,23 +68,6 @@ function triggerFileInput() {
   fileInputRef.value?.click()
 }
 
-function onAvatarClick() {
-  if (authStore.user?.avatarUrl) {
-    showAvatarSheet.value = true
-  } else {
-    triggerFileInput()
-  }
-}
-
-function onSelectAvatarAction(action: { name: string }) {
-  showAvatarSheet.value = false
-  if (action.name === 'Загрузить новое фото') {
-    triggerFileInput()
-  } else if (action.name === 'Удалить фото') {
-    handleDeleteAvatar()
-  }
-}
-
 async function onFileSelected(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
@@ -82,13 +75,13 @@ async function onFileSelected(event: Event) {
 
   const validTypes = ['image/jpeg', 'image/png', 'image/webp']
   if (!validTypes.includes(file.type)) {
-    showToast({ type: 'fail', message: 'Формат должен быть JPG, PNG или WebP' })
+    toast.show('Формат должен быть JPG, PNG или WebP', 'fail')
     if (fileInputRef.value) fileInputRef.value.value = ''
     return
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    showToast({ type: 'fail', message: 'Размер файла не должен превышать 5 МБ' })
+    toast.show('Размер файла не должен превышать 5 МБ', 'fail')
     if (fileInputRef.value) fileInputRef.value.value = ''
     return
   }
@@ -96,10 +89,10 @@ async function onFileSelected(event: Event) {
   isUploadingAvatar.value = true
   try {
     await authStore.uploadAvatar(file)
-    showToast({ type: 'success', message: 'Аватар успешно обновлен' })
+    toast.show('Аватар успешно обновлен', 'success')
   } catch (err: any) {
     const msg = err.response?.data?.error || 'Не удалось загрузить аватар'
-    showToast({ type: 'fail', message: msg })
+    toast.show(msg, 'fail')
   } finally {
     isUploadingAvatar.value = false
     if (fileInputRef.value) fileInputRef.value.value = ''
@@ -107,18 +100,9 @@ async function onFileSelected(event: Event) {
 }
 
 async function handleDeleteAvatar() {
-  try {
-    await showConfirmDialog({
-      title: 'Удалить аватар',
-      message: 'Вы уверены, что хотите удалить фото профиля?',
-      confirmButtonText: 'Удалить',
-      confirmButtonColor: '#f44336',
-      cancelButtonText: 'Отмена'
-    })
+  if (confirm('Вы уверены, что хотите удалить фото профиля?')) {
     await authStore.deleteAvatar()
-    showToast({ type: 'success', message: 'Аватар удален' })
-  } catch {
-    // Cancelled dialog
+    toast.show('Аватар удален', 'success')
   }
 }
 
@@ -128,7 +112,6 @@ async function loadIngredients() {
   try {
     ingredients.value = await getIngredientsApi()
   } catch {
-    // Fallback if offline
     ingredients.value = [
       { id: 1, name: 'Молоко', category: 'Молочные продукты', defaultUnit: 'л', isPantryEssential: false },
       { id: 2, name: 'Яйца', category: 'Яйца', defaultUnit: 'шт', isPantryEssential: false },
@@ -143,7 +126,7 @@ async function loadIngredients() {
 
 function openAllergenPicker() {
   if (!authStore.isAuthenticated) {
-    showToast('Войдите, чтобы сохранить продукт-исключение')
+    toast.show('Войдите, чтобы сохранить продукт-исключение', 'info')
     router.push('/login')
     return
   }
@@ -154,28 +137,28 @@ function openAllergenPicker() {
 async function selectAllergen(id: number | null) {
   try {
     await authStore.setAllergen(id)
-    showToast({ type: 'success', message: id ? 'Аллерген сохранен' : 'Исключение снято' })
+    toast.show(id ? 'Аллерген сохранен' : 'Исключение снято', 'success')
     showAllergenSheet.value = false
   } catch (err: any) {
     const msg = err.response?.data?.error || 'Не удалось обновить исключение'
-    showToast({ type: 'fail', message: msg })
+    toast.show(msg, 'fail')
   }
 }
 
 async function togglePantry(id: number) {
   const current = authStore.user?.pantryIngredientIds ?? []
-  const next = current.includes(id) ? current.filter(value => value !== id) : [...current, id]
+  const next = current.includes(id) ? current.filter((val) => val !== id) : [...current, id]
   try {
     await authStore.setPantry(next)
-    showToast({ type: 'success', message: 'Базовая корзина сохранена' })
+    toast.show('Базовая корзина сохранена', 'success')
   } catch {
-    showToast({ type: 'fail', message: 'Не удалось сохранить базовую корзину' })
+    toast.show('Не удалось сохранить базовую корзину', 'fail')
   }
 }
 
 function openPantryPicker() {
   if (!authStore.isAuthenticated) {
-    showToast('Войдите, чтобы настроить базовую корзину')
+    toast.show('Войдите, чтобы настроить базовую корзину', 'info')
     router.push('/login')
     return
   }
@@ -183,52 +166,43 @@ function openPantryPicker() {
   showPantrySheet.value = true
 }
 
-async function onNotificationSwitch(val: boolean) {
+async function onNotificationToggle() {
   if (!authStore.isAuthenticated) {
-    showToast('Войдите в аккаунт, чтобы получать уведомления')
+    toast.show('Войдите в аккаунт, чтобы получать уведомления', 'info')
     router.push('/login')
     return
   }
 
-  if (val) {
+  if (!notificationStore.isSubscribed) {
     const ok = await notificationStore.enableNotifications()
     if (ok) {
-      showToast({ type: 'success', message: 'Уведомления включены' })
+      toast.show('Уведомления включены', 'success')
     } else {
       if (notificationStore.permission === 'denied') {
-        showToast({ type: 'fail', message: 'Разрешите уведомления в настройках браузера' })
+        toast.show('Разрешите уведомления в настройках браузера', 'fail')
       } else {
-        showToast('Уведомления не подключены')
+        toast.show('Уведомления не подключены', 'info')
       }
     }
   } else {
     await notificationStore.disableNotifications()
-    showToast('Уведомления отключены')
+    toast.show('Уведомления отключены', 'info')
   }
 }
 
 async function handleTestNotification() {
   const sent = await showLocalTestNotification()
   if (sent) {
-    showToast({ type: 'success', message: 'Тестовое уведомление отправлено' })
+    toast.show('Тестовое уведомление отправлено', 'success')
   } else {
-    showToast({ type: 'fail', message: 'Не удалось показать уведомление. Проверьте настройки браузера.' })
+    toast.show('Не удалось показать уведомление. Проверьте настройки браузера.', 'fail')
   }
 }
 
 async function handleLogout() {
-  try {
-    await showConfirmDialog({
-      title: 'Выход из профиля',
-      message: 'Вы уверены, что хотите выйти из аккаунта?',
-      confirmButtonText: 'Выйти',
-      confirmButtonColor: '#f44336',
-      cancelButtonText: 'Отмена'
-    })
+  if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
     await authStore.logout()
-    showToast({ type: 'success', message: 'Вы вышли из системы' })
-  } catch {
-    // Cancelled dialog
+    toast.show('Вы вышли из системы', 'success')
   }
 }
 
@@ -239,55 +213,56 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="view-container">
-    <!-- Authenticated Header -->
-    <div v-if="authStore.isAuthenticated && authStore.user" class="user-card">
-      <div class="avatar-wrapper">
-        <div class="avatar-container" @click="onAvatarClick">
-          <img
-            v-if="authStore.user.avatarUrl"
-            :src="getImageUrl(authStore.user.avatarUrl)"
-            :alt="authStore.user.name"
-            class="avatar-img"
-          />
-          <div
-            v-else
-            class="avatar-placeholder"
-            :style="{ backgroundColor: getAvatarColor(authStore.user.name) }"
-          >
-            <span class="avatar-initials">{{ getInitials(authStore.user.name) }}</span>
-          </div>
-
-          <div v-if="isUploadingAvatar" class="avatar-loading-overlay">
-            <van-loading size="20px" color="#ffffff" />
-          </div>
-
-          <button
-            type="button"
-            class="avatar-upload-badge"
-            aria-label="Сменить фото"
-            @click.stop="triggerFileInput"
-          >
-            <van-icon name="photograph" size="13px" color="#ffffff" />
-          </button>
+  <div class="min-h-full pb-28 px-4 pt-3 flex flex-col gap-4">
+    <!-- User Profile Card -->
+    <div
+      v-if="authStore.isAuthenticated && authStore.user"
+      class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4"
+    >
+      <!-- Avatar -->
+      <div class="relative cursor-pointer select-none" @click="triggerFileInput">
+        <img
+          v-if="authStore.user.avatarUrl"
+          :src="getImageUrl(authStore.user.avatarUrl)"
+          :alt="authStore.user.name"
+          class="w-16 h-16 rounded-full object-cover border-2 border-emerald-800 shadow-sm"
+        />
+        <div
+          v-else
+          class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold border-2 border-emerald-800 shadow-sm"
+          :style="{ backgroundColor: getAvatarColor(authStore.user.name) }"
+        >
+          {{ getInitials(authStore.user.name) }}
         </div>
+
+        <button
+          type="button"
+          class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-950 text-white flex items-center justify-center border-2 border-white shadow-xs"
+          aria-label="Сменить фото"
+        >
+          <Camera class="w-3 h-3" />
+        </button>
 
         <input
           ref="fileInputRef"
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          class="hidden-file-input"
+          class="hidden"
           @change="onFileSelected"
         />
       </div>
 
-      <div class="user-meta">
-        <h3 class="user-name">{{ authStore.user.name }}</h3>
-        <p class="user-subtitle">{{ authStore.user.email }}</p>
+      <div class="flex flex-col min-w-0 flex-1">
+        <h3 class="text-base font-bold text-slate-900 truncate">
+          {{ authStore.user.name }}
+        </h3>
+        <p class="text-xs text-slate-400 truncate">
+          {{ authStore.user.email }}
+        </p>
         <button
           v-if="authStore.user.avatarUrl"
           type="button"
-          class="avatar-delete-link"
+          class="text-xs text-rose-600 font-medium text-left mt-1 hover:underline"
           @click="handleDeleteAvatar"
         >
           Удалить фото
@@ -295,346 +270,252 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Guest Header -->
-    <div v-else class="guest-card">
-      <div class="guest-top">
-        <div class="avatar-container guest-avatar">
-          <van-icon name="user-o" size="28px" color="#969799" />
-        </div>
-        <div class="guest-meta">
-          <h3 class="user-name">Гостевой режим</h3>
-          <p class="user-subtitle">Войдите, чтобы синхронизировать холодильник и рецепты</p>
-        </div>
-      </div>
-      <div class="guest-actions">
-        <router-link to="/login">
-          <van-button round size="small" type="primary" color="#064E3B">Войти</van-button>
-        </router-link>
-        <router-link to="/register">
-          <van-button round size="small" plain type="primary" color="#064E3B">Регистрация</van-button>
-        </router-link>
-      </div>
-    </div>
-
-    <!-- Settings Group -->
-    <van-cell-group inset title="Диетические ограничения">
-      <van-cell
-        title="Продукт-исключение (Аллергия)"
-        :value="currentAllergenName"
-        is-link
-        label="1 бесплатный продукт в MVP"
-        @click="openAllergenPicker"
-      />
-      <van-cell title="Базовая корзина" :value="pantryNames.length ? pantryNames.join(', ') : 'Не настроена'" is-link @click="openPantryPicker" />
-    </van-cell-group>
-
-    <van-cell-group inset title="Уведомления и система" class="settings-group">
-      <van-cell
-        center
-        title="Уведомления о сроках годности"
-        label="Web Push напоминания за 1-2 дня"
-      >
-        <template #right-icon>
-          <van-switch
-            :model-value="notificationStore.isSubscribed"
-            :loading="notificationStore.isLoading"
-            size="22px"
-            active-color="#064E3B"
-            @update:model-value="onNotificationSwitch"
-          />
-        </template>
-      </van-cell>
-      <van-cell
-        v-if="notificationStore.isSubscribed"
-        title="Тестовое уведомление"
-        value="Отправить"
-        is-link
-        @click="handleTestNotification"
-      />
-      <van-cell
-        v-if="pwaStore.canInstall"
-        title="Установить WhatCook"
-        value="На экран телефона"
-        is-link
-        @click="pwaStore.installApp"
-      />
-      <van-cell
-        title="Режим работы"
-        :value="pwaStore.isInstalled ? 'Установлено (Standalone)' : 'PWA (Браузер)'"
-      />
-      <van-cell title="Локальная база" value="IndexedDB / Dexie.js" />
-      <van-cell title="Каталог рецептов" value="Русская кухня + Sber GigaChat" />
-      <van-cell title="О приложении" value="WhatCook v0.8.6" />
-    </van-cell-group>
-
-    <!-- Logout Action for Authenticated User -->
-    <div v-if="authStore.isAuthenticated" class="logout-wrapper">
-      <van-button round block plain type="danger" @click="handleLogout">
-        Выйти из аккаунта
-      </van-button>
-    </div>
-
-    <!-- Avatar Actions Sheet -->
-    <van-action-sheet
-      v-model:show="showAvatarSheet"
-      :actions="avatarActions"
-      cancel-text="Отмена"
-      close-on-click-action
-      @select="onSelectAvatarAction"
-    />
-
-    <!-- Allergen Picker Popup -->
-    <van-popup
-      v-model:show="showAllergenSheet"
-      round
-      position="bottom"
-      :style="{ height: '70%' }"
-      closeable
+    <!-- Guest Banner -->
+    <div
+      v-else
+      class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3"
     >
-      <div class="popup-content">
-        <h4 class="popup-title">Выберите продукт-исключение</h4>
-        <van-search
-          v-model="searchQuery"
-          placeholder="Поиск ингредиента..."
-          shape="round"
-          class="popup-search"
-        />
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center">
+          <User class="w-6 h-6 stroke-[1.8px]" />
+        </div>
+        <div class="flex flex-col">
+          <h3 class="text-sm font-bold text-slate-900">Гостевой режим</h3>
+          <p class="text-xs text-slate-500">Войдите для синхронизации с облаком</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <RouterLink
+          to="/login"
+          class="py-2.5 px-3 rounded-xl bg-emerald-950 text-white text-xs font-bold text-center hover:bg-emerald-900 transition-all"
+        >
+          Войти
+        </RouterLink>
+        <RouterLink
+          to="/register"
+          class="py-2.5 px-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-bold text-center hover:bg-emerald-100 transition-all"
+        >
+          Регистрация
+        </RouterLink>
+      </div>
+    </div>
 
-        <div class="ingredient-list">
-          <van-cell
-            v-if="authStore.primaryAllergenId"
-            title="Сбросить исключение"
-            class="reset-cell"
-            @click="selectAllergen(null)"
-          >
-            <template #right-icon>
-              <van-icon name="cross" color="#f44336" />
-            </template>
-          </van-cell>
+    <!-- Dietary Constraints Group -->
+    <div class="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden divide-y divide-slate-100">
+      <div class="px-4 py-3 bg-slate-50/50">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Диетические ограничения
+        </span>
+      </div>
 
-          <van-cell
+      <!-- Exclusion Allergen -->
+      <div
+        class="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+        @click="openAllergenPicker"
+      >
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <ShieldAlert class="w-5 h-5 text-emerald-800 shrink-0 stroke-[2px]" />
+          <div class="flex flex-col min-w-0">
+            <span class="text-sm font-semibold text-slate-800 leading-tight">Продукт-исключение</span>
+            <span class="text-xs text-slate-400">1 бесплатный продукт в MVP</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-xs font-bold text-emerald-800">{{ currentAllergenName }}</span>
+          <ChevronRight class="w-4 h-4 text-slate-300" />
+        </div>
+      </div>
+
+      <!-- Pantry Essentials -->
+      <div
+        class="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+        @click="openPantryPicker"
+      >
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <ShoppingBag class="w-5 h-5 text-emerald-800 shrink-0 stroke-[2px]" />
+          <div class="flex flex-col min-w-0">
+            <span class="text-sm font-semibold text-slate-800 leading-tight">Базовая корзина</span>
+            <span class="text-xs text-slate-400 truncate max-w-[200px]">
+              {{ pantryNames.length ? pantryNames.join(', ') : 'Не настроена' }}
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <ChevronRight class="w-4 h-4 text-slate-300" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications & App Info Group -->
+    <div class="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden divide-y divide-slate-100">
+      <div class="px-4 py-3 bg-slate-50/50">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Уведомления и система
+        </span>
+      </div>
+
+      <!-- Web Push Switch -->
+      <div class="px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <Bell class="w-5 h-5 text-emerald-800 shrink-0 stroke-[2px]" />
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-slate-800 leading-tight">Сроки годности</span>
+            <span class="text-xs text-slate-400">Web Push напоминания</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="w-11 h-6 rounded-full transition-colors p-0.5 relative"
+          :class="notificationStore.isSubscribed ? 'bg-emerald-800' : 'bg-slate-300'"
+          @click="onNotificationToggle"
+        >
+          <div
+            class="w-5 h-5 rounded-full bg-white transition-transform"
+            :class="notificationStore.isSubscribed ? 'translate-x-5' : 'translate-x-0'"
+          />
+        </button>
+      </div>
+
+      <!-- Test Push Notification -->
+      <div
+        v-if="notificationStore.isSubscribed"
+        class="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+        @click="handleTestNotification"
+      >
+        <span class="text-xs font-semibold text-slate-700">Тестовое уведомление</span>
+        <span class="text-xs font-bold text-emerald-800">Отправить</span>
+      </div>
+
+      <!-- PWA Install -->
+      <div
+        v-if="pwaStore.canInstall"
+        class="px-4 py-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+        @click="pwaStore.installApp"
+      >
+        <div class="flex items-center gap-3">
+          <Download class="w-5 h-5 text-emerald-800 stroke-[2px]" />
+          <span class="text-sm font-semibold text-slate-800">Установить WhatCook</span>
+        </div>
+        <span class="text-xs font-bold text-emerald-800">На экран</span>
+      </div>
+
+      <!-- System Badges -->
+      <div class="px-4 py-3 flex items-center justify-between text-xs text-slate-600">
+        <span class="flex items-center gap-2">
+          <Info class="w-4 h-4 text-slate-400" />
+          Режим работы
+        </span>
+        <span class="font-semibold">{{ pwaStore.isInstalled ? 'Standalone PWA' : 'Браузер' }}</span>
+      </div>
+
+      <div class="px-4 py-3 flex items-center justify-between text-xs text-slate-600">
+        <span class="text-slate-500">Версия приложения</span>
+        <span class="font-bold text-emerald-950">WhatCook v0.9.0</span>
+      </div>
+    </div>
+
+    <!-- Logout Button for Authenticated User -->
+    <button
+      v-if="authStore.isAuthenticated"
+      type="button"
+      class="w-full py-3.5 px-4 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-700 text-sm font-bold flex items-center justify-center gap-2 hover:bg-rose-100 active:scale-98 transition-all"
+      @click="handleLogout"
+    >
+      <LogOut class="w-4 h-4" />
+      <span>Выйти из аккаунта</span>
+    </button>
+
+    <!-- Allergen Picker Bottom Sheet -->
+    <BaseBottomSheet
+      v-model:show="showAllergenSheet"
+      title="Выберите продукт-исключение"
+    >
+      <div class="flex flex-col gap-3">
+        <div class="relative flex items-center">
+          <Search class="absolute left-3 w-4 h-4 text-slate-400" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Поиск ингредиента..."
+            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+          />
+        </div>
+
+        <button
+          v-if="authStore.primaryAllergenId"
+          type="button"
+          class="py-2 px-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-semibold flex items-center justify-between hover:bg-rose-100 transition-colors"
+          @click="selectAllergen(null)"
+        >
+          <span>Сбросить исключение</span>
+          <X class="w-4 h-4" />
+        </button>
+
+        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 flex flex-col">
+          <button
             v-for="item in filteredIngredients"
             :key="item.id"
-            :title="item.name"
-            :label="item.category"
-            clickable
+            type="button"
+            class="py-2.5 px-2 text-left flex items-center justify-between hover:bg-emerald-50/50 transition-colors"
             @click="selectAllergen(item.id)"
           >
-            <template #right-icon>
-              <van-icon
-                v-if="authStore.primaryAllergenId === item.id"
-                name="success"
-                color="#064E3B"
-              />
-            </template>
-          </van-cell>
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-slate-800">{{ item.name }}</span>
+              <span class="text-[10px] text-slate-400">{{ item.category }}</span>
+            </div>
+            <Check
+              v-if="authStore.primaryAllergenId === item.id"
+              class="w-4 h-4 text-emerald-800 stroke-[3px]"
+            />
+          </button>
+        </div>
+      </div>
+    </BaseBottomSheet>
 
-          <van-empty
-            v-if="filteredIngredients.length === 0 && !isLoadingIngredients"
-            description="Ничего не найдено"
+    <!-- Pantry Picker Bottom Sheet -->
+    <BaseBottomSheet
+      v-model:show="showPantrySheet"
+      title="Базовая корзина (всегда дома)"
+    >
+      <div class="flex flex-col gap-3">
+        <div class="relative flex items-center">
+          <Search class="absolute left-3 w-4 h-4 text-slate-400" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Поиск ингредиента..."
+            class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
-      </div>
-    </van-popup>
 
-    <van-popup v-model:show="showPantrySheet" round position="bottom" :style="{ height: '70%' }" closeable>
-      <div class="popup-content">
-        <h4 class="popup-title">Продукты, которые обычно есть дома</h4>
-        <van-search v-model="searchQuery" placeholder="Поиск ингредиента..." shape="round" class="popup-search" />
-        <div class="ingredient-list">
-          <van-cell v-for="item in filteredIngredients" :key="item.id" :title="item.name" :label="item.category" clickable @click="togglePantry(item.id)">
-            <template #right-icon><van-checkbox :model-value="authStore.user?.pantryIngredientIds.includes(item.id) ?? false" /></template>
-          </van-cell>
+        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100 flex flex-col">
+          <button
+            v-for="item in filteredIngredients"
+            :key="item.id"
+            type="button"
+            class="py-2.5 px-2 text-left flex items-center justify-between hover:bg-emerald-50/50 transition-colors"
+            @click="togglePantry(item.id)"
+          >
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-slate-800">{{ item.name }}</span>
+              <span class="text-[10px] text-slate-400">{{ item.category }}</span>
+            </div>
+            <div
+              class="w-5 h-5 rounded-md border flex items-center justify-center transition-all"
+              :class="
+                authStore.user?.pantryIngredientIds.includes(item.id)
+                  ? 'bg-emerald-950 text-white border-emerald-950'
+                  : 'bg-white border-slate-300'
+              "
+            >
+              <Check
+                v-if="authStore.user?.pantryIngredientIds.includes(item.id)"
+                class="w-3.5 h-3.5 stroke-[3px]"
+              />
+            </div>
+          </button>
         </div>
       </div>
-    </van-popup>
+    </BaseBottomSheet>
   </div>
 </template>
-
-<style scoped>
-.view-container {
-  padding: 16px 0 80px;
-}
-
-.user-card,
-.guest-card {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  margin: 0 16px 16px;
-  background-color: var(--van-background-2);
-  border-radius: 20px;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.user-card {
-  flex-direction: row;
-  align-items: center;
-}
-
-.avatar-wrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.avatar-container {
-  position: relative;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.avatar-img {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-.avatar-placeholder {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-}
-
-.avatar-initials {
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  line-height: 1;
-}
-
-.avatar-loading-overlay {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-upload-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #064E3B;
-  border: 2px solid var(--van-background-2, #ffffff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  padding: 0;
-  transition: transform 0.15s ease;
-}
-
-.avatar-upload-badge:active {
-  transform: scale(0.92);
-}
-
-.hidden-file-input {
-  display: none;
-}
-
-.avatar-delete-link {
-  background: none;
-  border: none;
-  padding: 0;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #f44336;
-  cursor: pointer;
-  display: inline-block;
-  text-align: left;
-}
-
-.user-meta {
-  margin-left: 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-.guest-card {
-  gap: 12px;
-}
-
-.guest-top {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.guest-avatar {
-  background-color: var(--van-gray-2, #f2f3f5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-}
-
-.guest-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.user-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.user-subtitle {
-  font-size: 13px;
-  color: #969799;
-}
-
-.settings-group {
-  margin-top: 16px;
-}
-
-.logout-wrapper {
-  margin: 24px 16px;
-}
-
-.popup-content {
-  padding-top: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.popup-title {
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.popup-search {
-  padding: 4px 16px;
-}
-
-.ingredient-list {
-  flex: 1;
-  overflow-y: auto;
-  margin-top: 8px;
-}
-
-.reset-cell {
-  color: #f44336;
-  font-weight: 500;
-}
-</style>

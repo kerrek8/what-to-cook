@@ -93,3 +93,8 @@ backend/scripts/
 recipe_preview.html
 test_output/
 test_comparison.html
+
+# Local AI agent development files (excluded from remote repository)
+AGENTS.md
+docs/superpowers/
+
