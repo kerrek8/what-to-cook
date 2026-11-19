@@ -291,7 +291,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 
       <!-- Empty State -->
       <div v-else class="py-16 text-center flex flex-col items-center">
-        <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4">
+        <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs flex items-center justify-center mb-4">
           <ChefHat class="w-8 h-8 stroke-[1.8px]" />
         </div>
         <h3 class="text-base font-bold text-slate-900 mb-1">Нет подходящих рецептов</h3>
@@ -300,7 +300,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
         </p>
         <button
           type="button"
-          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all"
+          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-sm font-semibold flex items-center gap-2 hover:bg-emerald-900 active:scale-98 transition-all shadow-md shadow-emerald-950/15"
           @click="resetAllFilters"
         >
           Сбросить фильтры
@@ -336,7 +336,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 
       <!-- Empty State -->
       <div v-else class="py-16 text-center flex flex-col items-center">
-        <div class="w-16 h-16 rounded-3xl bg-slate-100 text-slate-600 flex items-center justify-center mb-4">
+        <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs flex items-center justify-center mb-4">
           <BookOpen class="w-8 h-8 stroke-[1.8px]" />
         </div>
         <h3 class="text-base font-bold text-slate-900 mb-1">Рецепты не найдены</h3>
@@ -345,7 +345,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
         </p>
         <button
           type="button"
-          class="py-2.5 px-5 rounded-2xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all"
+          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-sm font-semibold flex items-center gap-2 hover:bg-emerald-900 active:scale-98 transition-all shadow-md shadow-emerald-950/15"
           @click="resetAllFilters"
         >
           Сбросить поиск
@@ -365,7 +365,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
 
       <!-- Empty Favorites -->
       <div v-else class="py-16 text-center flex flex-col items-center">
-        <div class="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+        <div class="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 border border-rose-100 shadow-xs flex items-center justify-center mb-4">
           <Heart class="w-8 h-8 stroke-[1.8px]" />
         </div>
         <h3 class="text-base font-bold text-slate-900 mb-1">Нет сохраненных рецептов</h3>
@@ -374,7 +374,7 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
         </p>
         <button
           type="button"
-          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all"
+          class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-sm font-semibold flex items-center gap-2 hover:bg-emerald-900 active:scale-98 transition-all shadow-md shadow-emerald-950/15"
           @click="recipeStore.activeTab = 'all'"
         >
           Перейти в каталог

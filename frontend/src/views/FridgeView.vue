@@ -142,7 +142,7 @@ onMounted(() => {
 
     <!-- Empty State -->
     <div v-else class="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4 border border-emerald-100 shadow-xs">
+      <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs flex items-center justify-center mb-4">
         <Refrigerator class="w-8 h-8 stroke-[1.8px]" />
       </div>
       <h3 class="text-base font-bold text-slate-900 mb-1">

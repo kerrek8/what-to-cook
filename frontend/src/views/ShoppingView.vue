@@ -239,7 +239,7 @@ async function onConfirmTransferItem(data: AddItemData) {
       v-if="activeItems.length === 0 && boughtItems.length === 0"
       class="flex flex-col items-center justify-center py-16 px-4 text-center"
     >
-      <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4">
+      <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs flex items-center justify-center mb-4">
         <ShoppingCart class="w-8 h-8 stroke-[1.8px]" />
       </div>
       <h3 class="text-base font-bold text-slate-900 mb-1">Список покупок пуст</h3>
@@ -248,7 +248,7 @@ async function onConfirmTransferItem(data: AddItemData) {
       </p>
       <button
         type="button"
-        class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-xs font-bold hover:bg-emerald-900 transition-all flex items-center gap-2"
+        class="py-2.5 px-5 rounded-2xl bg-emerald-950 text-white text-sm font-semibold flex items-center gap-2 hover:bg-emerald-900 active:scale-98 transition-all shadow-md shadow-emerald-950/15"
         @click="showAddSheet = true"
       >
         <Plus class="w-4 h-4 stroke-[2.5px]" />
