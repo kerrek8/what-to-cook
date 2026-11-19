@@ -7,9 +7,13 @@ import ReloadPrompt from '@/components/common/ReloadPrompt.vue'
 import BaseToast from '@/components/common/BaseToast.vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useShoppingStore } from '@/stores/shopping'
+import { useBackPressExit } from '@/composables/useBackPressExit'
 
 const route = useRoute()
 const isCookMode = computed(() => route.path.endsWith('/cook'))
+
+// Initialize double-back exit protection
+useBackPressExit()
 
 const inventoryStore = useInventoryStore()
 const shoppingStore = useShoppingStore()

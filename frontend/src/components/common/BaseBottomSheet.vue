@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
+import { registerModalOpen, registerModalClose } from '@/utils/modalStack'
 
 const props = withDefaults(
   defineProps<{
@@ -39,6 +40,7 @@ watch(
     if (typeof window === 'undefined') return
 
     if (val) {
+      registerModalOpen()
       document.body.style.overflow = 'hidden'
       // Push state so Android/browser back gesture closes the bottom sheet instead of exiting/navigating
       try {
@@ -49,6 +51,7 @@ watch(
         // Fallback if pushState fails in restricted sandbox
       }
     } else {
+      registerModalClose()
       document.body.style.overflow = ''
       window.removeEventListener('popstate', onPopState)
       if (hasPushedHistory) {
@@ -65,6 +68,9 @@ watch(
 
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
+    if (props.show) {
+      registerModalClose()
+    }
     document.body.style.overflow = ''
     window.removeEventListener('popstate', onPopState)
     if (hasPushedHistory) {
