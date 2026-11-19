@@ -11,6 +11,7 @@ import { getInitials, getAvatarColor } from '@/utils/avatar'
 import { showLocalTestNotification } from '@/utils/push'
 import type { Ingredient } from '@/types/api'
 import BaseBottomSheet from '@/components/common/BaseBottomSheet.vue'
+import BaseConfirmDialog from '@/components/common/BaseConfirmDialog.vue'
 import {
   Camera,
   User,
@@ -37,6 +38,8 @@ const isUploadingAvatar = ref(false)
 
 const showAllergenSheet = ref(false)
 const showPantrySheet = ref(false)
+const showDeleteAvatarConfirm = ref(false)
+const showLogoutConfirm = ref(false)
 const searchQuery = ref('')
 const ingredients = ref<Ingredient[]>([])
 const isLoadingIngredients = ref(false)
@@ -99,11 +102,14 @@ async function onFileSelected(event: Event) {
   }
 }
 
-async function handleDeleteAvatar() {
-  if (confirm('Вы уверены, что хотите удалить фото профиля?')) {
-    await authStore.deleteAvatar()
-    toast.show('Аватар удален', 'success')
-  }
+function confirmDeleteAvatar() {
+  showDeleteAvatarConfirm.value = true
+}
+
+async function onConfirmDeleteAvatar() {
+  showDeleteAvatarConfirm.value = false
+  await authStore.deleteAvatar()
+  toast.show('Аватар удален', 'success')
 }
 
 async function loadIngredients() {
@@ -199,11 +205,14 @@ async function handleTestNotification() {
   }
 }
 
-async function handleLogout() {
-  if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
-    await authStore.logout()
-    toast.show('Вы вышли из системы', 'success')
-  }
+function handleLogout() {
+  showLogoutConfirm.value = true
+}
+
+async function onConfirmLogout() {
+  showLogoutConfirm.value = false
+  await authStore.logout()
+  toast.show('Вы вышли из системы', 'success')
 }
 
 onMounted(() => {
@@ -263,7 +272,7 @@ onMounted(() => {
           v-if="authStore.user.avatarUrl"
           type="button"
           class="text-xs text-rose-600 font-medium text-left mt-1 hover:underline"
-          @click="handleDeleteAvatar"
+          @click="confirmDeleteAvatar"
         >
           Удалить фото
         </button>
@@ -517,5 +526,27 @@ onMounted(() => {
         </div>
       </div>
     </BaseBottomSheet>
+
+    <!-- Logout Confirmation Modal (Figma Row 7) -->
+    <BaseConfirmDialog
+      v-model:show="showLogoutConfirm"
+      title="Выйти из аккаунта?"
+      message="Ваши данные останутся сохранены в облаке и будут доступны при следующем входе."
+      confirm-text="Выйти"
+      cancel-text="Отмена"
+      type="danger"
+      @confirm="onConfirmLogout"
+    />
+
+    <!-- Avatar Delete Confirmation Modal -->
+    <BaseConfirmDialog
+      v-model:show="showDeleteAvatarConfirm"
+      title="Удалить фото профиля?"
+      message="Фотография профиля будет удалена, вместо нее будут отображаться ваши инициалы."
+      confirm-text="Удалить"
+      cancel-text="Отмена"
+      type="danger"
+      @confirm="onConfirmDeleteAvatar"
+    />
   </div>
 </template>
