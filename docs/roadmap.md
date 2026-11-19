@@ -931,5 +931,38 @@ flowchart TD
   - Пройдены все 102 юнит-теста фронтенда (`bun run test` — 21 сьют), проверка типов (`bun run type-check`) и продакшен-сборка (`bun run build`).
   - Все тесты (`go test ./...`) и линтер (`go vet ./...`) бэкенда пройдены со 100% успехом.
 
+---
+
+## ✅ Завершен: Полное соответствие дизайн-макету Figma и редизайн авторизации (v0.9.3)
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f30-figma-full-compliance-and-auth-redesign`.
+- **Цель**: Доведение клиентского PWA-приложения WhatCook до 100% визуального и интерактивного паритета с дизайн-макетом Figma (Node 0-1):
+  1. Внедрение векторного брендинга `BrandLogo.vue` без сырых эмодзи.
+  2. Замена браузерных диалогов `confirm()` на стилизованные модальные окна `BaseConfirmDialog.vue` (Figma Row 7).
+  3. Редизайн экранов входа (`LoginView.vue`) и регистрации (`RegisterView.vue`) с верхним изумрудным баннером Hero (Figma Row 8) и белой карточкой формы с выездом.
+  4. Унификация стилей пустых состояний (Empty States) во всех ключевых разделах приложения (Холодильник, Список покупок, Рецепты).
+
+### Выполнено
+
+- [x] **Векторный брендинг ([`BrandLogo.vue`](file:///D:/projects/whatcook/frontend/src/components/common/BrandLogo.vue))**:
+  - Создан компонент с векторной иконкой шеф-колпака (`ChefHat` из `lucide-vue-next`) внутри изумрудного сквиркла с мягким градиентом `bg-gradient-to-br from-emerald-700 to-emerald-950` и кольцом акцента.
+- [x] **Модальный диалог подтверждения ([`BaseConfirmDialog.vue`](file:///D:/projects/whatcook/frontend/src/components/common/BaseConfirmDialog.vue))**:
+  - Стилизованное модальное окно по канонам Figma Row 7: размытый оверлей `bg-slate-950/60 backdrop-blur-xs`, закругленная белая карточка `rounded-3xl p-6`, тематическая иконка в круге, кнопки «Отмена» и акцентного подтверждения.
+  - Интеграция с `modalStack.ts` (`registerModalOpen`, `registerModalClose`) для корректной работы жеста «Назад».
+- [x] **Редизайн экранов входа и регистрации ([`LoginView.vue`](file:///D:/projects/whatcook/frontend/src/views/LoginView.vue), [`RegisterView.vue`](file:///D:/projects/whatcook/frontend/src/views/RegisterView.vue))**:
+  - Реализован глубокий изумрудный Hero-баннер `bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950` с кнопкой «Назад», логотипом `BrandLogo` и подзаголовком.
+  - Форма размещена на белой поверхности с выездом `-mt-6 bg-white rounded-t-3xl px-6 pt-7 pb-12 shadow-lg`.
+  - Сохранена полная валидация, логика авторизации/регистрации и редиректов.
+- [x] **Интеграция модального диалога в профиль ([`ProfileView.vue`](file:///D:/projects/whatcook/frontend/src/views/ProfileView.vue))**:
+  - Нативный `confirm()` заменен на `BaseConfirmDialog` при выходе из аккаунта и при удалении фотографии профиля.
+- [x] **Унификация пустых состояний ([`FridgeView.vue`](file:///D:/projects/whatcook/frontend/src/views/FridgeView.vue), [`ShoppingView.vue`](file:///D:/projects/whatcook/frontend/src/views/ShoppingView.vue), [`RecipesView.vue`](file:///D:/projects/whatcook/frontend/src/views/RecipesView.vue))**:
+  - Стандартизирован сквиркл `w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-xs flex items-center justify-center mb-4`.
+  - Унифицирован дизайн action-кнопок добавления продуктов/товаров и сброса фильтров.
+- [x] **Верификация и версионирование**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.9.3`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
+  - Пройдены все 112 юнит-тестов фронтенда (`bun run test` — 27 файлов), проверка типов (`bun run type-check`) и продакшен-сборка (`bun run build`).
+  - Все тесты (`go test ./...`) и линтер (`go vet ./...`) бэкенда пройдены на 100%.
+
 
 
