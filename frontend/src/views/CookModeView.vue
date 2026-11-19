@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRecipeStore } from '@/stores/recipe'
 import { useCookingTimerStore } from '@/stores/cookingTimer'
@@ -22,14 +22,32 @@ const timer = useCookingTimerStore()
 
 const recipeId = computed(() => Number(route.params.id))
 const currentStepIndex = ref(0)
+let originalThemeColor = '#FFFFFF'
 
 onMounted(async () => {
+  if (typeof document !== 'undefined') {
+    const metaTheme = document.querySelector('meta[name="theme-color"]')
+    if (metaTheme) {
+      originalThemeColor = metaTheme.getAttribute('content') || '#FFFFFF'
+      metaTheme.setAttribute('content', '#061811')
+    }
+  }
+
   if (!recipeStore.currentRecipe || recipeStore.currentRecipe.id !== recipeId.value) {
     await recipeStore.loadRecipeById(recipeId.value)
   }
   // Initialize timer preset to recipe's cooking time if timer is at default
   if (recipeStore.currentRecipe?.cooking_time_minutes && !timer.isRunning) {
     timer.setPreset(recipeStore.currentRecipe.cooking_time_minutes)
+  }
+})
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    const metaTheme = document.querySelector('meta[name="theme-color"]')
+    if (metaTheme) {
+      metaTheme.setAttribute('content', originalThemeColor)
+    }
   }
 })
 
@@ -70,35 +88,43 @@ function resetTimer() {
 
 function exitCookMode() {
   triggerHaptic('light')
-  router.push(`/recipes/${recipeId.value}`)
+  if (typeof window !== 'undefined' && window.history.length > 1) {
+    router.back()
+  } else {
+    router.replace(`/recipes/${recipeId.value}`)
+  }
 }
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 bg-gradient-to-b from-[#061811] via-[#041F16] to-[#02150E] text-white flex flex-col justify-between p-5 select-none safe-area-top safe-area-bottom">
-    <!-- Top Header Bar -->
-    <div class="flex items-center justify-between border-b border-emerald-900/60 pb-3">
-      <button
-        type="button"
-        class="w-10 h-10 rounded-full bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all"
-        aria-label="Выйти из режима готовки"
-        @click="exitCookMode"
-      >
-        <X class="w-5 h-5 stroke-[2.2px]" />
-      </button>
+  <div class="fixed inset-0 z-50 bg-gradient-to-b from-[#061811] via-[#041F16] to-[#02150E] text-white flex flex-col justify-between px-5 pt-[max(1.25rem,calc(env(safe-area-inset-top,0px)+0.75rem))] pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] select-none">
+    <!-- Top Header Bar with Grid to completely prevent Layout Shift -->
+    <div class="grid grid-cols-[60px_1fr_60px] items-center border-b border-emerald-900/60 pb-3">
+      <div class="flex justify-start">
+        <button
+          type="button"
+          class="w-10 h-10 rounded-full bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all shadow-xs"
+          aria-label="Выйти из режима готовки"
+          @click="exitCookMode"
+        >
+          <X class="w-5 h-5 stroke-[2.2px]" />
+        </button>
+      </div>
 
-      <div class="flex flex-col items-center max-w-[220px]">
-        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+      <div class="flex flex-col items-center min-w-0 text-center px-1">
+        <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center justify-center gap-1">
           <Flame class="w-3.5 h-3.5 text-emerald-400" />
           Режим готовки
         </span>
-        <span class="text-xs text-slate-300 truncate font-medium">
+        <span class="text-xs text-slate-300 truncate font-medium max-w-[200px]">
           {{ recipe?.title || 'Приготовление' }}
         </span>
       </div>
 
-      <div class="px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/50 text-xs font-bold text-emerald-300">
-        {{ currentStepIndex + 1 }} / {{ totalSteps }}
+      <div class="flex justify-end">
+        <div class="px-2.5 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/50 text-xs font-bold text-emerald-300 tabular-nums">
+          {{ currentStepIndex + 1 }} / {{ totalSteps }}
+        </div>
       </div>
     </div>
 
@@ -106,7 +132,7 @@ function exitCookMode() {
     <div class="flex flex-col items-center justify-center my-auto gap-5">
       <!-- Massive Digits -->
       <div class="relative flex flex-col items-center">
-        <div class="text-7xl sm:text-8xl font-black font-mono tracking-tight text-white drop-shadow-2xl">
+        <div class="text-7xl sm:text-8xl font-black font-mono tracking-tight text-white drop-shadow-2xl tabular-nums">
           {{ timer.formattedTime }}
         </div>
         <!-- Progress bar line -->

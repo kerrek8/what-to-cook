@@ -138,7 +138,7 @@ async function onConfirmTransferItem(data: AddItemData) {
 </script>
 
 <template>
-  <div class="min-h-full pb-28 px-4 pt-3 flex flex-col gap-4">
+  <div class="min-h-full pb-36 px-4 pt-3 flex flex-col gap-4">
     <!-- Progress Header Card (Figma Row 7) -->
     <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
       <div class="flex items-center justify-between">

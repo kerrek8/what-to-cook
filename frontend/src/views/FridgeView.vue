@@ -48,12 +48,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-full pb-24 px-4 pt-3 flex flex-col gap-4">
+  <div class="min-h-full pb-36 px-4 pt-3 flex flex-col gap-4">
     <!-- Top Emerald Summary Hero Card -->
     <FridgeSummaryCard
       :total="inventoryStore.items.length"
       :expiring="inventoryStore.expiringCount"
       :expired="inventoryStore.items.filter((i) => i.expirationDate && new Date(i.expirationDate) < new Date()).length"
+      :active-filter="inventoryStore.activeCategory"
+      @select-filter="(filter) => inventoryStore.activeCategory = filter"
     />
 
     <!-- Search Input -->

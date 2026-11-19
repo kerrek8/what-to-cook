@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { triggerHaptic } from '@/utils/haptics'
 
 export const useCookingTimerStore = defineStore('cookingTimer', () => {
+  const initialSeconds = ref(600)
   const durationSeconds = ref(600) // Default 10 mins
   const remainingSeconds = ref(600)
   const isRunning = ref(false)
@@ -21,8 +22,10 @@ export const useCookingTimerStore = defineStore('cookingTimer', () => {
 
   function setPreset(minutes: number) {
     pause()
-    durationSeconds.value = Math.max(1, minutes) * 60
-    remainingSeconds.value = durationSeconds.value
+    const secs = Math.max(1, minutes) * 60
+    initialSeconds.value = secs
+    durationSeconds.value = secs
+    remainingSeconds.value = secs
   }
 
   function adjustMinutes(diffMinutes: number) {
@@ -57,7 +60,8 @@ export const useCookingTimerStore = defineStore('cookingTimer', () => {
 
   function reset() {
     pause()
-    remainingSeconds.value = durationSeconds.value
+    durationSeconds.value = initialSeconds.value
+    remainingSeconds.value = initialSeconds.value
   }
 
   return {

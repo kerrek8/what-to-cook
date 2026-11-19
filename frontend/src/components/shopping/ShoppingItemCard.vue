@@ -43,7 +43,7 @@ function onTransfer() {
 
 <template>
   <div
-    class="flex items-center justify-between p-3.5 mb-2 rounded-2xl border transition-all cursor-pointer select-none"
+    class="flex items-center justify-between gap-3 p-3.5 mb-2 rounded-2xl border transition-all cursor-pointer select-none"
     :class="
       item.isBought
         ? 'bg-slate-50/70 border-slate-200/60 opacity-60'
@@ -52,7 +52,7 @@ function onTransfer() {
     @click="onToggle"
   >
     <!-- Left Checkbox & Name -->
-    <div class="flex items-center gap-3 min-w-0 flex-1">
+    <div class="flex items-center gap-3 min-w-0 flex-1 mr-2">
       <div
         class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-all"
         :class="
@@ -65,7 +65,7 @@ function onTransfer() {
         <Check v-if="item.isBought" class="w-3.5 h-3.5 stroke-[3px]" />
       </div>
 
-      <div class="flex flex-col min-w-0">
+      <div class="flex flex-col min-w-0 pr-1">
         <span
           class="text-sm font-semibold text-slate-800 truncate"
           :class="{ 'line-through text-slate-400': item.isBought }"
@@ -79,10 +79,10 @@ function onTransfer() {
     </div>
 
     <!-- Right: Quantity Pill & Action Buttons -->
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="flex items-center gap-2 shrink-0 ml-auto">
       <span
         v-if="formattedQuantity"
-        class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
+        class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 whitespace-nowrap"
       >
         {{ formattedQuantity }}
       </span>

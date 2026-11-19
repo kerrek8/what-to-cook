@@ -291,15 +291,6 @@ function startCooking() {
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400" />
                 Не хватает ({{ missingIngredients.length }})
               </span>
-              <button
-                type="button"
-                class="text-[11px] font-bold text-emerald-800 flex items-center gap-1 hover:underline"
-                :disabled="isAddingToShopping"
-                @click="onAddToShoppingList"
-              >
-                <ShoppingBag class="w-3.5 h-3.5" />
-                {{ shoppingAdded ? 'Добавлено!' : 'Купить всё' }}
-              </button>
             </div>
 
             <div
@@ -308,8 +299,24 @@ function startCooking() {
               class="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-50 text-xs text-slate-600"
             >
               <span class="font-medium text-slate-700">{{ ing.name }}</span>
-              <span class="text-slate-400">{{ formatIngredientAmount(ing) }}</span>
+              <span class="text-slate-400 font-semibold">{{ formatIngredientAmount(ing) }}</span>
             </div>
+
+            <!-- Prominent Add to Shopping List CTA Button -->
+            <button
+              type="button"
+              class="mt-2 py-3 px-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs shadow-xs transition-all active:scale-98 select-none border"
+              :class="
+                shoppingAdded
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-emerald-950 text-white hover:bg-emerald-900 border-emerald-900 shadow-sm'
+              "
+              :disabled="isAddingToShopping"
+              @click="onAddToShoppingList"
+            >
+              <ShoppingBag class="w-4 h-4" />
+              <span>{{ shoppingAdded ? '✓ Добавлено в список покупок' : `Добавить недостающие (${missingIngredients.length}) в список покупок` }}</span>
+            </button>
           </div>
         </div>
 

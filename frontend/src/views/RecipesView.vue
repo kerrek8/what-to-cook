@@ -1,35 +1,18 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { useVirtualizer } from '@tanstack/vue-virtual'
+import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRecipeStore, type CookingTimeFilter } from '@/stores/recipe'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCard from '@/components/recipes/RecipeCard.vue'
-import { Search, X, Flame, BookOpen, Heart, Sparkles, ChefHat, RefreshCw } from 'lucide-vue-next'
+import { Search, X, Flame, BookOpen, Heart, ChefHat, RefreshCw } from 'lucide-vue-next'
 
 const recipeStore = useRecipeStore()
 const inventoryStore = useInventoryStore()
 const authStore = useAuthStore()
 
 const scrollContainer = ref<HTMLElement | null>(null)
-
-const matchVirtualizer = useVirtualizer({
-  get count() {
-    return recipeStore.filteredMatchedRecipes.length
-  },
-  getScrollElement: () => scrollContainer.value,
-  estimateSize: () => 360,
-  overscan: 3
-})
-
-const rowVirtualizer = useVirtualizer({
-  get count() {
-    return recipeStore.allRecipes.length
-  },
-  getScrollElement: () => scrollContainer.value,
-  estimateSize: () => 360,
-  overscan: 3
-})
+const sentinelRef = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -40,24 +23,54 @@ function scrollToTop() {
 
 function checkInfiniteScroll() {
   if (recipeStore.activeTab !== 'all') return
-  const virtualItems = rowVirtualizer.value.getVirtualItems()
-  if (!virtualItems || virtualItems.length === 0) return
-  const lastItem = virtualItems[virtualItems.length - 1]
-  if (
-    lastItem.index >= recipeStore.allRecipes.length - 2 &&
-    recipeStore.hasMoreRecipes &&
-    !recipeStore.isAllRecipesLoading
-  ) {
-    recipeStore.loadAllRecipes(recipeStore.page + 1, true)
+  const el = scrollContainer.value || document.documentElement
+  const scrollTop = el.scrollTop || window.scrollY || 0
+  const scrollHeight = el.scrollHeight || document.documentElement.scrollHeight
+  const clientHeight = el.clientHeight || window.innerHeight
+
+  if (scrollHeight - scrollTop - clientHeight < 500) {
+    if (recipeStore.hasMoreRecipes && !recipeStore.isAllRecipesLoading) {
+      recipeStore.loadAllRecipes(recipeStore.page + 1, true)
+    }
   }
 }
 
-watch(
-  () => rowVirtualizer.value.getVirtualItems(),
-  () => {
-    checkInfiniteScroll()
+function setupObserver() {
+  if (typeof IntersectionObserver === 'undefined') return
+  if (observer) {
+    observer.disconnect()
   }
-)
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      const [entry] = entries
+      if (entry && entry.isIntersecting) {
+        if (
+          recipeStore.activeTab === 'all' &&
+          recipeStore.hasMoreRecipes &&
+          !recipeStore.isAllRecipesLoading
+        ) {
+          recipeStore.loadAllRecipes(recipeStore.page + 1, true)
+        }
+      }
+    },
+    {
+      root: null,
+      rootMargin: '400px',
+      threshold: 0.05
+    }
+  )
+
+  if (sentinelRef.value) {
+    observer.observe(sentinelRef.value)
+  }
+}
+
+watch(sentinelRef, () => {
+  if (sentinelRef.value && recipeStore.activeTab === 'all') {
+    setupObserver()
+  }
+})
 
 watch(
   () => recipeStore.activeTab,
@@ -65,8 +78,12 @@ watch(
     if (tab !== 'match') {
       recipeStore.saveExpiringOnly = false
     }
-    if (tab === 'all' && recipeStore.allRecipes.length === 0) {
-      await recipeStore.loadAllRecipes(1, false)
+    if (tab === 'all') {
+      if (recipeStore.allRecipes.length === 0) {
+        await recipeStore.loadAllRecipes(1, false)
+      }
+      await nextTick()
+      setupObserver()
     }
   }
 )
@@ -82,6 +99,8 @@ watch(
       recipeStore.allRecipes = []
       await recipeStore.loadAllRecipes(1, false)
       scrollToTop()
+      await nextTick()
+      setupObserver()
     }, 400)
   }
 )
@@ -94,11 +113,36 @@ async function resetAllFilters() {
   recipeStore.allRecipes = []
   await recipeStore.loadAllRecipes(1, false)
   scrollToTop()
+  await nextTick()
+  setupObserver()
 }
+
+onMounted(async () => {
+  scrollContainer.value = document.querySelector('.content-wrapper') as HTMLElement
+  scrollContainer.value?.addEventListener('scroll', checkInfiniteScroll, { passive: true })
+  window.addEventListener('scroll', checkInfiniteScroll, { passive: true })
+
+  if (inventoryStore.items.length === 0) {
+    inventoryStore.loadInventory()
+  }
+  await Promise.all([
+    recipeStore.loadMatchedRecipes(),
+    recipeStore.loadAllRecipes(1, false),
+    recipeStore.loadFavorites()
+  ])
+
+  await nextTick()
+  setupObserver()
+})
 
 onUnmounted(() => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   scrollContainer.value?.removeEventListener('scroll', checkInfiniteScroll)
+  window.removeEventListener('scroll', checkInfiniteScroll)
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
 })
 
 const timeOptions: Array<{ label: string; value: CookingTimeFilter }> = [
@@ -115,20 +159,6 @@ const difficultyOptions: Array<{ label: string; value: string }> = [
   { label: 'Средне', value: 'средне' },
   { label: 'Сложно', value: 'сложно' }
 ]
-
-onMounted(async () => {
-  scrollContainer.value = document.querySelector('.content-wrapper') as HTMLElement
-  scrollContainer.value?.addEventListener('scroll', checkInfiniteScroll, { passive: true })
-
-  if (inventoryStore.items.length === 0) {
-    inventoryStore.loadInventory()
-  }
-  await Promise.all([
-    recipeStore.loadMatchedRecipes(),
-    recipeStore.loadAllRecipes(1, false),
-    recipeStore.loadFavorites()
-  ])
-})
 </script>
 
 <template>
@@ -155,7 +185,7 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Segmented Control Tabs (Подбор / Все / Избранное) -->
+      <!-- Segmented Control Tabs (Подбор / Каталог / Избранное) -->
       <div class="grid grid-cols-3 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60 text-xs font-semibold">
         <button
           type="button"
@@ -166,11 +196,11 @@ onMounted(async () => {
           <Flame class="w-3.5 h-3.5" :class="recipeStore.activeTab === 'match' ? 'text-emerald-800' : 'text-slate-400'" />
           <span class="truncate">Подбор</span>
           <span
-            v-if="recipeStore.matchedRecipes.length > 0"
+            v-if="recipeStore.filteredMatchedRecipes.length > 0"
             class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
             :class="recipeStore.activeTab === 'match' ? 'bg-emerald-950 text-white' : 'bg-slate-200 text-slate-600'"
           >
-            {{ recipeStore.matchedRecipes.length }}
+            {{ recipeStore.filteredMatchedRecipes.length }}
           </span>
         </button>
 
@@ -202,9 +232,9 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Quick Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-0.5">
-        <!-- Expiring Only Filter for Match Tab -->
+      <!-- Horizontal Filter Chips (Время / Сложность / Спасает) -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-0.5">
+        <!-- Save Expiring Products Filter (Only in Match tab) -->
         <button
           v-if="recipeStore.activeTab === 'match'"
           type="button"
@@ -278,9 +308,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Tab 2: Catalog ("Все рецепты") Content -->
+    <!-- Tab 2: Catalog ("Все рецепты") Content with Infinite Scroll -->
     <div v-else-if="recipeStore.activeTab === 'all'" class="p-4 flex flex-col gap-3">
-      <!-- Loading Skeletons -->
+      <!-- Initial Loading Skeletons -->
       <div v-if="recipeStore.isAllRecipesLoading && recipeStore.allRecipes.length === 0" class="flex flex-col gap-3">
         <div v-for="n in 3" :key="n" class="h-64 rounded-3xl bg-slate-100 animate-pulse border border-slate-200" />
       </div>
@@ -291,6 +321,17 @@ onMounted(async () => {
           :key="recipe.id"
           :recipe="recipe"
         />
+
+        <!-- Infinite Scroll Sentinel -->
+        <div ref="sentinelRef" class="py-4 flex justify-center items-center">
+          <div v-if="recipeStore.isAllRecipesLoading" class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <RefreshCw class="w-4 h-4 animate-spin text-emerald-800" />
+            <span>Загрузка рецептов...</span>
+          </div>
+          <p v-else-if="!recipeStore.hasMoreRecipes" class="text-xs text-slate-400 font-medium py-2">
+            Все рецепты каталога загружены ({{ recipeStore.allRecipes.length }})
+          </p>
+        </div>
       </template>
 
       <!-- Empty State -->

@@ -1,11 +1,27 @@
 <script setup lang="ts">
 import { AlertTriangle, Clock, Sparkles } from 'lucide-vue-next'
+import { triggerHaptic } from '@/utils/haptics'
 
-defineProps<{
-  total: number
-  expiring: number
-  expired: number
+const props = withDefaults(
+  defineProps<{
+    total: number
+    expiring: number
+    expired: number
+    activeFilter?: string
+  }>(),
+  {
+    activeFilter: 'all'
+  }
+)
+
+const emit = defineEmits<{
+  (e: 'select-filter', filter: string): void
 }>()
+
+function onSelect(filter: string) {
+  triggerHaptic('light')
+  emit('select-filter', filter)
+}
 </script>
 
 <template>
@@ -20,16 +36,33 @@ defineProps<{
           <Sparkles class="w-3.5 h-3.5 text-emerald-400" />
           Сводка продуктов
         </span>
-        <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-800/60 text-emerald-200 border border-emerald-700/40 font-medium">
+        <button
+          type="button"
+          class="text-xs px-2.5 py-1 rounded-full border font-medium cursor-pointer active:scale-95 transition-all"
+          :class="
+            activeFilter === 'all'
+              ? 'bg-emerald-700 text-white border-emerald-500 ring-2 ring-emerald-400/40'
+              : 'bg-emerald-800/60 text-emerald-200 border-emerald-700/40 hover:bg-emerald-800'
+          "
+          @click="onSelect('all')"
+        >
           Всего: {{ total }}
-        </span>
+        </button>
       </div>
 
       <div class="grid grid-cols-2 gap-2.5 pt-1">
-        <!-- Expiring Soon Pill -->
-        <div
-          class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border transition-all"
-          :class="expiring > 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-200' : 'bg-emerald-900/40 border-emerald-800/30 text-emerald-300/70'"
+        <!-- Expiring Soon Pill (Tactile) -->
+        <button
+          type="button"
+          class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-left cursor-pointer active:scale-95 transition-all select-none"
+          :class="[
+            activeFilter === 'expiring'
+              ? 'ring-2 ring-amber-400 border-amber-400 bg-amber-500/25 text-amber-200 shadow-md'
+              : expiring > 0
+                ? 'bg-amber-500/15 border-amber-500/30 text-amber-200 hover:bg-amber-500/20'
+                : 'bg-emerald-900/40 border-emerald-800/30 text-emerald-300/70'
+          ]"
+          @click="onSelect('expiring')"
         >
           <div
             class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -43,12 +76,20 @@ defineProps<{
               {{ expiring }}
             </span>
           </div>
-        </div>
+        </button>
 
-        <!-- Expired Pill -->
-        <div
-          class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border transition-all"
-          :class="expired > 0 ? 'bg-rose-500/15 border-rose-500/30 text-rose-200' : 'bg-emerald-900/40 border-emerald-800/30 text-emerald-300/70'"
+        <!-- Expired Pill (Tactile) -->
+        <button
+          type="button"
+          class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-left cursor-pointer active:scale-95 transition-all select-none"
+          :class="[
+            activeFilter === 'expired'
+              ? 'ring-2 ring-rose-400 border-rose-400 bg-rose-500/25 text-rose-200 shadow-md'
+              : expired > 0
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-200 hover:bg-rose-500/20'
+                : 'bg-emerald-900/40 border-emerald-800/30 text-emerald-300/70'
+          ]"
+          @click="onSelect('expiring')"
         >
           <div
             class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -62,7 +103,7 @@ defineProps<{
               {{ expired }}
             </span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   </div>

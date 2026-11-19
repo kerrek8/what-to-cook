@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { watch, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 
 const props = withDefaults(
@@ -19,23 +19,64 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+let hasPushedHistory = false
+
 function close() {
   emit('update:show', false)
   emit('close')
 }
 
+function onPopState() {
+  if (props.show) {
+    hasPushedHistory = false
+    close()
+  }
+}
+
 watch(
   () => props.show,
   (val) => {
-    if (typeof document !== 'undefined') {
-      if (val) {
-        document.body.style.overflow = 'hidden'
-      } else {
-        document.body.style.overflow = ''
+    if (typeof window === 'undefined') return
+
+    if (val) {
+      document.body.style.overflow = 'hidden'
+      // Push state so Android/browser back gesture closes the bottom sheet instead of exiting/navigating
+      try {
+        window.history.pushState({ bottomSheetOpen: true }, '')
+        hasPushedHistory = true
+        window.addEventListener('popstate', onPopState)
+      } catch {
+        // Fallback if pushState fails in restricted sandbox
+      }
+    } else {
+      document.body.style.overflow = ''
+      window.removeEventListener('popstate', onPopState)
+      if (hasPushedHistory) {
+        hasPushedHistory = false
+        try {
+          window.history.back()
+        } catch {
+          // Ignored
+        }
       }
     }
   }
 )
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    document.body.style.overflow = ''
+    window.removeEventListener('popstate', onPopState)
+    if (hasPushedHistory) {
+      hasPushedHistory = false
+      try {
+        window.history.back()
+      } catch {
+        // Ignored
+      }
+    }
+  }
+})
 </script>
 
 <template>

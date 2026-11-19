@@ -166,22 +166,22 @@ watch(
       <!-- Amount & Unit -->
       <div>
         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Количество (необязательно)</label>
-        <div class="flex gap-2">
+        <div class="flex flex-col gap-2">
           <input
             v-model.number="amount"
             type="number"
             min="0"
             step="any"
             placeholder="1"
-            class="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white transition-all"
           />
-          <div class="flex gap-1 overflow-x-auto no-scrollbar">
+          <div class="grid grid-cols-6 gap-1.5">
             <button
               v-for="u in units"
               :key="u"
               type="button"
-              class="px-3 py-2 rounded-xl text-xs font-semibold transition-all border"
-              :class="unit === u ? 'bg-emerald-950 text-white border-emerald-950' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+              class="py-2 rounded-xl text-xs font-semibold text-center transition-all border select-none"
+              :class="unit === u ? 'bg-emerald-950 text-white border-emerald-950 shadow-xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
               @click="unit = u"
             >
               {{ u }}

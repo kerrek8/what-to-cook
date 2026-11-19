@@ -34,4 +34,20 @@ describe('useCookingTimerStore', () => {
     expect(store.remainingSeconds).toBe(420)
     expect(store.formattedTime).toBe('07:00')
   })
+
+  it('resets timer back to initial preset after adjustments and countdown', () => {
+    const store = useCookingTimerStore()
+    store.setPreset(15)
+    store.adjustMinutes(5) // now 20 mins
+    expect(store.remainingSeconds).toBe(1200)
+
+    store.start()
+    vi.advanceTimersByTime(5000)
+    expect(store.remainingSeconds).toBe(1195)
+
+    store.reset()
+    expect(store.remainingSeconds).toBe(900)
+    expect(store.formattedTime).toBe('15:00')
+    expect(store.isRunning).toBe(false)
+  })
 })
