@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useRecipeStore } from '@/stores/recipe'
 import { useCookingTimerStore } from '@/stores/cookingTimer'
 import { triggerHaptic } from '@/utils/haptics'
+import { useToast } from '@/composables/useToast'
+import SmartConsumptionSheet from '@/components/cooking/SmartConsumptionSheet.vue'
 import {
   X,
   Play,
@@ -17,12 +19,38 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 const recipeStore = useRecipeStore()
 const timer = useCookingTimerStore()
 
 const recipeId = computed(() => Number(route.params.id))
 const currentStepIndex = ref(0)
+const showSmartConsumption = ref(false)
 let originalThemeColor = '#FFFFFF'
+let wakeLockSentinel: any = null
+
+async function requestWakeLock() {
+  if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+    try {
+      wakeLockSentinel = await (navigator as any).wakeLock.request('screen')
+    } catch {
+      // Wake lock request may be denied by device policy or power saving
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLockSentinel) {
+    wakeLockSentinel.release().catch(() => {})
+    wakeLockSentinel = null
+  }
+}
+
+const handleVisibilityChange = () => {
+  if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+    requestWakeLock()
+  }
+}
 
 onMounted(async () => {
   if (typeof document !== 'undefined') {
@@ -31,19 +59,27 @@ onMounted(async () => {
       originalThemeColor = metaTheme.getAttribute('content') || '#FFFFFF'
       metaTheme.setAttribute('content', '#061811')
     }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
   }
+
+  requestWakeLock()
 
   if (!recipeStore.currentRecipe || recipeStore.currentRecipe.id !== recipeId.value) {
     await recipeStore.loadRecipeById(recipeId.value)
   }
-  // Initialize timer preset to recipe's cooking time if timer is at default
-  if (recipeStore.currentRecipe?.cooking_time_minutes && !timer.isRunning) {
-    timer.setPreset(recipeStore.currentRecipe.cooking_time_minutes)
+
+  if (recipeStore.currentRecipe) {
+    timer.setRecipe(recipeId.value, recipeStore.currentRecipe.title)
+    if (recipeStore.currentRecipe.cooking_time_minutes && !timer.isRunning) {
+      timer.setPreset(recipeStore.currentRecipe.cooking_time_minutes)
+    }
   }
 })
 
 onUnmounted(() => {
+  releaseWakeLock()
   if (typeof document !== 'undefined') {
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     const metaTheme = document.querySelector('meta[name="theme-color"]')
     if (metaTheme) {
       metaTheme.setAttribute('content', originalThemeColor)
@@ -72,6 +108,22 @@ function nextStep() {
   }
 }
 
+function onFinishCooking() {
+  triggerHaptic('success')
+  if (recipe.value?.ingredients && recipe.value.ingredients.length > 0) {
+    showSmartConsumption.value = true
+  } else {
+    exitCookMode()
+  }
+}
+
+function onConsumptionApplied(count: number) {
+  if (count > 0) {
+    toast.show(`Списано ${count} прод. из холодильника`, 'success')
+  }
+  exitCookMode()
+}
+
 function toggleTimer() {
   triggerHaptic('medium')
   if (timer.isRunning) {
@@ -92,6 +144,37 @@ function exitCookMode() {
     router.back()
   } else {
     router.replace(`/recipes/${recipeId.value}`)
+  }
+}
+
+// Touch swipe gestures for step navigation
+let touchStartX = 0
+let touchStartY = 0
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length !== 1) return
+  touchStartX = e.touches[0].clientX
+  touchStartY = e.touches[0].clientY
+}
+
+function onTouchEnd(e: TouchEvent) {
+  if (e.changedTouches.length !== 1) return
+  const deltaX = e.changedTouches[0].clientX - touchStartX
+  const deltaY = e.changedTouches[0].clientY - touchStartY
+
+  // Horizontal swipe: deltaX significant and deltaY small
+  if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
+    if (deltaX < 0) {
+      // Swiped left -> next step
+      if (currentStepIndex.value < totalSteps.value - 1) {
+        nextStep()
+      }
+    } else {
+      // Swiped right -> prev step
+      if (currentStepIndex.value > 0) {
+        prevStep()
+      }
+    }
   }
 }
 </script>
@@ -149,6 +232,13 @@ function exitCookMode() {
         <button
           type="button"
           class="px-3 py-1 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/60 text-xs font-bold text-emerald-200 active:scale-95 transition-all"
+          @click="timer.adjustMinutes(-5)"
+        >
+          -5 мин
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/60 text-xs font-bold text-emerald-200 active:scale-95 transition-all"
           @click="timer.adjustMinutes(-1)"
         >
           -1 мин
@@ -194,8 +284,12 @@ function exitCookMode() {
 
     <!-- Bottom: Step Description Card & Navigation -->
     <div class="flex flex-col gap-3">
-      <!-- Step Text Box -->
-      <div class="p-5 rounded-3xl bg-emerald-950/70 border border-emerald-800/60 backdrop-blur-md shadow-elevated min-h-[140px] flex flex-col justify-between">
+      <!-- Step Text Box with horizontal touch swipe support -->
+      <div
+        class="p-5 sm:p-6 rounded-3xl bg-emerald-950/70 border border-emerald-800/60 backdrop-blur-md shadow-elevated min-h-[150px] flex flex-col justify-between touch-pan-y"
+        @touchstart="onTouchStart"
+        @touchend="onTouchEnd"
+      >
         <div class="flex items-center justify-between text-xs text-emerald-300/80 mb-2 font-semibold">
           <span>Шаг {{ currentStepIndex + 1 }}</span>
           <span class="flex items-center gap-1 text-[11px] text-slate-400">
@@ -203,7 +297,7 @@ function exitCookMode() {
             Вибрация по готовности
           </span>
         </div>
-        <p class="text-base sm:text-lg font-medium text-white leading-snug flex-1 flex items-center">
+        <p class="text-base sm:text-lg font-medium text-white leading-relaxed flex-1 flex items-center">
           {{ currentStepText }}
         </p>
       </div>
@@ -223,12 +317,21 @@ function exitCookMode() {
         <button
           type="button"
           class="flex-1 py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
-          @click="currentStepIndex === totalSteps - 1 ? exitCookMode() : nextStep()"
+          @click="currentStepIndex === totalSteps - 1 ? onFinishCooking() : nextStep()"
         >
           <span>{{ currentStepIndex === totalSteps - 1 ? 'Завершить готовить' : 'Следующий шаг' }}</span>
           <ChevronRight class="w-5 h-5 stroke-[2.5px]" />
         </button>
       </div>
     </div>
+
+    <!-- Smart Consumption Bottom Sheet -->
+    <SmartConsumptionSheet
+      :is-open="showSmartConsumption"
+      :recipe-title="recipe?.title"
+      :ingredients="recipe?.ingredients || []"
+      @close="exitCookMode"
+      @applied="onConsumptionApplied"
+    />
   </div>
 </template>
