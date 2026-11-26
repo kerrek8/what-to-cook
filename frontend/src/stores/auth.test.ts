@@ -124,6 +124,8 @@ describe('useAuthStore', () => {
       category: 'Молочные продукты',
       amount: 1,
       unit: 'шт',
+      isPantryEssential: false,
+      updatedAt: new Date().toISOString(),
       synced: 1
     })
     expect(await db.inventory.count()).toBe(1)
