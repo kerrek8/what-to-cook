@@ -989,6 +989,64 @@ flowchart TD
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.9.4`** (`frontend/package.json` и `frontend/src/views/ProfileView.vue`).
   - Все тесты фронтенда (`bun run test`) и бэкенда (`go test ./...`), проверка типов (`vue-tsc`) и билд PWA пройдены успешно.
 
+---
+
+## ✅ Завершен: Комплексный пакет улучшений UX, дизайн-системы и Android PWA (v0.9.5)
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `kerrek8/ui-ux`.
+- **Цель**: Комплексная реализация плана улучшений по реестру [`docs/improvements.md`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/docs/improvements.md):
+  1. Внедрение дизайн-системы Warm Editorial (цветовая палитра `#165337`, `#FAF7F2`, `#C2410C`, санс-сериф типографика Plus Jakarta Sans).
+  2. Исправление критических багов (фильтр просроченных продуктов, автокомплит ingredientId, очистка Dexie при выходе, WebP аватары).
+  3. Полировка экранов авторизации (устранение двойной шапки, показ пароля `Eye`/`EyeOff`, инлайн-валидация на `blur`).
+  4. Эргономика холодильника (сортировка, разделение пустых состояний, доступность свежести ✓/⏳/⚠️, safe-area отступ FAB).
+  5. Эргономика рецептов и покупок (кнопки порций 36×36px / 48dp, скрытие пустой карточки прогресса, тост отмены «Вернуть»).
+  6. Режим готовки (Screen Wake Lock, аудио-колокольчик, кнопка `-5 мин`, автосписание Smart Consumption, плавающий таймер FloatingTimerPill, удаление мертвого CookingTimer).
+  7. Жесты Android (закрытие confirm-диалога системной кнопкой «Назад», свайп шторки вниз >80px, свайп шагов готовки влево/вправо).
+
+### Выполнено
+
+- [x] **Дизайн-система Warm Editorial ([`tailwind.config.js`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/tailwind.config.js), [`tokens.css`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/assets/tokens.css))**:
+  - Централизованные токены темы: Deep Forest Emerald (`#165337`), Culinary Canvas (`#FAF7F2`), Warm Border (`#E8E2D8`), Kitchen Dark (`#061811`).
+  - Типографика `Plus Jakarta Sans` и `JetBrains Mono`.
+  - Директива `interactive-widget=resizes-content` в `index.html`.
+- [x] **Критические фиксы ([`inventory.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/stores/inventory.ts), [`auth.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/stores/auth.ts), [`user.go`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/backend/internal/handler/user.go))**:
+  - Фильтр `activeCategory = 'expired'`.
+  - Сброс `ingredientId` при ручном вводе.
+  - Очистка всех таблиц Dexie IndexedDB при `logout()`.
+  - Поддержка `image/webp` в хэндлере аватаров бэкенда.
+- [x] **Авторизация и оболочка ([`LoginView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/LoginView.vue), [`RegisterView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/RegisterView.vue), [`router/index.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/router/index.ts))**:
+  - Устранена двойная шапка (`hideHeader: true`).
+  - Переключатель видимости пароля (`Eye`/`EyeOff`).
+  - Инлайн-валидация и подсветка ошибок под полями.
+  - Кросс-фейд анимация перехода между маршрутами (150ms).
+- [x] **Холодильник ([`FridgeView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/FridgeView.vue), [`ProductCard.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/inventory/ProductCard.vue))**:
+  - Сортировка по сроку годности, алфавиту и дате добавления.
+  - Раздельные пустые состояния (глобальное vs по категории со сбросом).
+  - Иконки доступности (✓, ⏳, ⚠️) для дальтоников.
+  - FAB отступ `bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))]`.
+- [x] **Рецепты и покупки ([`RecipeDetailView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/RecipeDetailView.vue), [`ShoppingView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/ShoppingView.vue), [`RecipeCard.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/recipes/RecipeCard.vue))**:
+  - Степпер порций с кнопками 36×36px и тачем 48dp.
+  - Чистые текстовые вкладки в рецептах без эмодзи.
+  - Очистка 220 строк рукописного CSS в `RecipeCard.vue`.
+  - Скрытие пустой карточки покупок и тост отмены удаления («Вернуть»).
+- [x] **Режим готовки ([`CookModeView.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/views/CookModeView.vue), [`cookingTimer.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/stores/cookingTimer.ts), [`SmartConsumptionSheet.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/cooking/SmartConsumptionSheet.vue), [`FloatingTimerPill.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/common/FloatingTimerPill.vue))**:
+  - Screen Wake Lock API.
+  - Двухтональный Web Audio колокольчик по завершении.
+  - Симметричная кнопка `-5 мин`.
+  - Увеличенная карточка шага (min-h: 150px).
+  - Шторка умного списания ингредиентов в 1 клик.
+  - Плавающий мини-таймер `FloatingTimerPill` над таб-баром.
+  - Удален мертвый файл `CookingTimer.vue` (312 строк).
+- [x] **Жесты и навигация Android ([`BaseConfirmDialog.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/common/BaseConfirmDialog.vue), [`BaseBottomSheet.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/common/BaseBottomSheet.vue))**:
+  - Перехват `popstate` системной кнопки «Назад» для закрытия confirm-диалога.
+  - Свайп шторки вниз (>80px) с физической анимацией.
+  - Горизонтальный свайп переключения шагов рецепта.
+- [x] **Верификация**:
+  - 132 юнит-теста фронтенда (27 файлов) пройдены со 100% успехом.
+  - Проверка типов `vue-tsc --noEmit` пройдена без ошибок.
+  - Все тесты бэкенда `go test ./...` пройдены успешно.
+
 
 
 
