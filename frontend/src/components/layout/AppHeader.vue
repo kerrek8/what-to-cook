@@ -32,16 +32,16 @@ function onHeaderClick() {
 <template>
   <header
     v-if="!route.meta.hideHeader"
-    class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 safe-area-top select-none transition-all shadow-xs"
+    class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E8E2D8] safe-area-top select-none transition-all shadow-xs"
     @click="onHeaderClick"
   >
     <div class="h-12 max-w-lg mx-auto px-4 flex items-center justify-between">
       <!-- Left Back Button or Placeholder -->
-      <div class="w-8 flex items-center">
+      <div class="w-10 flex items-center">
         <button
           v-if="showBack"
           type="button"
-          class="p-1 -ml-1 text-slate-700 hover:text-emerald-950 active:scale-95 transition-all rounded-full"
+          class="w-10 h-10 -ml-2 text-slate-700 hover:text-[#165337] active:scale-95 transition-all rounded-xl flex items-center justify-center"
           aria-label="Назад"
           @click.stop="onClickLeft"
         >
@@ -50,12 +50,12 @@ function onHeaderClick() {
       </div>
 
       <!-- Center Title -->
-      <h1 class="text-base font-bold text-slate-900 tracking-tight">
+      <h1 class="text-base font-bold text-[#18181B] tracking-tight">
         {{ title }}
       </h1>
 
       <!-- Right Spacer for Balance -->
-      <div class="w-8" />
+      <div class="w-10" />
     </div>
   </header>
 </template>

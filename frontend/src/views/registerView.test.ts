@@ -19,4 +19,15 @@ describe('RegisterView Figma Redesign', () => {
     expect(content).toContain('password')
     expect(content).toContain('confirmPassword')
   })
+
+  it('provides password visibility toggle buttons with aria-label', () => {
+    expect(content).toContain('showPassword')
+    expect(content).toContain('Показать пароль')
+  })
+
+  it('provides inline field validation errors', () => {
+    expect(content).toContain('errors.name')
+    expect(content).toContain('errors.email')
+    expect(content).toContain('errors.password')
+  })
 })

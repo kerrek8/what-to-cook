@@ -15,6 +15,16 @@ describe('LoginView Figma Redesign', () => {
   it('preserves authentication handlers and inputs', () => {
     expect(content).toContain('authStore.login')
     expect(content).toContain('type="email"')
-    expect(content).toContain('type="password"')
+    expect(content).toContain('password')
+  })
+
+  it('provides a password visibility toggle button with aria-label', () => {
+    expect(content).toContain('showPassword')
+    expect(content).toContain('Показать пароль')
+  })
+
+  it('provides inline field validation errors', () => {
+    expect(content).toContain('errors.email')
+    expect(content).toContain('errors.password')
   })
 })

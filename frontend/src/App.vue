@@ -38,7 +38,11 @@ onUnmounted(() => {
   <div class="mobile-container" :class="{ '!bg-[#061811]': isCookMode }">
     <AppHeader v-if="!isCookMode" />
     <main class="content-wrapper">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
     <AppTabBar v-if="!isCookMode" />
     <ReloadPrompt />
@@ -47,4 +51,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
+}
 </style>

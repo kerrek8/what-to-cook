@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter, useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-vue-next'
+import { Mail, Lock, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-vue-next'
 import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()
@@ -13,29 +13,50 @@ const toast = useToastStore()
 
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const isSubmitting = ref(false)
+
+const errors = reactive({
+  email: '',
+  password: ''
+})
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-async function onSubmit() {
-  const trimmedEmail = email.value.trim()
-  if (!trimmedEmail) {
-    toast.show('Укажите email', 'fail')
-    return
+function validateEmail() {
+  const trimmed = email.value.trim()
+  if (!trimmed) {
+    errors.email = 'Укажите email'
+    return false
   }
-  if (!emailPattern.test(trimmedEmail)) {
-    toast.show('Некорректный формат email', 'fail')
-    return
+  if (!emailPattern.test(trimmed)) {
+    errors.email = 'Некорректный формат email'
+    return false
   }
+  errors.email = ''
+  return true
+}
+
+function validatePassword() {
   if (!password.value || password.value.length < 6) {
-    toast.show('Пароль должен быть не менее 6 символов', 'fail')
+    errors.password = 'Пароль должен быть не менее 6 символов'
+    return false
+  }
+  errors.password = ''
+  return true
+}
+
+async function onSubmit() {
+  const emailValid = validateEmail()
+  const passValid = validatePassword()
+  if (!emailValid || !passValid) {
     return
   }
 
   isSubmitting.value = true
   try {
     await authStore.login({
-      email: trimmedEmail,
+      email: email.value.trim(),
       password: password.value
     })
     toast.show('Успешный вход!', 'success')
@@ -91,9 +112,14 @@ async function onSubmit() {
               type="email"
               autocomplete="email"
               placeholder="ivan@example.com"
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white shadow-xs transition-all"
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white shadow-xs transition-all"
+              :class="errors.email ? 'border-red-500 bg-red-50/20' : 'border-slate-200'"
+              @blur="validateEmail"
             />
           </div>
+          <p v-if="errors.email" class="text-xs text-red-600 mt-1">
+            {{ errors.email }}
+          </p>
         </div>
 
         <!-- Password Field -->
@@ -103,12 +129,26 @@ async function onSubmit() {
             <Lock class="absolute left-3.5 w-4 h-4 text-slate-400 stroke-[2px]" />
             <input
               v-model="password"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
               placeholder="Введите пароль"
-              class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white shadow-xs transition-all"
+              class="w-full pl-10 pr-11 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white shadow-xs transition-all"
+              :class="errors.password ? 'border-red-500 bg-red-50/20' : 'border-slate-200'"
+              @blur="validatePassword"
             />
+            <button
+              type="button"
+              class="absolute right-2.5 p-1.5 text-slate-400 hover:text-slate-600 active:scale-95 transition-all"
+              :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+              @click="showPassword = !showPassword"
+            >
+              <EyeOff v-if="showPassword" class="w-4 h-4 stroke-[2px]" />
+              <Eye v-else class="w-4 h-4 stroke-[2px]" />
+            </button>
           </div>
+          <p v-if="errors.password" class="text-xs text-red-600 mt-1">
+            {{ errors.password }}
+          </p>
         </div>
 
         <!-- Submit Button -->
