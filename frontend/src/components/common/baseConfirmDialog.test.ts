@@ -13,6 +13,8 @@ describe('BaseConfirmDialog Component', () => {
     expect(content).toContain("emit('cancel')")
     expect(content).toContain("emit('update:show'")
     expect(content).toContain('Teleport')
+    expect(content).toContain('popstate')
+    expect(content).toContain('confirmDialogOpen')
   })
 
   it('handles Android back button via history popstate in BaseConfirmDialog', () => {

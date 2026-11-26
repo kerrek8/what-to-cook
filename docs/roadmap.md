@@ -991,18 +991,19 @@ flowchart TD
 
 ---
 
-## ✅ Завершен: Комплексный пакет улучшений UX, дизайн-системы и Android PWA (v0.9.5)
+## ✅ Завершен: Комплексный пакет улучшений UX, дизайн-системы, нативной навигации и Android PWA (v0.9.5)
 
 - **Статус**: ✅ Завершен.
 - **Ветка**: `kerrek8/ui-ux`.
-- **Цель**: Комплексная реализация плана улучшений по реестру [`docs/improvements.md`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/docs/improvements.md):
+- **Цель**: Комплексная реализация плана улучшений по реестру [`docs/improvements.md`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/docs/improvements.md) и переход на чистую нативную навигацию без искусственных ловушек выхода:
   1. Внедрение дизайн-системы Warm Editorial (цветовая палитра `#165337`, `#FAF7F2`, `#C2410C`, санс-сериф типографика Plus Jakarta Sans).
-  2. Исправление критических багов (фильтр просроченных продуктов, автокомплит ingredientId, очистка Dexie при выходе, WebP аватары).
-  3. Полировка экранов авторизации (устранение двойной шапки, показ пароля `Eye`/`EyeOff`, инлайн-валидация на `blur`).
-  4. Эргономика холодильника (сортировка, разделение пустых состояний, доступность свежести ✓/⏳/⚠️, safe-area отступ FAB).
-  5. Эргономика рецептов и покупок (кнопки порций 36×36px / 48dp, скрытие пустой карточки прогресса, тост отмены «Вернуть»).
-  6. Режим готовки (Screen Wake Lock, аудио-колокольчик, кнопка `-5 мин`, автосписание Smart Consumption, плавающий таймер FloatingTimerPill, удаление мертвого CookingTimer).
-  7. Жесты Android (закрытие confirm-диалога системной кнопкой «Назад», свайп шторки вниз >80px, свайп шагов готовки влево/вправо).
+  2. Переход на чистую нативную мобильную навигацию: переключение табов через `replace` без засорения истории, удаление хрупкого композибла `useBackPressExit.ts`, локальный перехват `popstate` в `BaseBottomSheet` и `BaseConfirmDialog`.
+  3. Исправление критических багов (фильтр просроченных продуктов, автокомплит ingredientId, очистка Dexie при выходе, WebP аватары).
+  4. Полировка экранов авторизации (устранение двойной шапки, показ пароля `Eye`/`EyeOff`, инлайн-валидация на `blur`).
+  5. Эргономика холодильника (сортировка, разделение пустых состояний, доступность свежести ✓/⏳/⚠️, safe-area отступ FAB).
+  6. Эргономика рецептов и покупок (кнопки порций 36×36px / 48dp, скрытие пустой карточки прогресса, тост отмены «Вернуть»).
+  7. Режим готовки (Screen Wake Lock, аудио-колокольчик, кнопка `-5 мин`, автосписание Smart Consumption, плавающий таймер FloatingTimerPill, удаление мертвого CookingTimer).
+  8. Жесты Android (закрытие confirm-диалога системной кнопкой «Назад», свайп шторки вниз >80px, свайп шагов готовки влево/вправо).
 
 ### Выполнено
 
@@ -1010,6 +1011,10 @@ flowchart TD
   - Централизованные токены темы: Deep Forest Emerald (`#165337`), Culinary Canvas (`#FAF7F2`), Warm Border (`#E8E2D8`), Kitchen Dark (`#061811`).
   - Типографика `Plus Jakarta Sans` и `JetBrains Mono`.
   - Директива `interactive-widget=resizes-content` в `index.html`.
+- [x] **Чистая нативная навигация ([`AppTabBar.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/layout/AppTabBar.vue), [`BaseConfirmDialog.vue`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/components/common/BaseConfirmDialog.vue))**:
+  - Удален композибл `useBackPressExit.ts` в пользу нативного поведения ОС.
+  - Табы переключаются через `replace` без засорения стека браузера.
+  - Локальный перехват `popstate` на время открытия шторок и диалогов подтверждения.
 - [x] **Критические фиксы ([`inventory.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/stores/inventory.ts), [`auth.ts`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/frontend/src/stores/auth.ts), [`user.go`](file:///C:/Users/kerrek8/orca/workspaces/whatcook/ui-ux/backend/internal/handler/user.go))**:
   - Фильтр `activeCategory = 'expired'`.
   - Сброс `ingredientId` при ручном вводе.
@@ -1042,10 +1047,9 @@ flowchart TD
   - Перехват `popstate` системной кнопки «Назад» для закрытия confirm-диалога.
   - Свайп шторки вниз (>80px) с физической анимацией.
   - Горизонтальный свайп переключения шагов рецепта.
-- [x] **Верификация**:
-  - 132 юнит-теста фронтенда (27 файлов) пройдены со 100% успехом.
-  - Проверка типов `vue-tsc --noEmit` пройдена без ошибок.
-  - Все тесты бэкенда `go test ./...` пройдены успешно.
+- [x] **Верификация и версионирование**:
+  - Версия WhatCook синхронно обновлена по SemVer до **`v0.9.5`** (`frontend/package.json`, `frontend/src/views/ProfileView.vue`, `README.md`).
+  - Все тесты фронтенда (`bun run test`) и бэкенда (`go test ./...`), проверка типов (`vue-tsc --noEmit`) и билд PWA пройдены со 100% успехом.
 
 
 

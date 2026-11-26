@@ -9,14 +9,10 @@ import FloatingTimerPill from '@/components/common/FloatingTimerPill.vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useShoppingStore } from '@/stores/shopping'
 import { useCookingTimerStore } from '@/stores/cookingTimer'
-import { useBackPressExit } from '@/composables/useBackPressExit'
 
 const route = useRoute()
 const isCookMode = computed(() => route.path.endsWith('/cook'))
 const timer = useCookingTimerStore()
-
-// Initialize double-back exit protection
-useBackPressExit()
 
 const inventoryStore = useInventoryStore()
 const shoppingStore = useShoppingStore()

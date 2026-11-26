@@ -33,6 +33,13 @@ function handleClose() {
   emit('cancel')
 }
 
+function onPopState() {
+  if (props.show) {
+    hasPushedHistory = false
+    handleClose()
+  }
+}
+
 function handleConfirm() {
   emit('confirm')
 }
@@ -59,7 +66,7 @@ watch(
         hasPushedHistory = true
         window.addEventListener('popstate', onPopState)
       } catch {
-        // Ignored
+        // Fallback if pushState fails in restricted sandbox
       }
     } else {
       if (isRegistered) {
@@ -81,6 +88,17 @@ watch(
 )
 
 onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('popstate', onPopState)
+    if (hasPushedHistory) {
+      hasPushedHistory = false
+      try {
+        window.history.back()
+      } catch {
+        // Ignored
+      }
+    }
+  }
   if (isRegistered) {
     registerModalClose()
     isRegistered = false
