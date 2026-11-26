@@ -26,6 +26,7 @@ const emit = defineEmits<{
 }>()
 
 let isRegistered = false
+let hasPushedHistory = false
 
 function handleClose() {
   emit('update:show', false)
@@ -36,15 +37,44 @@ function handleConfirm() {
   emit('confirm')
 }
 
+function onPopState() {
+  if (props.show) {
+    hasPushedHistory = false
+    handleClose()
+  }
+}
+
 watch(
   () => props.show,
   (newVal) => {
-    if (newVal && !isRegistered) {
-      registerModalOpen()
-      isRegistered = true
-    } else if (!newVal && isRegistered) {
-      registerModalClose()
-      isRegistered = false
+    if (typeof window === 'undefined') return
+
+    if (newVal) {
+      if (!isRegistered) {
+        registerModalOpen()
+        isRegistered = true
+      }
+      try {
+        window.history.pushState({ confirmDialogOpen: true }, '')
+        hasPushedHistory = true
+        window.addEventListener('popstate', onPopState)
+      } catch {
+        // Ignored
+      }
+    } else {
+      if (isRegistered) {
+        registerModalClose()
+        isRegistered = false
+      }
+      window.removeEventListener('popstate', onPopState)
+      if (hasPushedHistory) {
+        hasPushedHistory = false
+        try {
+          window.history.back()
+        } catch {
+          // Ignored
+        }
+      }
     }
   },
   { immediate: true }
@@ -54,6 +84,17 @@ onUnmounted(() => {
   if (isRegistered) {
     registerModalClose()
     isRegistered = false
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('popstate', onPopState)
+    if (hasPushedHistory) {
+      hasPushedHistory = false
+      try {
+        window.history.back()
+      } catch {
+        // Ignored
+      }
+    }
   }
 })
 </script>

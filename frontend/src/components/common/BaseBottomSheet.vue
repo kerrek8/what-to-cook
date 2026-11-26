@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 import { registerModalOpen, registerModalClose } from '@/utils/modalStack'
 
@@ -21,6 +21,34 @@ const emit = defineEmits<{
 }>()
 
 let hasPushedHistory = false
+const dragOffsetY = ref(0)
+const isDragging = ref(false)
+let touchStartY = 0
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length !== 1) return
+  touchStartY = e.touches[0].clientY
+  isDragging.value = true
+  dragOffsetY.value = 0
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isDragging.value || e.touches.length !== 1) return
+  const currentY = e.touches[0].clientY
+  const delta = currentY - touchStartY
+  if (delta > 0) {
+    dragOffsetY.value = delta
+  }
+}
+
+function onTouchEnd() {
+  if (!isDragging.value) return
+  isDragging.value = false
+  if (dragOffsetY.value > 80) {
+    close()
+  }
+  dragOffsetY.value = 0
+}
 
 function close() {
   emit('update:show', false)
@@ -112,12 +140,19 @@ onUnmounted(() => {
     >
       <div
         v-if="show"
-        class="fixed inset-x-0 bottom-0 z-50 max-w-lg mx-auto bg-white rounded-t-3xl shadow-elevated overflow-hidden max-h-[90vh] flex flex-col safe-area-bottom"
+        class="fixed inset-x-0 bottom-0 z-50 max-w-lg mx-auto bg-white rounded-t-3xl shadow-elevated overflow-hidden max-h-[90vh] flex flex-col safe-area-bottom will-change-transform"
+        :style="dragOffsetY > 0 ? { transform: `translateY(${dragOffsetY}px)`, transition: isDragging ? 'none' : 'transform 0.2s ease-out' } : undefined"
         role="dialog"
         aria-modal="true"
       >
-        <!-- Drag Handle -->
-        <div class="pt-3 pb-1 flex justify-center cursor-grab active:cursor-grabbing" @click="close">
+        <!-- Drag Handle with swipe-to-dismiss gesture -->
+        <div
+          class="pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing touch-none select-none"
+          @click="close"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd"
+        >
           <div class="w-10 h-1.5 rounded-full bg-slate-300" />
         </div>
 
