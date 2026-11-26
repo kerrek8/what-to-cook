@@ -17,6 +17,11 @@ const emit = defineEmits<{
 const showActions = ref(false)
 
 const freshness = computed(() => getFreshnessInfo(props.item.expirationDate))
+const freshnessSymbol = computed(() => {
+  if (freshness.value.status === 'danger') return '⚠️'
+  if (freshness.value.status === 'warning') return '⏳'
+  return '✓'
+})
 const formattedQuantity = computed(() =>
   formatQuantity(props.item.amount, props.item.unit, props.item.approximateQuantity)
 )
@@ -56,8 +61,13 @@ function handleDelete() {
   <div class="rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden mb-2.5">
     <!-- Main Card Body -->
     <div
+      role="button"
+      tabindex="0"
+      :aria-expanded="showActions"
       class="p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none active:bg-slate-50/80 transition-colors"
       @click="onCardClick"
+      @keydown.enter="onCardClick"
+      @keydown.space.prevent="onCardClick"
     >
       <!-- Category Avatar & Details -->
       <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -70,7 +80,7 @@ function handleDelete() {
             {{ item.name }}
           </span>
           <div class="flex items-center gap-1.5 mt-0.5">
-            <span class="text-xs text-slate-400 font-medium">
+            <span class="text-xs text-stone-500 font-medium">
               {{ item.category || 'Продукт' }}
             </span>
             <span v-if="item.synced === 0" class="text-amber-500" title="Сохранено локально">
@@ -90,7 +100,7 @@ function handleDelete() {
           class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium"
           :style="{ backgroundColor: freshness.color + '15', color: freshness.color }"
         >
-          <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: freshness.color }" />
+          <span class="text-[11px] leading-none">{{ freshnessSymbol }}</span>
           <span>{{ freshness.label }}</span>
         </div>
       </div>

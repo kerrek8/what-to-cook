@@ -35,6 +35,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   const isSyncing = ref<boolean>(false)
   const activeCategory = ref<string>('all')
   const searchQuery = ref<string>('')
+  const sortBy = ref<'expiration' | 'alphabet' | 'created'>('expiration')
 
   const authStore = useAuthStore()
 
@@ -72,23 +73,25 @@ export const useInventoryStore = defineStore('inventory', () => {
         const info = getFreshnessInfo(item.expirationDate)
         return info.status === 'danger'
       })
-      result.sort((a, b) => {
-        if (!a.expirationDate) return 1
-        if (!b.expirationDate) return -1
-        return a.expirationDate.localeCompare(b.expirationDate)
-      })
     } else if (activeCategory.value === 'expiring') {
       result = result.filter((item) => {
         const info = getFreshnessInfo(item.expirationDate)
         return info.status === 'warning' || info.status === 'danger'
       })
+    } else if (activeCategory.value !== 'all') {
+      result = result.filter((item) => item.category === activeCategory.value)
+    }
+
+    if (sortBy.value === 'alphabet') {
+      result.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+    } else if (sortBy.value === 'created') {
+      result.sort((a, b) => ((b.id || 0) as number) - ((a.id || 0) as number))
+    } else {
       result.sort((a, b) => {
         if (!a.expirationDate) return 1
         if (!b.expirationDate) return -1
         return a.expirationDate.localeCompare(b.expirationDate)
       })
-    } else if (activeCategory.value !== 'all') {
-      result = result.filter((item) => item.category === activeCategory.value)
     }
 
     return result
@@ -222,6 +225,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     isSyncing,
     activeCategory,
     searchQuery,
+    sortBy,
     categories,
     expiringCount,
     filteredItems,

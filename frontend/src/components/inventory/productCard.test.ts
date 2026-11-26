@@ -23,4 +23,10 @@ describe('ProductCard Tailwind Implementation', () => {
     expect(content).toContain('getCategoryIcon')
     expect(content).toContain('freshness')
   })
+
+  it('provides accessible role and semantic freshness symbol', () => {
+    expect(content).toContain('role="button"')
+    expect(content).toContain('aria-expanded')
+    expect(content).toContain('freshnessSymbol')
+  })
 })
