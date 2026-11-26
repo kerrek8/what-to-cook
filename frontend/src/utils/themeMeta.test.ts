@@ -23,4 +23,15 @@ describe('PWA & HTML Theme Meta Configuration', () => {
     expect(viteConfig).toContain("theme_color: '#FFFFFF'")
     expect(viteConfig).toContain("background_color: '#FFFFFF'")
   })
+
+  it('has interactive-widget=resizes-content in viewport meta', () => {
+    expect(html).toContain('interactive-widget=resizes-content')
+  })
+
+  it('configures Warm Editorial brand colors in tailwind', () => {
+    const tailwindPath = path.resolve(__dirname, '../../tailwind.config.js')
+    const tailwindConfig = fs.readFileSync(tailwindPath, 'utf-8')
+    expect(tailwindConfig).toContain('#165337')
+    expect(tailwindConfig).toContain('#FAF7F2')
+  })
 })
