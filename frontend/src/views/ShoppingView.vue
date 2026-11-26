@@ -79,6 +79,8 @@ const progressPercent = computed(() => {
   return Math.round((boughtCount.value / totalCount.value) * 100)
 })
 
+const lastDeletedItem = ref<LocalShoppingItem | null>(null)
+
 async function onAddItem(payload: AddShoppingItemPayload) {
   try {
     await shoppingStore.addItem(payload)
@@ -93,11 +95,33 @@ async function onToggle(id: number) {
 }
 
 async function onDelete(id: number) {
+  const item = shoppingStore.items.find((i) => i.id === id)
+  if (item) {
+    lastDeletedItem.value = { ...item }
+  }
   try {
     await shoppingStore.deleteItem(id)
     toast.show('Удалено из списка', 'info')
   } catch {
     toast.show('Ошибка при удалении', 'fail')
+  }
+}
+
+async function onUndoDelete() {
+  if (!lastDeletedItem.value) return
+  const item = lastDeletedItem.value
+  lastDeletedItem.value = null
+  try {
+    await shoppingStore.addItem({
+      name: item.name,
+      category: item.category,
+      ingredientId: item.ingredientId,
+      amount: item.amount,
+      unit: item.unit
+    })
+    toast.show('Товар восстановлен', 'success')
+  } catch {
+    toast.show('Не удалось восстановить', 'fail')
   }
 }
 
@@ -140,7 +164,7 @@ async function onConfirmTransferItem(data: AddItemData) {
 <template>
   <div class="min-h-full pb-36 px-4 pt-3 flex flex-col gap-4">
     <!-- Progress Header Card (Figma Row 7) -->
-    <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
+    <div v-if="totalCount > 0" class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-2.5">
       <div class="flex items-center justify-between">
         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Прогресс покупок

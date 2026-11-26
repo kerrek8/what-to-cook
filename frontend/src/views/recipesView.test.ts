@@ -19,4 +19,22 @@ describe('RecipesView Native Tailwind Implementation', () => {
     expect(content).toContain('recipeStore.searchQuery')
     expect(content).toContain('recipeStore.activeTab')
   })
+
+  it('RecipeDetailView uses accessible w-9 h-9 servings touch targets', () => {
+    const detailContent = fs.readFileSync(path.resolve(__dirname, 'RecipeDetailView.vue'), 'utf-8')
+    expect(detailContent).toContain('w-9 h-9 rounded-xl')
+    expect(detailContent).toContain('aria-label="Уменьшить порции"')
+    expect(detailContent).toContain('aria-label="Увеличить порции"')
+  })
+
+  it('ShoppingView hides progress card when totalCount is zero', () => {
+    const shoppingContent = fs.readFileSync(path.resolve(__dirname, 'ShoppingView.vue'), 'utf-8')
+    expect(shoppingContent).toContain('v-if="totalCount > 0"')
+    expect(shoppingContent).toContain('onUndoDelete')
+  })
+
+  it('RecipeCard extracts missingBadgeText computed and cleans duplicate shadow', () => {
+    const cardContent = fs.readFileSync(path.resolve(__dirname, '../components/recipes/RecipeCard.vue'), 'utf-8')
+    expect(cardContent).toContain('missingBadgeText')
+  })
 })

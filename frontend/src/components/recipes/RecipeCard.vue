@@ -72,6 +72,14 @@ const missingPreview = computed(() => {
     .join(', ')
 })
 
+const missingBadgeText = computed(() => {
+  if (!props.matchItem) return '1 докупить'
+  if (props.matchItem.missing_ingredients && props.matchItem.missing_ingredients.length === 1) {
+    return `Купить: ${props.matchItem.missing_ingredients[0].name}`
+  }
+  return `${props.matchItem.match_percentage}% • 1 докупить`
+})
+
 function goToDetail() {
   router.push(`/recipes/${props.recipe.id}`)
 }
@@ -125,7 +133,7 @@ function onFavoriteClick(e: MouseEvent) {
           class="backdrop-blur-md bg-amber-950/80 border border-amber-400/40 text-amber-200 font-semibold px-3 py-1 rounded-full text-xs shadow-sm flex items-center gap-1.5"
         >
           <span class="glow-dot bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
-          <span>{{ matchItem && matchItem.missing_ingredients && matchItem.missing_ingredients.length === 1 ? `Купить: ${matchItem.missing_ingredients[0].name}` : `${matchItem ? matchItem.match_percentage + '% • 1 докупить' : '1 докупить'}` }}</span>
+          <span>{{ missingBadgeText }}</span>
         </span>
 
         <!-- Partial Match Percentage -->
@@ -198,8 +206,7 @@ function onFavoriteClick(e: MouseEvent) {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  border: 1px solid #E8E2D8;
   margin-bottom: 14px;
   display: flex;
   flex-direction: column;

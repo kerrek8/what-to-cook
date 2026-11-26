@@ -232,16 +232,18 @@ function startCooking() {
             <div class="flex items-center gap-1.5">
               <button
                 type="button"
-                class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 text-xs"
+                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm"
+                aria-label="Уменьшить порции"
                 :disabled="currentServings <= 1"
                 @click="currentServings--"
               >
                 -
               </button>
-              <span class="text-xs font-bold text-slate-800 w-4 text-center">{{ currentServings }}</span>
+              <span class="text-xs font-bold text-slate-800 w-5 text-center">{{ currentServings }}</span>
               <button
                 type="button"
-                class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 text-xs"
+                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm"
+                aria-label="Увеличить порции"
                 :disabled="currentServings >= 12"
                 @click="currentServings++"
               >
