@@ -89,7 +89,7 @@ function onSelect(filter: string) {
                 ? 'bg-rose-500/15 border-rose-500/30 text-rose-200 hover:bg-rose-500/20'
                 : 'bg-emerald-900/40 border-emerald-800/30 text-emerald-300/70'
           ]"
-          @click="onSelect('expiring')"
+          @click="onSelect('expired')"
         >
           <div
             class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"

@@ -10,6 +10,7 @@ import (
 	_ "image/jpeg"
 	"image/jpeg"
 	_ "image/png"
+	_ "golang.org/x/image/webp"
 	"io"
 	"math"
 	"os"

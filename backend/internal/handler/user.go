@@ -90,7 +90,7 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	}
 
 	switch mediaType {
-	case "image/jpeg", "image/jpg", "image/png", "image/gif":
+	case "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp":
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported image format"})
 		return

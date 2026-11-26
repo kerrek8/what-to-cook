@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import 'fake-indexeddb/auto'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from './auth'
+import { db } from '@/db'
 import * as authApi from '@/api/auth'
 import * as userApi from '@/api/user'
 
@@ -116,12 +118,23 @@ describe('useAuthStore', () => {
 
     vi.mocked(authApi.logoutApi).mockResolvedValueOnce()
 
+    // Seed local IndexedDB data to test cleanup
+    await db.inventory.add({
+      name: 'Секретный продукт',
+      category: 'Молочные продукты',
+      amount: 1,
+      unit: 'шт',
+      synced: 1
+    })
+    expect(await db.inventory.count()).toBe(1)
+
     await store.logout()
 
     expect(store.isAuthenticated).toBe(false)
     expect(store.accessToken).toBeNull()
     expect(store.user).toBeNull()
     expect(localStorage.getItem('access_token')).toBeNull()
+    expect(await db.inventory.count()).toBe(0)
   })
 })
 

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { LoginPayload, RegisterPayload, User, UserBackendResponse } from '@/types/api'
 import { loginApi, registerApi, logoutApi, refreshApi } from '@/api/auth'
 import { getMeApi, updateAllergensApi, updatePantryApi, uploadAvatarApi, deleteAvatarApi } from '@/api/user'
+import { clearAllLocalData } from '@/db'
 
 function mapUser(res: UserBackendResponse): User {
   return {
@@ -37,10 +38,15 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('access_token', token)
   }
 
-  function clearSession() {
+  async function clearSession() {
     accessToken.value = null
     user.value = null
     localStorage.removeItem('access_token')
+    try {
+      await clearAllLocalData()
+    } catch {
+      // Ignore DB errors on clear
+    }
   }
 
   async function login(payload: LoginPayload): Promise<void> {
@@ -70,7 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch {
       // Ignore network errors on logout
     } finally {
-      clearSession()
+      await clearSession()
       isLoading.value = false
     }
   }

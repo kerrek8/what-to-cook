@@ -48,6 +48,10 @@ export async function removeCachedFavoriteRecipe(id: number): Promise<void> {
   await db.favoriteRecipes.delete(id)
 }
 
+export async function clearAllLocalData(): Promise<void> {
+  await Promise.all(db.tables.map(table => table.clear()))
+}
+
 export async function getCachedFavoriteRecipe(id: number): Promise<RecipeResponse | undefined> {
   return (await db.favoriteRecipes.get(id))?.recipe
 }

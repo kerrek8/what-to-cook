@@ -67,7 +67,17 @@ export const useInventoryStore = defineStore('inventory', () => {
       )
     }
 
-    if (activeCategory.value === 'expiring') {
+    if (activeCategory.value === 'expired') {
+      result = result.filter((item) => {
+        const info = getFreshnessInfo(item.expirationDate)
+        return info.status === 'danger'
+      })
+      result.sort((a, b) => {
+        if (!a.expirationDate) return 1
+        if (!b.expirationDate) return -1
+        return a.expirationDate.localeCompare(b.expirationDate)
+      })
+    } else if (activeCategory.value === 'expiring') {
       result = result.filter((item) => {
         const info = getFreshnessInfo(item.expirationDate)
         return info.status === 'warning' || info.status === 'danger'

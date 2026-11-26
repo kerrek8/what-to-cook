@@ -111,6 +111,15 @@ function selectSuggestion(item: Ingredient) {
   }
 }
 
+watch(productName, (newVal) => {
+  if (selectedIngredientId.value) {
+    const match = catalog.value.find((i) => i.id === selectedIngredientId.value)
+    if (!match || match.name.toLowerCase() !== newVal.trim().toLowerCase()) {
+      selectedIngredientId.value = null
+    }
+  }
+})
+
 function setPresetDays(days: number, label: string) {
   const d = new Date()
   d.setDate(d.getDate() + days)

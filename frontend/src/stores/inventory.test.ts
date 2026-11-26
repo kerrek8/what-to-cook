@@ -106,4 +106,32 @@ describe('useInventoryStore', () => {
     await store.deleteItem(id)
     expect(store.items).toHaveLength(0)
   })
+
+  it('filters expired items correctly when activeCategory is expired', async () => {
+    const store = useInventoryStore()
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+    const nextWeek = new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0]
+
+    await store.addItem({
+      name: 'Прокисшее молоко',
+      category: 'Молочные продукты',
+      amount: 1,
+      unit: 'л',
+      expirationDate: yesterday
+    })
+
+    await store.addItem({
+      name: 'Свежий сыр',
+      category: 'Молочные продукты',
+      amount: 200,
+      unit: 'г',
+      expirationDate: nextWeek
+    })
+
+    expect(store.items).toHaveLength(2)
+
+    store.activeCategory = 'expired'
+    expect(store.filteredItems).toHaveLength(1)
+    expect(store.filteredItems[0].name).toBe('Прокисшее молоко')
+  })
 })

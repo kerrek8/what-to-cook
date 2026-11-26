@@ -220,6 +220,15 @@ func TestUserHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
+	t.Run("upload avatar webp format accepted by content type validator", func(t *testing.T) {
+		req, err := createMultipartRequest("/api/v1/users/me/avatar", "avatar", "avatar.webp", "image/webp", []byte("test webp"))
+		require.NoError(t, err)
+		w := httptest.NewRecorder()
+
+		r.ServeHTTP(w, req)
+		assert.NotContains(t, w.Body.String(), "unsupported image format")
+	})
+
 	t.Run("upload avatar missing file fails with 400", func(t *testing.T) {
 		req, err := createMultipartRequest("/api/v1/users/me/avatar", "not_avatar", "avatar.jpg", "image/jpeg", []byte("xyz"))
 		require.NoError(t, err)
