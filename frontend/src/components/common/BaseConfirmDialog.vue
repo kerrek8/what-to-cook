@@ -44,13 +44,6 @@ function handleConfirm() {
   emit('confirm')
 }
 
-function onPopState() {
-  if (props.show) {
-    hasPushedHistory = false
-    handleClose()
-  }
-}
-
 watch(
   () => props.show,
   (newVal) => {
@@ -102,17 +95,6 @@ onUnmounted(() => {
   if (isRegistered) {
     registerModalClose()
     isRegistered = false
-  }
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('popstate', onPopState)
-    if (hasPushedHistory) {
-      hasPushedHistory = false
-      try {
-        window.history.back()
-      } catch {
-        // Ignored
-      }
-    }
   }
 })
 </script>

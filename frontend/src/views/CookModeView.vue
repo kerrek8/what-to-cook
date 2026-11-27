@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useRecipeStore } from '@/stores/recipe'
 import { useCookingTimerStore } from '@/stores/cookingTimer'
 import { triggerHaptic } from '@/utils/haptics'
-import { useToast } from '@/composables/useToast'
+import { useToastStore } from '@/stores/toast'
 import SmartConsumptionSheet from '@/components/cooking/SmartConsumptionSheet.vue'
 import {
   X,
@@ -19,7 +19,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toast = useToastStore()
 const recipeStore = useRecipeStore()
 const timer = useCookingTimerStore()
 

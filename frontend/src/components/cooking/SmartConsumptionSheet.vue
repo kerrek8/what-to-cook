@@ -39,12 +39,12 @@ const matchedItems = computed<MatchedItem[]>(() => {
       return inv.name.trim().toLowerCase() === ring.name.trim().toLowerCase()
     })
 
-    if (found) {
+    if (found && found.id !== undefined) {
       list.push({
         recipeIngredient: ring,
         inventoryItemId: found.id,
         inventoryName: found.name,
-        currentAmount: found.amount,
+        currentAmount: found.amount ?? null,
         recipeAmount: ring.amount ?? null,
         unit: ring.unit || found.unit || null,
         selected: true
@@ -104,9 +104,10 @@ async function applyConsumption() {
 
 <template>
   <BaseBottomSheet
-    :is-open="isOpen"
+    :show="isOpen"
     title="Списать продукты"
     @close="emit('close')"
+    @update:show="(val) => !val && emit('close')"
   >
     <div class="space-y-4">
       <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-surface-container border border-border/60">
