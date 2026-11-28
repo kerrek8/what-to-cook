@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import 'fake-indexeddb/auto'
 import { useRecipeStore } from './recipe'
 import { useInventoryStore } from './inventory'
+import { useAuthStore } from './auth'
 import * as recipeApi from '@/api/recipe'
 import type { RecipeResponse, RecipeMatchItem } from '@/types/recipe'
 
@@ -268,5 +269,40 @@ describe('useRecipeStore', () => {
     expect(store.matchedRecipes[0].recipe.is_favorite).toBe(true)
     expect(store.allRecipes[0].is_favorite).toBe(true)
     expect(store.favoriteRecipes.some((r) => r.id === 1)).toBe(true)
+  })
+
+  it('re-fetches matched recipes when inventoryVersion changes after adding a product', async () => {
+    const authStore = useAuthStore()
+    authStore.accessToken = 'test-token'
+    authStore.user = {
+      id: 'u1',
+      email: 'test@example.com',
+      name: 'Test',
+      excludedIngredientIds: [],
+      pantryIngredientIds: [],
+      createdAt: ''
+    }
+
+    vi.mocked(recipeApi.matchRecipesApi)
+      .mockResolvedValueOnce({
+        items: [{ ...mockMatchItem, match_percentage: 50, available_count: 1 }],
+        total: 1
+      })
+      .mockResolvedValueOnce({
+        items: [{ ...mockMatchItem, match_percentage: 100, available_count: 2 }],
+        total: 1
+      })
+
+    const invStore = useInventoryStore()
+    const recStore = useRecipeStore()
+
+    await recStore.loadMatchedRecipes()
+    expect(recStore.matchedRecipes[0].match_percentage).toBe(50)
+
+    await invStore.addItem({ name: 'Яйца', category: 'Молочные продукты' })
+    await recStore.loadMatchedRecipes()
+
+    expect(recipeApi.matchRecipesApi).toHaveBeenCalledTimes(2)
+    expect(recStore.matchedRecipes[0].match_percentage).toBe(100)
   })
 })
