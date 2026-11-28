@@ -115,9 +115,18 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   const filteredMatchedRecipes = computed(() => {
-    return matchedRecipes.value.filter(
-      (item) => item.match_percentage >= 50 && filterMatched(item.recipe, item.used_ingredients)
-    )
+    return matchedRecipes.value
+      .filter((item) => item.match_percentage >= 50 && filterMatched(item.recipe, item.used_ingredients))
+      .sort((a, b) => {
+        const aReady = a.can_cook_now && a.total_ingredients > 0
+        const bReady = b.can_cook_now && b.total_ingredients > 0
+        if (aReady !== bReady) return aReady ? -1 : 1
+        if (a.match_percentage !== b.match_percentage) return b.match_percentage - a.match_percentage
+        const aMiss = a.missing_ingredients?.length ?? 0
+        const bMiss = b.missing_ingredients?.length ?? 0
+        if (aMiss !== bMiss) return aMiss - bMiss
+        return a.recipe.cooking_time_minutes - b.recipe.cooking_time_minutes
+      })
   })
 
   const filteredAllRecipes = computed(() => {
