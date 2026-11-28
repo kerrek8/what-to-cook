@@ -465,6 +465,41 @@ func (q *Queries) IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoritePara
 	return exists, err
 }
 
+const listAllRecipesForMatch = `-- name: ListAllRecipesForMatch :many
+SELECT id, title, description, cooking_time_minutes, difficulty, image_url, created_at, updated_at, search_vector FROM recipes
+ORDER BY id ASC
+`
+
+func (q *Queries) ListAllRecipesForMatch(ctx context.Context) ([]Recipe, error) {
+	rows, err := q.db.Query(ctx, listAllRecipesForMatch)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Recipe{}
+	for rows.Next() {
+		var i Recipe
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.CookingTimeMinutes,
+			&i.Difficulty,
+			&i.ImageUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SearchVector,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listFavoriteRecipes = `-- name: ListFavoriteRecipes :many
 SELECT r.id, r.title, r.description, r.cooking_time_minutes, r.difficulty, r.image_url, r.created_at, r.updated_at, r.search_vector
 FROM recipes r

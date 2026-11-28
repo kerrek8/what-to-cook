@@ -19,6 +19,10 @@ WHERE
 ORDER BY r.title ASC
 LIMIT sqlc.arg('limit_val') OFFSET sqlc.arg('offset_val');
 
+-- name: ListAllRecipesForMatch :many
+SELECT * FROM recipes
+ORDER BY id ASC;
+
 -- name: CountRecipes :one
 SELECT COUNT(*) FROM recipes r
 WHERE 

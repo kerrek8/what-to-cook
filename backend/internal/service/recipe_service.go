@@ -199,9 +199,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		}
 	}
 
-	recipes, err := s.store.ListRecipes(ctx, store.ListRecipesParams{
-		LimitVal:   1000,
-	})
+	recipes, err := s.store.ListAllRecipesForMatch(ctx)
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
 	}
@@ -239,8 +237,8 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 			continue
 		}
 
-		var used []dto.RecipeIngredientResponse
-		var missing []dto.RecipeIngredientResponse
+		used := make([]dto.RecipeIngredientResponse, 0)
+		missing := make([]dto.RecipeIngredientResponse, 0)
 
 		for _, ing := range ings {
 			ingDTO := mapAllDetailsIngredientToDTO(ing)
@@ -280,11 +278,19 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 	}
 
 	sort.Slice(matchItems, func(i, j int) bool {
+		iReady := matchItems[i].CanCookNow && matchItems[i].TotalIngredients > 0
+		jReady := matchItems[j].CanCookNow && matchItems[j].TotalIngredients > 0
+		if iReady != jReady {
+			return iReady
+		}
 		if matchItems[i].MatchPercentage != matchItems[j].MatchPercentage {
 			return matchItems[i].MatchPercentage > matchItems[j].MatchPercentage
 		}
 		if len(matchItems[i].MissingIngredients) != len(matchItems[j].MissingIngredients) {
 			return len(matchItems[i].MissingIngredients) < len(matchItems[j].MissingIngredients)
+		}
+		if matchItems[i].AvailableCount != matchItems[j].AvailableCount {
+			return matchItems[i].AvailableCount > matchItems[j].AvailableCount
 		}
 		return matchItems[i].Recipe.CookingTimeMinutes < matchItems[j].Recipe.CookingTimeMinutes
 	})

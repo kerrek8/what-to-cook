@@ -65,7 +65,7 @@ const readinessTier = computed<ReadinessTier>(() => {
 })
 
 const missingPreview = computed(() => {
-  if (!props.matchItem || props.matchItem.missing_ingredients.length === 0) return null
+  if (!props.matchItem || !props.matchItem.missing_ingredients?.length) return null
   return props.matchItem.missing_ingredients
     .slice(0, 2)
     .map((m) => m.name)
@@ -74,7 +74,7 @@ const missingPreview = computed(() => {
 
 const missingBadgeText = computed(() => {
   if (!props.matchItem) return '1 докупить'
-  if (props.matchItem.missing_ingredients && props.matchItem.missing_ingredients.length === 1) {
+  if (props.matchItem.missing_ingredients?.length === 1) {
     return `${props.matchItem.available_count}/${props.matchItem.total_ingredients} • Купить: ${props.matchItem.missing_ingredients[0].name}`
   }
   return `${props.matchItem.available_count}/${props.matchItem.total_ingredients} • ${props.matchItem.missing_ingredients?.length || 1} докупить`
@@ -193,7 +193,7 @@ function onFavoriteClick(e: MouseEvent) {
       <div v-if="missingPreview" class="missing-badge">
         <span class="missing-label">Купить:</span>
         <span class="missing-names">
-          {{ missingPreview }}<template v-if="matchItem && matchItem.missing_ingredients.length > 2"> +{{ matchItem.missing_ingredients.length - 2 }}</template>
+          {{ missingPreview }}<template v-if="matchItem?.missing_ingredients && matchItem.missing_ingredients.length > 2"> +{{ matchItem.missing_ingredients.length - 2 }}</template>
         </span>
       </div>
     </div>

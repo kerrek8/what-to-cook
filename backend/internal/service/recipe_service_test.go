@@ -63,6 +63,13 @@ func (m *mockRecipeQuerier) GetAllRecipeSteps(ctx context.Context) ([]store.GetA
 	return nil, nil
 }
 
+func (m *mockRecipeQuerier) ListAllRecipesForMatch(ctx context.Context) ([]store.Recipe, error) {
+	if m.listRecipesFunc != nil {
+		return m.listRecipesFunc(ctx, store.ListRecipesParams{LimitVal: 1000})
+	}
+	return nil, nil
+}
+
 func (m *mockRecipeQuerier) GetUserByID(ctx context.Context, id pgtype.UUID) (store.User, error) {
 	if m.getUserFunc != nil {
 		return m.getUserFunc(ctx, id)
@@ -274,6 +281,7 @@ func TestRecipeService_Match(t *testing.T) {
 	assert.Equal(t, "Курица с солью", res.Items[0].Recipe.Title)
 	assert.Equal(t, 100, res.Items[0].MatchPercentage)
 	assert.True(t, res.Items[0].CanCookNow)
+	require.NotNil(t, res.Items[0].MissingIngredients)
 	assert.Empty(t, res.Items[0].MissingIngredients)
 	assert.Len(t, res.Items[0].UsedIngredients, 2)
 

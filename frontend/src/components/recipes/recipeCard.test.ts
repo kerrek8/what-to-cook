@@ -12,4 +12,9 @@ describe('RecipeCard Match Count Display', () => {
     expect(content).not.toContain('matchItem.match_percentage }}%')
     expect(content).not.toContain('matchItem.match_percentage}%')
   })
+
+  it('safely handles null missing_ingredients without throwing TypeError on .length', () => {
+    expect(content).toContain('missing_ingredients?.length')
+    expect(content).not.toContain('props.matchItem.missing_ingredients.length')
+  })
 })
