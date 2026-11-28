@@ -212,14 +212,6 @@ func (m *e2eMockStore) GetAllRecipeSteps(ctx context.Context) ([]store.GetAllRec
 	}, nil
 }
 
-func (m *e2eMockStore) ListAllRecipesForMatch(ctx context.Context) ([]store.Recipe, error) {
-	var res []store.Recipe
-	for _, r := range m.recipes {
-		res = append(res, r)
-	}
-	return res, nil
-}
-
 func (m *e2eMockStore) UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error {
 	uidStr := uuid.UUID(id.Bytes).String()
 	u, ok := m.usersByID[uidStr]

@@ -46,7 +46,6 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	IsRecipeFavorite(ctx context.Context, arg IsRecipeFavoriteParams) (bool, error)
-	ListAllRecipesForMatch(ctx context.Context) ([]Recipe, error)
 	ListExpiringInventoryItems(ctx context.Context, arg ListExpiringInventoryItemsParams) ([]ListExpiringInventoryItemsRow, error)
 	ListFavoriteRecipes(ctx context.Context, userID pgtype.UUID) ([]Recipe, error)
 	ListIngredients(ctx context.Context) ([]Ingredient, error)

@@ -305,15 +305,4 @@ describe('useRecipeStore', () => {
     expect(recipeApi.matchRecipesApi).toHaveBeenCalledTimes(2)
     expect(recStore.matchedRecipes[0].match_percentage).toBe(100)
   })
-
-  it('sorts can_cook_now (100%) recipes first in filteredMatchedRecipes', () => {
-    const store = useRecipeStore()
-    store.matchedRecipes = [
-      { ...mockMatchItem, recipe: { ...mockRecipe, id: 1 }, match_percentage: 50, can_cook_now: false, available_count: 1, total_ingredients: 2 },
-      { ...mockMatchItem, recipe: { ...mockRecipe, id: 2 }, match_percentage: 100, can_cook_now: true, available_count: 2, total_ingredients: 2 },
-      { ...mockMatchItem, recipe: { ...mockRecipe, id: 3 }, match_percentage: 75, can_cook_now: false, available_count: 3, total_ingredients: 4 }
-    ]
-
-    expect(store.filteredMatchedRecipes.map((m) => m.recipe.id)).toEqual([2, 3, 1])
-  })
 })

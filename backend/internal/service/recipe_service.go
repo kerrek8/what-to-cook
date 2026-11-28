@@ -184,7 +184,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 	}
 
 	availableSet := make(map[int32]bool)
-	availableNames := make([]string, 0)
+	availableNames := make(map[string]bool)
 	for _, item := range invItems {
 		if !item.InStock {
 			continue
@@ -194,12 +194,14 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		}
 		if item.CustomName.Valid {
 			if norm := strings.ToLower(strings.TrimSpace(item.CustomName.String)); norm != "" {
-				availableNames = append(availableNames, norm)
+				availableNames[norm] = true
 			}
 		}
 	}
 
-	recipes, err := s.store.ListAllRecipesForMatch(ctx)
+	recipes, err := s.store.ListRecipes(ctx, store.ListRecipesParams{
+		LimitVal:   1000,
+	})
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
 	}
@@ -250,7 +252,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 			}
 
 			normIngName := strings.ToLower(strings.TrimSpace(ing.IngredientName))
-			if isPantry || availableSet[ing.IngredientID] || matchesAnyCustomName(availableNames, normIngName) {
+			if isPantry || availableSet[ing.IngredientID] || availableNames[normIngName] {
 				used = append(used, ingDTO)
 			} else {
 				missing = append(missing, ingDTO)
@@ -278,19 +280,11 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 	}
 
 	sort.Slice(matchItems, func(i, j int) bool {
-		iReady := matchItems[i].CanCookNow && matchItems[i].TotalIngredients > 0
-		jReady := matchItems[j].CanCookNow && matchItems[j].TotalIngredients > 0
-		if iReady != jReady {
-			return iReady
-		}
 		if matchItems[i].MatchPercentage != matchItems[j].MatchPercentage {
 			return matchItems[i].MatchPercentage > matchItems[j].MatchPercentage
 		}
 		if len(matchItems[i].MissingIngredients) != len(matchItems[j].MissingIngredients) {
 			return len(matchItems[i].MissingIngredients) < len(matchItems[j].MissingIngredients)
-		}
-		if matchItems[i].AvailableCount != matchItems[j].AvailableCount {
-			return matchItems[i].AvailableCount > matchItems[j].AvailableCount
 		}
 		return matchItems[i].Recipe.CookingTimeMinutes < matchItems[j].Recipe.CookingTimeMinutes
 	})
@@ -299,18 +293,6 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		Items: matchItems,
 		Total: len(matchItems),
 	}, nil
-}
-
-func matchesAnyCustomName(availableNames []string, ingName string) bool {
-	if ingName == "" {
-		return false
-	}
-	for _, avail := range availableNames {
-		if avail == ingName || strings.Contains(avail, ingName) || strings.Contains(ingName, avail) {
-			return true
-		}
-	}
-	return false
 }
 
 func (s *recipeService) SetFavorite(ctx context.Context, userID uuid.UUID, recipeID int32, isFav bool) error {

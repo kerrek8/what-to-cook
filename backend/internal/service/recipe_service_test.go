@@ -63,13 +63,6 @@ func (m *mockRecipeQuerier) GetAllRecipeSteps(ctx context.Context) ([]store.GetA
 	return nil, nil
 }
 
-func (m *mockRecipeQuerier) ListAllRecipesForMatch(ctx context.Context) ([]store.Recipe, error) {
-	if m.listRecipesFunc != nil {
-		return m.listRecipesFunc(ctx, store.ListRecipesParams{LimitVal: 1000})
-	}
-	return nil, nil
-}
-
 func (m *mockRecipeQuerier) GetUserByID(ctx context.Context, id pgtype.UUID) (store.User, error) {
 	if m.getUserFunc != nil {
 		return m.getUserFunc(ctx, id)
@@ -363,45 +356,6 @@ func TestRecipeService_Match_EmptyCustomPantryDoesNotFallbackToDefaults(t *testi
 	assert.False(t, res.Items[0].CanCookNow)
 	assert.Equal(t, 1, res.Items[0].AvailableCount)
 	assert.Equal(t, 50, res.Items[0].MatchPercentage)
-}
-
-func TestRecipeService_Match_SortsCanCookNowFirst(t *testing.T) {
-	uid := uuid.New()
-
-	mockStore := &mockRecipeQuerier{
-		getUserFunc: func(ctx context.Context, id pgtype.UUID) (store.User, error) {
-			return store.User{ID: id}, nil
-		},
-		listInvFunc: func(ctx context.Context, id pgtype.UUID) ([]store.ListInventoryItemsByUserIDRow, error) {
-			return []store.ListInventoryItemsByUserIDRow{
-				{IngredientID: pgtype.Int4{Int32: 1, Valid: true}, InStock: true},
-				{IngredientID: pgtype.Int4{Valid: false}, CustomName: pgtype.Text{String: "Сыр твердый", Valid: true}, InStock: true},
-			}, nil
-		},
-		listRecipesFunc: func(ctx context.Context, arg store.ListRecipesParams) ([]store.Recipe, error) {
-			return []store.Recipe{
-				{ID: 1, Title: "Частичный рецепт", CookingTimeMinutes: 10},
-				{ID: 2, Title: "Полный рецепт", CookingTimeMinutes: 45},
-			}, nil
-		},
-		getAllIngFunc: func(ctx context.Context) ([]store.GetAllRecipeIngredientsWithDetailsRow, error) {
-			return []store.GetAllRecipeIngredientsWithDetailsRow{
-				{RecipeID: 1, IngredientID: 1, IngredientName: "Курица", IsPantryEssential: false},
-				{RecipeID: 1, IngredientID: 3, IngredientName: "Грибы", IsPantryEssential: false},
-				{RecipeID: 2, IngredientID: 1, IngredientName: "Курица", IsPantryEssential: false},
-				{RecipeID: 2, IngredientID: 2, IngredientName: "Сыр", IsPantryEssential: false},
-			}, nil
-		},
-	}
-
-	svc := service.NewRecipeService(mockStore)
-	res, err := svc.Match(context.Background(), uid)
-
-	require.NoError(t, err)
-	require.Len(t, res.Items, 2)
-	assert.Equal(t, int32(2), res.Items[0].Recipe.ID)
-	assert.True(t, res.Items[0].CanCookNow)
-	assert.Equal(t, 100, res.Items[0].MatchPercentage)
 }
 
 func TestRecipeService_SetFavorite(t *testing.T) {
