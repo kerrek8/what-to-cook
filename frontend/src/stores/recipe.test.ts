@@ -237,21 +237,36 @@ describe('useRecipeStore', () => {
     expect(store.isLoading).toBe(false)
   })
 
-  it('filters out matched recipes with match_percentage < 60 (includes at least 60%)', () => {
+  it('filters out matched recipes with match_percentage < 50 (includes at least 50% e.g. 1/2)', () => {
     const store = useRecipeStore()
     const recipeA: RecipeResponse = { ...mockRecipe, id: 101, title: 'Рецепт 100%' }
     const recipeB: RecipeResponse = { ...mockRecipe, id: 102, title: 'Рецепт 61%' }
-    const recipeC: RecipeResponse = { ...mockRecipe, id: 103, title: 'Рецепт 60%' }
+    const recipeC: RecipeResponse = { ...mockRecipe, id: 103, title: 'Рецепт 50%' }
     const recipeD: RecipeResponse = { ...mockRecipe, id: 104, title: 'Рецепт 40%' }
 
     store.matchedRecipes = [
       { ...mockMatchItem, recipe: recipeA, match_percentage: 100 },
       { ...mockMatchItem, recipe: recipeB, match_percentage: 61 },
-      { ...mockMatchItem, recipe: recipeC, match_percentage: 60 },
+      { ...mockMatchItem, recipe: recipeC, match_percentage: 50 },
       { ...mockMatchItem, recipe: recipeD, match_percentage: 40 }
     ]
 
     expect(store.filteredMatchedRecipes).toHaveLength(3)
     expect(store.filteredMatchedRecipes.map((item) => item.recipe.id)).toEqual([101, 102, 103])
+  })
+
+  it('syncs favorite state across matchedRecipes, allRecipes, and favoriteCatalog', async () => {
+    vi.mocked(recipeApi.addFavoriteApi).mockResolvedValueOnce(undefined as any)
+    vi.mocked(recipeApi.getRecipeByIdApi).mockResolvedValueOnce({ ...mockRecipe, is_favorite: true })
+
+    const store = useRecipeStore()
+    store.matchedRecipes = [{ ...mockMatchItem, recipe: { ...mockRecipe, is_favorite: false } }]
+    store.allRecipes = [{ ...mockRecipe, is_favorite: false }]
+
+    await store.toggleFavorite(1)
+
+    expect(store.matchedRecipes[0].recipe.is_favorite).toBe(true)
+    expect(store.allRecipes[0].is_favorite).toBe(true)
+    expect(store.favoriteRecipes.some((r) => r.id === 1)).toBe(true)
   })
 })

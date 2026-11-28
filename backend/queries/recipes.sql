@@ -144,13 +144,33 @@ LIMIT 1;
 INSERT INTO recipes (
     title,
     description,
-    instructions,
     cooking_time_minutes,
     difficulty,
     image_url
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5
 ) RETURNING *;
+
+-- name: GetRecipeSteps :many
+SELECT step_number, instruction
+FROM recipe_steps
+WHERE recipe_id = $1
+ORDER BY step_number ASC;
+
+-- name: GetAllRecipeSteps :many
+SELECT recipe_id, step_number, instruction
+FROM recipe_steps
+ORDER BY recipe_id ASC, step_number ASC;
+
+-- name: AddRecipeStep :exec
+INSERT INTO recipe_steps (recipe_id, step_number, instruction)
+VALUES ($1, $2, $3)
+ON CONFLICT (recipe_id, step_number) DO UPDATE SET
+    instruction = EXCLUDED.instruction;
+
+-- name: DeleteRecipeSteps :exec
+DELETE FROM recipe_steps
+WHERE recipe_id = $1;
 
 -- name: UpdateRecipeImage :exec
 UPDATE recipes

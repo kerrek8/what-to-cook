@@ -819,11 +819,6 @@ func (w *RecipeWorker) processAndSaveRecipe(ctx context.Context, raw rawCandidat
 	}
 
 	// 4. Save recipe to database
-	instrJSON, err := json.Marshal(instructions)
-	if err != nil {
-		return false, err
-	}
-
 	categoryDesc := strings.TrimSpace(raw.Category)
 	if categoryDesc == "" {
 		categoryDesc = "Вторые блюда"
@@ -832,13 +827,22 @@ func (w *RecipeWorker) processAndSaveRecipe(ctx context.Context, raw rawCandidat
 	dbRecipe, err := w.queries.CreateRecipe(ctx, store.CreateRecipeParams{
 		Title:              raw.Title,
 		Description:        pgtype.Text{String: categoryDesc, Valid: true},
-		Instructions:       instrJSON,
 		CookingTimeMinutes: int32(cookTime),
 		Difficulty:         diff,
 		ImageUrl:           pgtype.Text{String: imageURL, Valid: true},
 	})
 	if err != nil {
 		return false, fmt.Errorf("failed to insert recipe: %w", err)
+	}
+
+	for idx, instr := range instructions {
+		if err := w.queries.AddRecipeStep(ctx, store.AddRecipeStepParams{
+			RecipeID:    dbRecipe.ID,
+			StepNumber:  int32(idx + 1),
+			Instruction: instr,
+		}); err != nil {
+			return false, fmt.Errorf("failed to insert recipe step: %w", err)
+		}
 	}
 
 	// 5. Ensure ingredients exist and link them

@@ -25,13 +25,15 @@ const props = withDefaults(
     title?: string
     submitText?: string
     hideAddMore?: boolean
+    keepOpenOnSubmit?: boolean
   }>(),
   {
     editItem: null,
     initialItem: null,
     title: '',
     submitText: '',
-    hideAddMore: false
+    hideAddMore: false,
+    keepOpenOnSubmit: false
   }
 )
 
@@ -185,11 +187,47 @@ function handleSubmit(closeAfter = false) {
   emit('add', payload)
 
   if (closeAfter) {
-    visible.value = false
+    if (!props.keepOpenOnSubmit) {
+      visible.value = false
+    }
     resetForm()
   } else {
     resetForm()
     toast.show('Добавлено! Можно добавить следующий', 'success')
+  }
+}
+
+function applyInitialOrEdit() {
+  if (props.editItem) {
+    productName.value = props.editItem.name
+    selectedCategory.value = props.editItem.category || 'Другое'
+    selectedIngredientId.value = props.editItem.ingredientId || null
+    if (props.editItem.amount != null) {
+      quantityMode.value = 'exact'
+      amount.value = props.editItem.amount
+      unit.value = props.editItem.unit || 'г'
+    } else if (props.editItem.approximateQuantity) {
+      quantityMode.value = 'approx'
+      approximateQuantity.value = props.editItem.approximateQuantity
+    }
+    expirationDate.value = props.editItem.expirationDate || ''
+    activePreset.value = null
+  } else if (props.initialItem) {
+    resetForm()
+    productName.value = props.initialItem.name
+    selectedCategory.value = props.initialItem.category || 'Другое'
+    selectedIngredientId.value = props.initialItem.ingredientId || null
+    if (props.initialItem.amount != null) {
+      quantityMode.value = 'exact'
+      amount.value = props.initialItem.amount
+      unit.value = props.initialItem.unit || 'г'
+    } else if (props.initialItem.approximateQuantity) {
+      quantityMode.value = 'approx'
+      approximateQuantity.value = props.initialItem.approximateQuantity
+    }
+    expirationDate.value = props.initialItem.expirationDate || ''
+  } else {
+    resetForm()
   }
 }
 
@@ -198,35 +236,16 @@ watch(
   (val) => {
     if (val) {
       loadCatalog()
-      if (props.editItem) {
-        productName.value = props.editItem.name
-        selectedCategory.value = props.editItem.category || 'Другое'
-        selectedIngredientId.value = props.editItem.ingredientId || null
-        if (props.editItem.amount != null) {
-          quantityMode.value = 'exact'
-          amount.value = props.editItem.amount
-          unit.value = props.editItem.unit || 'г'
-        } else if (props.editItem.approximateQuantity) {
-          quantityMode.value = 'approx'
-          approximateQuantity.value = props.editItem.approximateQuantity
-        }
-        expirationDate.value = props.editItem.expirationDate || ''
-      } else if (props.initialItem) {
-        productName.value = props.initialItem.name
-        selectedCategory.value = props.initialItem.category || 'Другое'
-        selectedIngredientId.value = props.initialItem.ingredientId || null
-        if (props.initialItem.amount != null) {
-          quantityMode.value = 'exact'
-          amount.value = props.initialItem.amount
-          unit.value = props.initialItem.unit || 'г'
-        } else if (props.initialItem.approximateQuantity) {
-          quantityMode.value = 'approx'
-          approximateQuantity.value = props.initialItem.approximateQuantity
-        }
-        expirationDate.value = props.initialItem.expirationDate || ''
-      } else {
-        resetForm()
-      }
+      applyInitialOrEdit()
+    }
+  }
+)
+
+watch(
+  () => props.initialItem,
+  () => {
+    if (props.show && props.initialItem) {
+      applyInitialOrEdit()
     }
   }
 )

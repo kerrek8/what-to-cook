@@ -81,4 +81,16 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
+router.afterEach(() => {
+  if (typeof document !== 'undefined') {
+    const wrapper = document.querySelector('.content-wrapper')
+    if (wrapper) {
+      wrapper.scrollTop = 0
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.scrollTo(0, 0)
+  }
+})
+
 export default router

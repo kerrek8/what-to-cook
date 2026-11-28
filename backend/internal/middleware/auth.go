@@ -38,6 +38,21 @@ func Auth(jwtSecret string) gin.HandlerFunc {
 	}
 }
 
+func OptionalAuth(jwtSecret string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+				if claims, err := token.ParseToken(parts[1], jwtSecret); err == nil && claims.Subject == "access" {
+					c.Set(ContextUserIDKey, claims.UserID)
+				}
+			}
+		}
+		c.Next()
+	}
+}
+
 func GetUserID(c *gin.Context) (string, error) {
 	val, ok := c.Get(ContextUserIDKey)
 	if !ok {

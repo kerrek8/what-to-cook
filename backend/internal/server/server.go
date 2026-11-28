@@ -79,8 +79,10 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 		}
 
 		recipes := v1.Group("/recipes")
+		recipes.Use(middleware.OptionalAuth(cfg.Auth.JWTSecret))
 		{
 			recipes.GET("", recipeHandler.List)
+			recipes.GET("/:id", recipeHandler.GetByID)
 		}
 
 		v1.GET("/notifications/vapid-key", notificationHandler.GetVAPIDKey)
@@ -131,8 +133,6 @@ func NewWithQuerier(cfg *config.Config, queries store.Querier, pushSender servic
 				notifications.GET("/subscriptions", notificationHandler.ListSubscriptions)
 			}
 		}
-
-		v1.GET("/recipes/:id", recipeHandler.GetByID)
 	}
 
 	httpServer := &http.Server{

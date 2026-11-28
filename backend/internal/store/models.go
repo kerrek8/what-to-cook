@@ -44,7 +44,6 @@ type Recipe struct {
 	ID                 int32              `json:"id"`
 	Title              string             `json:"title"`
 	Description        pgtype.Text        `json:"description"`
-	Instructions       []byte             `json:"instructions"`
 	CookingTimeMinutes int32              `json:"cooking_time_minutes"`
 	Difficulty         string             `json:"difficulty"`
 	ImageUrl           pgtype.Text        `json:"image_url"`
@@ -69,6 +68,13 @@ type RecipeIngredient struct {
 	Criticality  string         `json:"criticality"`
 }
 
+type RecipeStep struct {
+	ID          int32  `json:"id"`
+	RecipeID    int32  `json:"recipe_id"`
+	StepNumber  int32  `json:"step_number"`
+	Instruction string `json:"instruction"`
+}
+
 type ShoppingListItem struct {
 	ID           pgtype.UUID        `json:"id"`
 	UserID       pgtype.UUID        `json:"user_id"`
@@ -82,14 +88,25 @@ type ShoppingListItem struct {
 }
 
 type User struct {
-	ID                    pgtype.UUID        `json:"id"`
-	Email                 string             `json:"email"`
-	PasswordHash          string             `json:"password_hash"`
-	Name                  string             `json:"name"`
-	TokenVersion          int32              `json:"token_version"`
-	ExcludedIngredientIds []int32            `json:"excluded_ingredient_ids"`
-	PantryIngredientIds   []int32            `json:"pantry_ingredient_ids"`
-	CreatedAt             pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
-	AvatarUrl             pgtype.Text        `json:"avatar_url"`
+	ID              pgtype.UUID        `json:"id"`
+	Email           string             `json:"email"`
+	PasswordHash    string             `json:"password_hash"`
+	Name            string             `json:"name"`
+	TokenVersion    int32              `json:"token_version"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	AvatarUrl       pgtype.Text        `json:"avatar_url"`
+	HasCustomPantry bool               `json:"has_custom_pantry"`
+}
+
+type UserExcludedIngredient struct {
+	UserID       pgtype.UUID        `json:"user_id"`
+	IngredientID int32              `json:"ingredient_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type UserPantryIngredient struct {
+	UserID       pgtype.UUID        `json:"user_id"`
+	IngredientID int32              `json:"ingredient_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }

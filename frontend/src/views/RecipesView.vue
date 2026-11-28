@@ -77,6 +77,8 @@ watch(
   async (tab) => {
     if (tab !== 'match') {
       recipeStore.saveExpiringOnly = false
+    } else {
+      await recipeStore.loadMatchedRecipes()
     }
     if (tab === 'all') {
       if (recipeStore.allRecipes.length === 0) {

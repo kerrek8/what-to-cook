@@ -32,11 +32,15 @@ import (
 
 type mockUserQuerier struct {
 	store.Querier
-	users map[string]store.User
+	users    map[string]store.User
+	excluded map[string][]int32
 }
 
 func newMockUserQuerier() *mockUserQuerier {
-	return &mockUserQuerier{users: make(map[string]store.User)}
+	return &mockUserQuerier{
+		users:    make(map[string]store.User),
+		excluded: make(map[string][]int32),
+	}
 }
 
 func (m *mockUserQuerier) GetUserByID(ctx context.Context, id pgtype.UUID) (store.User, error) {
@@ -48,15 +52,23 @@ func (m *mockUserQuerier) GetUserByID(ctx context.Context, id pgtype.UUID) (stor
 	return u, nil
 }
 
-func (m *mockUserQuerier) UpdateUserExcludedIngredients(ctx context.Context, arg store.UpdateUserExcludedIngredientsParams) error {
-	idStr := uuid.UUID(arg.ID.Bytes).String()
-	u, ok := m.users[idStr]
-	if !ok {
-		return pgx.ErrNoRows
-	}
-	u.ExcludedIngredientIds = arg.ExcludedIngredientIds
-	m.users[idStr] = u
+func (m *mockUserQuerier) ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return m.excluded[uuid.UUID(userID.Bytes).String()], nil
+}
+
+func (m *mockUserQuerier) ClearUserExcludedIngredients(ctx context.Context, userID pgtype.UUID) error {
+	m.excluded[uuid.UUID(userID.Bytes).String()] = nil
 	return nil
+}
+
+func (m *mockUserQuerier) AddUserExcludedIngredient(ctx context.Context, arg store.AddUserExcludedIngredientParams) error {
+	idStr := uuid.UUID(arg.UserID.Bytes).String()
+	m.excluded[idStr] = append(m.excluded[idStr], arg.IngredientID)
+	return nil
+}
+
+func (m *mockUserQuerier) ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return nil, nil
 }
 
 func (m *mockUserQuerier) UpdateUserAvatar(ctx context.Context, arg store.UpdateUserAvatarParams) (store.User, error) {
@@ -118,12 +130,11 @@ func TestUserHandler(t *testing.T) {
 	testUserID := uuid.New()
 	testUserIDStr := testUserID.String()
 	mock.users[testUserIDStr] = store.User{
-		ID:                    pgtype.UUID{Bytes: testUserID, Valid: true},
-		Email:                 "me@example.com",
-		Name:                  "Me User",
-		TokenVersion:          1,
-		ExcludedIngredientIds: []int32{},
-		CreatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		ID:           pgtype.UUID{Bytes: testUserID, Valid: true},
+		Email:        "me@example.com",
+		Name:         "Me User",
+		TokenVersion: 1,
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 
 	r := gin.New()

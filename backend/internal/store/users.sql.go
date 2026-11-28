@@ -11,10 +11,62 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addUserExcludedIngredient = `-- name: AddUserExcludedIngredient :exec
+INSERT INTO user_excluded_ingredients (user_id, ingredient_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type AddUserExcludedIngredientParams struct {
+	UserID       pgtype.UUID `json:"user_id"`
+	IngredientID int32       `json:"ingredient_id"`
+}
+
+func (q *Queries) AddUserExcludedIngredient(ctx context.Context, arg AddUserExcludedIngredientParams) error {
+	_, err := q.db.Exec(ctx, addUserExcludedIngredient, arg.UserID, arg.IngredientID)
+	return err
+}
+
+const addUserPantryIngredient = `-- name: AddUserPantryIngredient :exec
+INSERT INTO user_pantry_ingredients (user_id, ingredient_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type AddUserPantryIngredientParams struct {
+	UserID       pgtype.UUID `json:"user_id"`
+	IngredientID int32       `json:"ingredient_id"`
+}
+
+func (q *Queries) AddUserPantryIngredient(ctx context.Context, arg AddUserPantryIngredientParams) error {
+	_, err := q.db.Exec(ctx, addUserPantryIngredient, arg.UserID, arg.IngredientID)
+	return err
+}
+
+const clearUserExcludedIngredients = `-- name: ClearUserExcludedIngredients :exec
+DELETE FROM user_excluded_ingredients
+WHERE user_id = $1
+`
+
+func (q *Queries) ClearUserExcludedIngredients(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, clearUserExcludedIngredients, userID)
+	return err
+}
+
+const clearUserPantryIngredients = `-- name: ClearUserPantryIngredients :exec
+DELETE FROM user_pantry_ingredients
+WHERE user_id = $1
+`
+
+func (q *Queries) ClearUserPantryIngredients(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, clearUserPantryIngredients, userID)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, password_hash, name)
 VALUES ($1, $2, $3)
-RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at, avatar_url
+RETURNING id, email, password_hash, name, token_version, created_at, updated_at, avatar_url, has_custom_pantry
 `
 
 type CreateUserParams struct {
@@ -32,17 +84,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.PasswordHash,
 		&i.Name,
 		&i.TokenVersion,
-		&i.ExcludedIngredientIds,
-		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AvatarUrl,
+		&i.HasCustomPantry,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at, avatar_url FROM users
+SELECT id, email, password_hash, name, token_version, created_at, updated_at, avatar_url, has_custom_pantry FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -55,17 +106,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.PasswordHash,
 		&i.Name,
 		&i.TokenVersion,
-		&i.ExcludedIngredientIds,
-		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AvatarUrl,
+		&i.HasCustomPantry,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at, avatar_url FROM users
+SELECT id, email, password_hash, name, token_version, created_at, updated_at, avatar_url, has_custom_pantry FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -78,20 +128,87 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.PasswordHash,
 		&i.Name,
 		&i.TokenVersion,
-		&i.ExcludedIngredientIds,
-		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AvatarUrl,
+		&i.HasCustomPantry,
 	)
 	return i, err
+}
+
+const listUserExcludedIngredientIDs = `-- name: ListUserExcludedIngredientIDs :many
+SELECT ingredient_id FROM user_excluded_ingredients
+WHERE user_id = $1
+ORDER BY ingredient_id ASC
+`
+
+func (q *Queries) ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	rows, err := q.db.Query(ctx, listUserExcludedIngredientIDs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []int32{}
+	for rows.Next() {
+		var ingredient_id int32
+		if err := rows.Scan(&ingredient_id); err != nil {
+			return nil, err
+		}
+		items = append(items, ingredient_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserPantryIngredientIDs = `-- name: ListUserPantryIngredientIDs :many
+SELECT ingredient_id FROM user_pantry_ingredients
+WHERE user_id = $1
+ORDER BY ingredient_id ASC
+`
+
+func (q *Queries) ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	rows, err := q.db.Query(ctx, listUserPantryIngredientIDs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []int32{}
+	for rows.Next() {
+		var ingredient_id int32
+		if err := rows.Scan(&ingredient_id); err != nil {
+			return nil, err
+		}
+		items = append(items, ingredient_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const setUserCustomPantryFlag = `-- name: SetUserCustomPantryFlag :exec
+UPDATE users
+SET has_custom_pantry = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type SetUserCustomPantryFlagParams struct {
+	ID              pgtype.UUID `json:"id"`
+	HasCustomPantry bool        `json:"has_custom_pantry"`
+}
+
+func (q *Queries) SetUserCustomPantryFlag(ctx context.Context, arg SetUserCustomPantryFlagParams) error {
+	_, err := q.db.Exec(ctx, setUserCustomPantryFlag, arg.ID, arg.HasCustomPantry)
+	return err
 }
 
 const updateUserAvatar = `-- name: UpdateUserAvatar :one
 UPDATE users
 SET avatar_url = $2, updated_at = NOW()
 WHERE id = $1
-RETURNING id, email, password_hash, name, token_version, excluded_ingredient_ids, pantry_ingredient_ids, created_at, updated_at, avatar_url
+RETURNING id, email, password_hash, name, token_version, created_at, updated_at, avatar_url, has_custom_pantry
 `
 
 type UpdateUserAvatarParams struct {
@@ -108,45 +225,12 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 		&i.PasswordHash,
 		&i.Name,
 		&i.TokenVersion,
-		&i.ExcludedIngredientIds,
-		&i.PantryIngredientIds,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.AvatarUrl,
+		&i.HasCustomPantry,
 	)
 	return i, err
-}
-
-const updateUserExcludedIngredients = `-- name: UpdateUserExcludedIngredients :exec
-UPDATE users
-SET excluded_ingredient_ids = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateUserExcludedIngredientsParams struct {
-	ID                    pgtype.UUID `json:"id"`
-	ExcludedIngredientIds []int32     `json:"excluded_ingredient_ids"`
-}
-
-func (q *Queries) UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error {
-	_, err := q.db.Exec(ctx, updateUserExcludedIngredients, arg.ID, arg.ExcludedIngredientIds)
-	return err
-}
-
-const updateUserPantryIngredients = `-- name: UpdateUserPantryIngredients :exec
-UPDATE users
-SET pantry_ingredient_ids = $2, updated_at = NOW()
-WHERE id = $1
-`
-
-type UpdateUserPantryIngredientsParams struct {
-	ID                  pgtype.UUID `json:"id"`
-	PantryIngredientIds []int32     `json:"pantry_ingredient_ids"`
-}
-
-func (q *Queries) UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error {
-	_, err := q.db.Exec(ctx, updateUserPantryIngredients, arg.ID, arg.PantryIngredientIds)
-	return err
 }
 
 const updateUserTokenVersion = `-- name: UpdateUserTokenVersion :exec

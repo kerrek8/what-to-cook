@@ -19,25 +19,28 @@ type mockQuerier struct {
 	store.Querier
 	usersByEmail map[string]store.User
 	usersByID    map[string]store.User
+	excludedByID map[string][]int32
+	pantryByID   map[string][]int32
 }
 
 func newMockQuerier() *mockQuerier {
 	return &mockQuerier{
 		usersByEmail: make(map[string]store.User),
 		usersByID:    make(map[string]store.User),
+		excludedByID: make(map[string][]int32),
+		pantryByID:   make(map[string][]int32),
 	}
 }
 
 func (m *mockQuerier) CreateUser(ctx context.Context, arg store.CreateUserParams) (store.User, error) {
 	u := store.User{
-		ID:                    pgtype.UUID{Bytes: uuid.New(), Valid: true},
-		Email:                 arg.Email,
-		PasswordHash:          arg.PasswordHash,
-		Name:                  arg.Name,
-		TokenVersion:          1,
-		ExcludedIngredientIds: []int32{},
-		CreatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		UpdatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		ID:           pgtype.UUID{Bytes: uuid.New(), Valid: true},
+		Email:        arg.Email,
+		PasswordHash: arg.PasswordHash,
+		Name:         arg.Name,
+		TokenVersion: 1,
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		UpdatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 	idStr := uuid.UUID(u.ID.Bytes).String()
 	m.usersByEmail[u.Email] = u
@@ -74,15 +77,42 @@ func (m *mockQuerier) UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID
 	return nil
 }
 
-func (m *mockQuerier) UpdateUserExcludedIngredients(ctx context.Context, arg store.UpdateUserExcludedIngredientsParams) error {
+func (m *mockQuerier) ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return m.excludedByID[uuid.UUID(userID.Bytes).String()], nil
+}
+
+func (m *mockQuerier) ClearUserExcludedIngredients(ctx context.Context, userID pgtype.UUID) error {
+	m.excludedByID[uuid.UUID(userID.Bytes).String()] = nil
+	return nil
+}
+
+func (m *mockQuerier) AddUserExcludedIngredient(ctx context.Context, arg store.AddUserExcludedIngredientParams) error {
+	idStr := uuid.UUID(arg.UserID.Bytes).String()
+	m.excludedByID[idStr] = append(m.excludedByID[idStr], arg.IngredientID)
+	return nil
+}
+
+func (m *mockQuerier) ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return m.pantryByID[uuid.UUID(userID.Bytes).String()], nil
+}
+
+func (m *mockQuerier) SetUserCustomPantryFlag(ctx context.Context, arg store.SetUserCustomPantryFlagParams) error {
 	idStr := uuid.UUID(arg.ID.Bytes).String()
-	u, ok := m.usersByID[idStr]
-	if !ok {
-		return pgx.ErrNoRows
+	if u, ok := m.usersByID[idStr]; ok {
+		u.HasCustomPantry = arg.HasCustomPantry
+		m.usersByID[idStr] = u
 	}
-	u.ExcludedIngredientIds = arg.ExcludedIngredientIds
-	m.usersByID[idStr] = u
-	m.usersByEmail[u.Email] = u
+	return nil
+}
+
+func (m *mockQuerier) ClearUserPantryIngredients(ctx context.Context, userID pgtype.UUID) error {
+	m.pantryByID[uuid.UUID(userID.Bytes).String()] = nil
+	return nil
+}
+
+func (m *mockQuerier) AddUserPantryIngredient(ctx context.Context, arg store.AddUserPantryIngredientParams) error {
+	idStr := uuid.UUID(arg.UserID.Bytes).String()
+	m.pantryByID[idStr] = append(m.pantryByID[idStr], arg.IngredientID)
 	return nil
 }
 

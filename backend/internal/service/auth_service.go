@@ -70,7 +70,7 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (*d
 
 	return &dto.AuthResponse{
 		AccessToken: accessToken,
-		User:        MapUserToDTO(user),
+		User:        MapUserToDTO(user, nil, nil),
 	}, refreshToken, nil
 }
 
@@ -100,7 +100,7 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Aut
 
 	return &dto.AuthResponse{
 		AccessToken: accessToken,
-		User:        MapUserToDTO(user),
+		User:        loadAndMapUserDTO(ctx, s.queries, user),
 	}, refreshToken, nil
 }
 
@@ -139,7 +139,7 @@ func (s *AuthService) Refresh(ctx context.Context, refreshTokenString string) (*
 
 	return &dto.AuthResponse{
 		AccessToken: newAccessToken,
-		User:        MapUserToDTO(user),
+		User:        loadAndMapUserDTO(ctx, s.queries, user),
 	}, newRefreshToken, nil
 }
 
@@ -151,7 +151,19 @@ func (s *AuthService) InvalidateSessions(ctx context.Context, userIDStr string) 
 	return s.queries.UpdateUserTokenVersion(ctx, pgtype.UUID{Bytes: parsedUUID, Valid: true})
 }
 
-func MapUserToDTO(u store.User) dto.UserResponse {
+func loadAndMapUserDTO(ctx context.Context, q store.Querier, u store.User) dto.UserResponse {
+	excludedIDs, _ := q.ListUserExcludedIngredientIDs(ctx, u.ID)
+	pantryIDs, _ := q.ListUserPantryIngredientIDs(ctx, u.ID)
+	return MapUserToDTO(u, excludedIDs, pantryIDs)
+}
+
+func MapUserToDTO(u store.User, excludedIDs, pantryIDs []int32) dto.UserResponse {
+	if excludedIDs == nil {
+		excludedIDs = []int32{}
+	}
+	if pantryIDs == nil {
+		pantryIDs = []int32{}
+	}
 	var avatarURL *string
 	if u.AvatarUrl.Valid && u.AvatarUrl.String != "" {
 		avatarURL = &u.AvatarUrl.String
@@ -161,8 +173,8 @@ func MapUserToDTO(u store.User) dto.UserResponse {
 		Email:                 u.Email,
 		Name:                  u.Name,
 		AvatarURL:             avatarURL,
-		ExcludedIngredientIDs: u.ExcludedIngredientIds,
-		PantryIngredientIDs:   u.PantryIngredientIds,
+		ExcludedIngredientIDs: excludedIDs,
+		PantryIngredientIDs:   pantryIDs,
 		CreatedAt:             u.CreatedAt.Time.Format(time.RFC3339),
 	}
 }

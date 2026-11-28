@@ -38,7 +38,7 @@ func (s *UserService) GetMe(ctx context.Context, userIDStr string) (*dto.UserRes
 		return nil, fmt.Errorf("get user: %w", err)
 	}
 
-	resp := MapUserToDTO(user)
+	resp := loadAndMapUserDTO(ctx, s.queries, user)
 	return &resp, nil
 }
 
@@ -50,17 +50,24 @@ func (s *UserService) UpdatePantry(ctx context.Context, userIDStr string, req dt
 
 	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
 
-	pantryIDs := req.PantryIngredientIDs
-	if pantryIDs == nil {
-		pantryIDs = []int32{}
+	if err := s.queries.SetUserCustomPantryFlag(ctx, store.SetUserCustomPantryFlagParams{
+		ID:              pgUUID,
+		HasCustomPantry: true,
+	}); err != nil {
+		return nil, fmt.Errorf("set custom pantry flag: %w", err)
 	}
 
-	err = s.queries.UpdateUserPantryIngredients(ctx, store.UpdateUserPantryIngredientsParams{
-		ID:                  pgUUID,
-		PantryIngredientIds: pantryIDs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("update pantry: %w", err)
+	if err := s.queries.ClearUserPantryIngredients(ctx, pgUUID); err != nil {
+		return nil, fmt.Errorf("clear pantry: %w", err)
+	}
+
+	for _, ingID := range req.PantryIngredientIDs {
+		if err := s.queries.AddUserPantryIngredient(ctx, store.AddUserPantryIngredientParams{
+			UserID:       pgUUID,
+			IngredientID: ingID,
+		}); err != nil {
+			return nil, fmt.Errorf("add pantry ingredient: %w", err)
+		}
 	}
 
 	user, err := s.queries.GetUserByID(ctx, pgUUID)
@@ -68,7 +75,7 @@ func (s *UserService) UpdatePantry(ctx context.Context, userIDStr string, req dt
 		return nil, fmt.Errorf("get updated user: %w", err)
 	}
 
-	resp := MapUserToDTO(user)
+	resp := loadAndMapUserDTO(ctx, s.queries, user)
 	return &resp, nil
 }
 
@@ -84,12 +91,17 @@ func (s *UserService) UpdateAllergens(ctx context.Context, userIDStr string, req
 
 	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
 
-	err = s.queries.UpdateUserExcludedIngredients(ctx, store.UpdateUserExcludedIngredientsParams{
-		ID:                    pgUUID,
-		ExcludedIngredientIds: req.ExcludedIngredientIDs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("update allergens: %w", err)
+	if err := s.queries.ClearUserExcludedIngredients(ctx, pgUUID); err != nil {
+		return nil, fmt.Errorf("clear allergens: %w", err)
+	}
+
+	for _, ingID := range req.ExcludedIngredientIDs {
+		if err := s.queries.AddUserExcludedIngredient(ctx, store.AddUserExcludedIngredientParams{
+			UserID:       pgUUID,
+			IngredientID: ingID,
+		}); err != nil {
+			return nil, fmt.Errorf("add allergen: %w", err)
+		}
 	}
 
 	user, err := s.queries.GetUserByID(ctx, pgUUID)
@@ -97,7 +109,7 @@ func (s *UserService) UpdateAllergens(ctx context.Context, userIDStr string, req
 		return nil, fmt.Errorf("get updated user: %w", err)
 	}
 
-	resp := MapUserToDTO(user)
+	resp := loadAndMapUserDTO(ctx, s.queries, user)
 	return &resp, nil
 }
 
@@ -121,6 +133,6 @@ func (s *UserService) UpdateAvatar(ctx context.Context, userIDStr string, avatar
 		return nil, fmt.Errorf("update avatar: %w", err)
 	}
 
-	resp := MapUserToDTO(user)
+	resp := loadAndMapUserDTO(ctx, s.queries, user)
 	return &resp, nil
 }

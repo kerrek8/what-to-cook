@@ -1051,6 +1051,38 @@ flowchart TD
   - Версия WhatCook синхронно обновлена по SemVer до **`v0.9.5`** (`frontend/package.json`, `frontend/src/views/ProfileView.vue`, `README.md`).
   - Все тесты фронтенда (`bun run test`) и бэкенда (`go test ./...`), проверка типов (`vue-tsc --noEmit`) и билд PWA пройдены со 100% успехом.
 
+---
+
+## ✅ Завершен: Нормализация БД до 4НФ, фикс подбора рецептов, синхронизация избранного и UI-доработки (v0.10.0)
+
+- **Статус**: ✅ Завершен.
+- **Ветка**: `feat/f33-4nf-matching-favorites-and-ui`.
+- **Цель**:
+  1. Нормализовать схему PostgreSQL до **4НФ**: вынести `excluded_ingredient_ids` и `pantry_ingredient_ids` из `users` в таблицы связей `user_excluded_ingredients` и `user_pantry_ingredients`, а `instructions JSONB` из `recipes` — в таблицу `recipe_steps`.
+  2. Устранить рассинхронизацию избранного между вкладками («Подбор» / «Каталог» / «Избранное»).
+  3. Исправить подбор рецептов (сброс кэша при обновлении холодильника, сопоставление ручных продуктов по `custom_name`, снижение порога с 60% до 50% и отображение в формате `4/5`).
+  4. Вернуть пошаговую предзаполненную форму `AddProductSheet` при переносе купленных товаров в холодильник.
+  5. Доработать UI: сброс скролла при открытии детальной карточки рецепта, отступы степпера порций, вкладки «Ингредиенты» / «Инструкции», бейджи важности ингредиентов и компактный светлый `FridgeSummaryCard`.
+
+### Выполнено
+
+- [x] **Нормализация БД до 4НФ ([`000005_normalize_4nf.up.sql`](file:///D:/projects/whatcook/backend/migrations/000005_normalize_4nf.up.sql), `users.sql`, `recipes.sql`)**:
+  - Созданы таблицы `user_excluded_ingredients`, `user_pantry_ingredients`, `recipe_steps`, добавлен флаг `has_custom_pantry` в `users`.
+  - Перегенерирован SQLC-слой `internal/store`, обновлены `AuthService`, `UserService`, `RecipeService`, `RecipeWorker` и тесты.
+- [x] **Бэкенд: `OptionalAuth` и подбор по `custom_name` ([`auth.go`](file:///D:/projects/whatcook/backend/internal/middleware/auth.go), [`server.go`](file:///D:/projects/whatcook/backend/internal/server/server.go), [`recipe_service.go`](file:///D:/projects/whatcook/backend/internal/service/recipe_service.go))**:
+  - Подключен `OptionalAuth` на `GET /recipes` и `GET /recipes/:id` для возврата актуального `is_favorite`.
+  - В `Match` добавлено сопоставление продуктов холодильника без `ingredient_id` по нормализованному `custom_name`.
+- [x] **Фронтенд: избранное, подбор `4/5` (от 50%) и перенос покупок ([`recipe.ts`](file:///D:/projects/whatcook/frontend/src/stores/recipe.ts), [`RecipeCard.vue`](file:///D:/projects/whatcook/frontend/src/components/recipes/RecipeCard.vue), [`ShoppingView.vue`](file:///D:/projects/whatcook/frontend/src/views/ShoppingView.vue), [`AddProductSheet.vue`](file:///D:/projects/whatcook/frontend/src/components/inventory/AddProductSheet.vue))**:
+  - Единый `favoriteIds` синхронизирует статус избранного во всех списках.
+  - Порог подбора снижен до `>= 50%`, бейдж совпадения показывает количество `X/Y`, кэш подбора обновляется при изменении инвентаря.
+  - При переносе купленных товаров открывается очередь предзаполненной формы `AddProductSheet`.
+- [x] **Фронтенд: UI детальной карточки рецепта и холодильника ([`RecipeDetailView.vue`](file:///D:/projects/whatcook/frontend/src/views/RecipeDetailView.vue), [`FridgeSummaryCard.vue`](file:///D:/projects/whatcook/frontend/src/components/inventory/FridgeSummaryCard.vue), [`router/index.ts`](file:///D:/projects/whatcook/frontend/src/router/index.ts))**:
+  - Сброс скролла `.content-wrapper` вверх при переходах.
+  - Исправлены отступы степпера порций, добавлены табы «Ингредиенты» / «Инструкции» и бейджи важности ингредиентов.
+  - `FridgeSummaryCard` переработан в компактную светлую строку из 3 чипов.
+- [x] **Верификация и версионирование**:
+  - Версия обновлена до **`v0.10.0`** (`frontend/package.json`, `frontend/src/views/ProfileView.vue`).
+
 
 
 

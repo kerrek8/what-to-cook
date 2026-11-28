@@ -16,15 +16,38 @@ UPDATE users
 SET token_version = token_version + 1, updated_at = NOW()
 WHERE id = $1;
 
--- name: UpdateUserExcludedIngredients :exec
+-- name: ListUserExcludedIngredientIDs :many
+SELECT ingredient_id FROM user_excluded_ingredients
+WHERE user_id = $1
+ORDER BY ingredient_id ASC;
+
+-- name: ClearUserExcludedIngredients :exec
+DELETE FROM user_excluded_ingredients
+WHERE user_id = $1;
+
+-- name: AddUserExcludedIngredient :exec
+INSERT INTO user_excluded_ingredients (user_id, ingredient_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
+
+-- name: ListUserPantryIngredientIDs :many
+SELECT ingredient_id FROM user_pantry_ingredients
+WHERE user_id = $1
+ORDER BY ingredient_id ASC;
+
+-- name: SetUserCustomPantryFlag :exec
 UPDATE users
-SET excluded_ingredient_ids = $2, updated_at = NOW()
+SET has_custom_pantry = $2, updated_at = NOW()
 WHERE id = $1;
 
--- name: UpdateUserPantryIngredients :exec
-UPDATE users
-SET pantry_ingredient_ids = $2, updated_at = NOW()
-WHERE id = $1;
+-- name: ClearUserPantryIngredients :exec
+DELETE FROM user_pantry_ingredients
+WHERE user_id = $1;
+
+-- name: AddUserPantryIngredient :exec
+INSERT INTO user_pantry_ingredients (user_id, ingredient_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
 
 -- name: UpdateUserAvatar :one
 UPDATE users

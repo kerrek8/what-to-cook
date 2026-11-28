@@ -75,9 +75,9 @@ const missingPreview = computed(() => {
 const missingBadgeText = computed(() => {
   if (!props.matchItem) return '1 докупить'
   if (props.matchItem.missing_ingredients && props.matchItem.missing_ingredients.length === 1) {
-    return `Купить: ${props.matchItem.missing_ingredients[0].name}`
+    return `${props.matchItem.available_count}/${props.matchItem.total_ingredients} • Купить: ${props.matchItem.missing_ingredients[0].name}`
   }
-  return `${props.matchItem.match_percentage}% • 1 докупить`
+  return `${props.matchItem.available_count}/${props.matchItem.total_ingredients} • ${props.matchItem.missing_ingredients?.length || 1} докупить`
 })
 
 function goToDetail() {
@@ -136,12 +136,12 @@ function onFavoriteClick(e: MouseEvent) {
           <span>{{ missingBadgeText }}</span>
         </span>
 
-        <!-- Partial Match Percentage -->
+        <!-- Partial Match Count -->
         <span
           v-else-if="matchItem"
           class="backdrop-blur-md bg-stone-900/65 border border-white/20 text-white font-medium px-2.5 py-1 rounded-full text-xs flex items-center gap-1"
         >
-          {{ matchItem.match_percentage }}%
+          {{ matchItem.available_count }}/{{ matchItem.total_ingredients }}
         </span>
 
         <!-- Saving Expiring Ingredients -->

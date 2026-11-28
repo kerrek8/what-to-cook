@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"sort"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -87,9 +87,11 @@ func (s *recipeService) List(ctx context.Context, userID *uuid.UUID, q dto.Recip
 		}
 	}
 
+	stepsMap := s.loadAllStepsMap(ctx)
+
 	responses := make([]dto.RecipeResponse, len(recipes))
 	for i, r := range recipes {
-		responses[i] = mapStoreRecipeToDTO(r, favMap[r.ID], nil)
+		responses[i] = mapStoreRecipeToDTO(r, favMap[r.ID], nil, stepsMap[r.ID])
 	}
 
 	return dto.RecipeListResponse{
@@ -103,9 +105,10 @@ func (s *recipeService) ListFavorites(ctx context.Context, userID uuid.UUID) ([]
 	if err != nil {
 		return nil, err
 	}
+	stepsMap := s.loadAllStepsMap(ctx)
 	res := make([]dto.RecipeResponse, len(favs))
 	for i, r := range favs {
-		res[i] = mapStoreRecipeToDTO(r, true, nil)
+		res[i] = mapStoreRecipeToDTO(r, true, nil, stepsMap[r.ID])
 	}
 	return res, nil
 }
@@ -137,25 +140,40 @@ func (s *recipeService) GetByID(ctx context.Context, userID *uuid.UUID, id int32
 		ingResponses[i] = mapRecipeIngredientToDTO(ing)
 	}
 
-	resp := mapStoreRecipeToDTO(recipe, isFav, ingResponses)
+	stepsRows, _ := s.store.GetRecipeSteps(ctx, id)
+	steps := make([]string, 0, len(stepsRows))
+	for _, st := range stepsRows {
+		steps = append(steps, st.Instruction)
+	}
+
+	resp := mapStoreRecipeToDTO(recipe, isFav, ingResponses, steps)
 	return &resp, nil
 }
 
 func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.RecipeMatchResponse, error) {
-	user, err := s.store.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	pgUserID := pgtype.UUID{Bytes: userID, Valid: true}
+	user, err := s.store.GetUserByID(ctx, pgUserID)
 	if err != nil {
 		return dto.RecipeMatchResponse{}, err
 	}
 
+	excludedIDs, err := s.store.ListUserExcludedIngredientIDs(ctx, pgUserID)
+	if err != nil {
+		return dto.RecipeMatchResponse{}, err
+	}
 	excludedSet := make(map[int32]bool)
-	for _, id := range user.ExcludedIngredientIds {
+	for _, id := range excludedIDs {
 		excludedSet[id] = true
 	}
 
-	customPantry := user.PantryIngredientIds != nil
+	customPantry := user.HasCustomPantry
 	pantrySet := make(map[int32]bool)
 	if customPantry {
-		for _, id := range user.PantryIngredientIds {
+		pantryIDs, err := s.store.ListUserPantryIngredientIDs(ctx, pgUserID)
+		if err != nil {
+			return dto.RecipeMatchResponse{}, err
+		}
+		for _, id := range pantryIDs {
 			pantrySet[id] = true
 		}
 	}
@@ -166,9 +184,18 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 	}
 
 	availableSet := make(map[int32]bool)
+	availableNames := make(map[string]bool)
 	for _, item := range invItems {
-		if item.InStock && item.IngredientID.Valid {
+		if !item.InStock {
+			continue
+		}
+		if item.IngredientID.Valid {
 			availableSet[item.IngredientID.Int32] = true
+		}
+		if item.CustomName.Valid {
+			if norm := strings.ToLower(strings.TrimSpace(item.CustomName.String)); norm != "" {
+				availableNames[norm] = true
+			}
 		}
 	}
 
@@ -195,6 +222,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 		favMap[f] = true
 	}
 
+	stepsMap := s.loadAllStepsMap(ctx)
 	matchItems := make([]dto.RecipeMatchItem, 0, len(recipes))
 
 	for _, r := range recipes {
@@ -223,7 +251,8 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 				isPantry = ing.IsPantryEssential
 			}
 
-			if isPantry || availableSet[ing.IngredientID] {
+			normIngName := strings.ToLower(strings.TrimSpace(ing.IngredientName))
+			if isPantry || availableSet[ing.IngredientID] || availableNames[normIngName] {
 				used = append(used, ingDTO)
 			} else {
 				missing = append(missing, ingDTO)
@@ -238,7 +267,7 @@ func (s *recipeService) Match(ctx context.Context, userID uuid.UUID) (dto.Recipe
 
 		canCook := len(missing) == 0
 
-		recipeDTO := mapStoreRecipeToDTO(r, favMap[r.ID], append(used, missing...))
+		recipeDTO := mapStoreRecipeToDTO(r, favMap[r.ID], append(used, missing...), stepsMap[r.ID])
 		matchItems = append(matchItems, dto.RecipeMatchItem{
 			Recipe:             recipeDTO,
 			MatchPercentage:    matchPct,
@@ -288,7 +317,19 @@ func (s *recipeService) SetFavorite(ctx context.Context, userID uuid.UUID, recip
 	})
 }
 
-func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredientResponse) dto.RecipeResponse {
+func (s *recipeService) loadAllStepsMap(ctx context.Context) map[int32][]string {
+	stepsMap := make(map[int32][]string)
+	rows, err := s.store.GetAllRecipeSteps(ctx)
+	if err != nil {
+		return stepsMap
+	}
+	for _, row := range rows {
+		stepsMap[row.RecipeID] = append(stepsMap[row.RecipeID], row.Instruction)
+	}
+	return stepsMap
+}
+
+func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredientResponse, instructions []string) dto.RecipeResponse {
 	var desc *string
 	if r.Description.Valid {
 		desc = &r.Description.String
@@ -299,10 +340,6 @@ func mapStoreRecipeToDTO(r store.Recipe, isFav bool, ings []dto.RecipeIngredient
 		imgURL = &r.ImageUrl.String
 	}
 
-	var instructions []string
-	if len(r.Instructions) > 0 {
-		_ = json.Unmarshal(r.Instructions, &instructions)
-	}
 	if instructions == nil {
 		instructions = []string{}
 	}

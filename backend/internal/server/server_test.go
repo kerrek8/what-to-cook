@@ -35,6 +35,8 @@ type e2eMockStore struct {
 	favorites         map[string]map[int32]bool
 	shoppingItems     map[string]store.ShoppingListItem
 	subscriptions     map[string]store.PushSubscription
+	excluded          map[string][]int32
+	pantry            map[string][]int32
 }
 
 func newE2EMockStore() *e2eMockStore {
@@ -71,7 +73,6 @@ func newE2EMockStore() *e2eMockStore {
 		ID:                 1,
 		Title:              "Курица с картофелем",
 		Description:        pgtype.Text{String: "Вкусный и простой ужин", Valid: true},
-		Instructions:       []byte(`["1. Нарезать курицу.", "2. Запечь с картофелем."}`),
 		CookingTimeMinutes: 30,
 		Difficulty:         "easy",
 		CreatedAt:          pgtype.Timestamptz{Time: time.Now(), Valid: true},
@@ -119,19 +120,20 @@ func newE2EMockStore() *e2eMockStore {
 		favorites:         make(map[string]map[int32]bool),
 		shoppingItems:     make(map[string]store.ShoppingListItem),
 		subscriptions:     make(map[string]store.PushSubscription),
+		excluded:          make(map[string][]int32),
+		pantry:            make(map[string][]int32),
 	}
 }
 
 func (m *e2eMockStore) CreateUser(ctx context.Context, arg store.CreateUserParams) (store.User, error) {
 	u := store.User{
-		ID:                    pgtype.UUID{Bytes: uuid.New(), Valid: true},
-		Email:                 arg.Email,
-		PasswordHash:          arg.PasswordHash,
-		Name:                  arg.Name,
-		TokenVersion:          1,
-		ExcludedIngredientIds: []int32{},
-		CreatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		UpdatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		ID:           pgtype.UUID{Bytes: uuid.New(), Valid: true},
+		Email:        arg.Email,
+		PasswordHash: arg.PasswordHash,
+		Name:         arg.Name,
+		TokenVersion: 1,
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		UpdatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 	m.users[arg.Email] = u
 	uidStr := uuid.UUID(u.ID.Bytes).String()
@@ -156,16 +158,58 @@ func (m *e2eMockStore) GetUserByID(ctx context.Context, id pgtype.UUID) (store.U
 	return u, nil
 }
 
-func (m *e2eMockStore) UpdateUserExcludedIngredients(ctx context.Context, arg store.UpdateUserExcludedIngredientsParams) error {
-	uidStr := uuid.UUID(arg.ID.Bytes).String()
-	u, ok := m.usersByID[uidStr]
-	if !ok {
-		return pgx.ErrNoRows
-	}
-	u.ExcludedIngredientIds = arg.ExcludedIngredientIds
-	m.usersByID[uidStr] = u
-	m.users[u.Email] = u
+func (m *e2eMockStore) ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return m.excluded[uuid.UUID(userID.Bytes).String()], nil
+}
+
+func (m *e2eMockStore) ClearUserExcludedIngredients(ctx context.Context, userID pgtype.UUID) error {
+	m.excluded[uuid.UUID(userID.Bytes).String()] = nil
 	return nil
+}
+
+func (m *e2eMockStore) AddUserExcludedIngredient(ctx context.Context, arg store.AddUserExcludedIngredientParams) error {
+	uidStr := uuid.UUID(arg.UserID.Bytes).String()
+	m.excluded[uidStr] = append(m.excluded[uidStr], arg.IngredientID)
+	return nil
+}
+
+func (m *e2eMockStore) ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return m.pantry[uuid.UUID(userID.Bytes).String()], nil
+}
+
+func (m *e2eMockStore) SetUserCustomPantryFlag(ctx context.Context, arg store.SetUserCustomPantryFlagParams) error {
+	uidStr := uuid.UUID(arg.ID.Bytes).String()
+	if u, ok := m.usersByID[uidStr]; ok {
+		u.HasCustomPantry = arg.HasCustomPantry
+		m.usersByID[uidStr] = u
+		m.users[u.Email] = u
+	}
+	return nil
+}
+
+func (m *e2eMockStore) ClearUserPantryIngredients(ctx context.Context, userID pgtype.UUID) error {
+	m.pantry[uuid.UUID(userID.Bytes).String()] = nil
+	return nil
+}
+
+func (m *e2eMockStore) AddUserPantryIngredient(ctx context.Context, arg store.AddUserPantryIngredientParams) error {
+	uidStr := uuid.UUID(arg.UserID.Bytes).String()
+	m.pantry[uidStr] = append(m.pantry[uidStr], arg.IngredientID)
+	return nil
+}
+
+func (m *e2eMockStore) GetRecipeSteps(ctx context.Context, recipeID int32) ([]store.GetRecipeStepsRow, error) {
+	return []store.GetRecipeStepsRow{
+		{StepNumber: 1, Instruction: "1. Нарезать курицу."},
+		{StepNumber: 2, Instruction: "2. Запечь с картофелем."},
+	}, nil
+}
+
+func (m *e2eMockStore) GetAllRecipeSteps(ctx context.Context) ([]store.GetAllRecipeStepsRow, error) {
+	return []store.GetAllRecipeStepsRow{
+		{RecipeID: 1, StepNumber: 1, Instruction: "1. Нарезать курицу."},
+		{RecipeID: 1, StepNumber: 2, Instruction: "2. Запечь с картофелем."},
+	}, nil
 }
 
 func (m *e2eMockStore) UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error {
@@ -707,6 +751,18 @@ func TestEndToEndUserJourney(t *testing.T) {
 	rec = httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
+
+	// 8b. List Recipes with OptionalAuth returns is_favorite=true
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/recipes", nil)
+	req.Header.Set("Authorization", tokenHeader)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var listResp dto.RecipeListResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &listResp))
+	require.NotEmpty(t, listResp.Items)
+	assert.True(t, listResp.Items[0].IsFavorite)
 
 	// 9. Add Missing Recipe Ingredients to Shopping List
 	req = httptest.NewRequest(http.MethodPost, "/api/v1/shopping-list/from-recipe/1", nil)

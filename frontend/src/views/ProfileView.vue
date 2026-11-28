@@ -419,7 +419,7 @@ onMounted(() => {
 
       <div class="px-4 py-3 flex items-center justify-between text-xs text-slate-600">
         <span class="text-slate-500">Версия приложения</span>
-        <span class="font-bold text-emerald-950">WhatCook v0.9.6</span>
+        <span class="font-bold text-emerald-950">WhatCook v0.10.0</span>
       </div>
     </div>
 

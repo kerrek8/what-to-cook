@@ -131,14 +131,11 @@ function onSingleTransfer(item: LocalShoppingItem) {
   showTransferSheet.value = true
 }
 
-async function onQuickTransferAll() {
-  if (boughtCount.value === 0) return
-  try {
-    const count = await shoppingStore.transferBoughtToInventory()
-    toast.show(`Перенесено в холодильник: ${count}`, 'success')
-  } catch {
-    toast.show('Не удалось перенести товары', 'fail')
-  }
+function onQuickTransferAll() {
+  if (boughtItems.value.length === 0) return
+  transferQueue.value = [...boughtItems.value]
+  currentTransferIndex.value = 0
+  showTransferSheet.value = true
 }
 
 async function onConfirmTransferItem(data: AddItemData) {
@@ -302,6 +299,7 @@ async function onConfirmTransferItem(data: AddItemData) {
       submit-text="Перенести в холодильник"
       :initial-item="transferInitialData"
       :hide-add-more="true"
+      :keep-open-on-submit="currentTransferIndex < transferQueue.length - 1"
       @add="onConfirmTransferItem"
     />
   </div>

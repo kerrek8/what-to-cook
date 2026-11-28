@@ -35,8 +35,15 @@ const shoppingAdded = ref(false)
 const completedSteps = ref<Record<number, boolean>>({})
 const currentServings = ref(2)
 const heroImageError = ref(false)
+const activeSection = ref<'ingredients' | 'instructions'>('ingredients')
 
 onMounted(async () => {
+  if (typeof document !== 'undefined') {
+    document.querySelector('.content-wrapper')?.scrollTo({ top: 0 })
+  }
+  if (typeof window !== 'undefined') {
+    window.scrollTo(0, 0)
+  }
   if (inventoryStore.items.length === 0) {
     inventoryStore.loadInventory()
   }
@@ -92,6 +99,31 @@ function formatIngredientAmount(ing: RecipeIngredientResponse): string {
     return 'По вкусу (Базовый)'
   }
   return scaled
+}
+
+function criticalityBadge(criticality?: string): { label: string; className: string } {
+  switch (criticality) {
+    case 'основной':
+      return {
+        label: 'Основной',
+        className: 'bg-rose-50 text-rose-700 border-rose-200/80'
+      }
+    case 'важный':
+      return {
+        label: 'Важный',
+        className: 'bg-amber-50 text-amber-800 border-amber-200/80'
+      }
+    case 'опциональный':
+      return {
+        label: 'Опционально',
+        className: 'bg-slate-100 text-slate-600 border-slate-200/80'
+      }
+    default:
+      return {
+        label: 'Важный',
+        className: 'bg-amber-50 text-amber-800 border-amber-200/80'
+      }
+  }
 }
 
 function toggleStep(index: number) {
@@ -208,7 +240,7 @@ function startCooking() {
         </div>
 
         <!-- Meta Information Cards Row -->
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-[1fr_1fr_1.45fr] gap-2">
           <!-- Time -->
           <div class="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
             <Clock class="w-4 h-4 text-emerald-800 mb-1" />
@@ -224,25 +256,25 @@ function startCooking() {
           </div>
 
           <!-- Servings Stepper -->
-          <div class="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+          <div class="py-2.5 px-2 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center overflow-hidden">
             <div class="flex items-center gap-1 mb-1 text-slate-400">
               <Users class="w-3.5 h-3.5 text-emerald-800" />
               <span class="text-[11px] font-medium">Порции</span>
             </div>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center justify-center gap-1 w-full">
               <button
                 type="button"
-                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm"
+                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm shrink-0"
                 aria-label="Уменьшить порции"
                 :disabled="currentServings <= 1"
                 @click="currentServings--"
               >
                 -
               </button>
-              <span class="text-xs font-bold text-slate-800 w-5 text-center">{{ currentServings }}</span>
+              <span class="text-xs font-bold text-slate-800 min-w-[16px] text-center">{{ currentServings }}</span>
               <button
                 type="button"
-                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm"
+                class="w-9 h-9 rounded-xl bg-[#EBF3EF] text-[#165337] font-bold flex items-center justify-center hover:bg-emerald-100 active:scale-90 transition-all disabled:opacity-30 text-sm shrink-0"
                 aria-label="Увеличить порции"
                 :disabled="currentServings >= 12"
                 @click="currentServings++"
@@ -258,8 +290,41 @@ function startCooking() {
           {{ recipe.description }}
         </p>
 
+        <!-- Section Tab Bar (Ингредиенты / Инструкции) -->
+        <div class="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl border border-slate-200/60 text-xs font-semibold">
+          <button
+            type="button"
+            class="py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            :class="activeSection === 'ingredients' ? 'bg-white text-emerald-950 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+            @click="activeSection = 'ingredients'"
+          >
+            <span>Ингредиенты</span>
+            <span
+              class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+              :class="activeSection === 'ingredients' ? 'bg-emerald-950 text-white' : 'bg-slate-300/70 text-slate-700'"
+            >
+              {{ availableIngredients.length }}/{{ recipe.ingredients?.length || 0 }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            :class="activeSection === 'instructions' ? 'bg-white text-emerald-950 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+            @click="activeSection = 'instructions'"
+          >
+            <span>Инструкции</span>
+            <span
+              class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+              :class="activeSection === 'instructions' ? 'bg-emerald-950 text-white' : 'bg-slate-300/70 text-slate-700'"
+            >
+              {{ recipe.instructions?.length || 0 }}
+            </span>
+          </button>
+        </div>
+
         <!-- Ingredients Section -->
-        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+        <div v-if="activeSection === 'ingredients'" class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
             <h2 class="text-base font-bold text-slate-900">Ингредиенты</h2>
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100">
@@ -276,13 +341,21 @@ function startCooking() {
             <div
               v-for="ing in availableIngredients"
               :key="ing.ingredient_id || ing.name"
-              class="flex items-center justify-between py-1.5 px-2 rounded-xl bg-emerald-50/40 text-xs text-slate-800"
+              class="flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl bg-emerald-50/40 text-xs text-slate-800"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 min-w-0">
                 <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
-                <span class="font-medium">{{ ing.name }}</span>
+                <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                  <span class="font-medium truncate">{{ ing.name }}</span>
+                  <span
+                    class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md border leading-none shrink-0"
+                    :class="criticalityBadge(ing.criticality).className"
+                  >
+                    {{ criticalityBadge(ing.criticality).label }}
+                  </span>
+                </div>
               </div>
-              <span class="text-slate-500 font-semibold">{{ formatIngredientAmount(ing) }}</span>
+              <span class="text-slate-500 font-semibold shrink-0">{{ formatIngredientAmount(ing) }}</span>
             </div>
           </div>
 
@@ -298,10 +371,18 @@ function startCooking() {
             <div
               v-for="ing in missingIngredients"
               :key="ing.ingredient_id || ing.name"
-              class="flex items-center justify-between py-1.5 px-2 rounded-xl bg-slate-50 text-xs text-slate-600"
+              class="flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl bg-slate-50 text-xs text-slate-600"
             >
-              <span class="font-medium text-slate-700">{{ ing.name }}</span>
-              <span class="text-slate-400 font-semibold">{{ formatIngredientAmount(ing) }}</span>
+              <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                <span class="font-medium text-slate-700 truncate">{{ ing.name }}</span>
+                <span
+                  class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md border leading-none shrink-0"
+                  :class="criticalityBadge(ing.criticality).className"
+                >
+                  {{ criticalityBadge(ing.criticality).label }}
+                </span>
+              </div>
+              <span class="text-slate-400 font-semibold shrink-0">{{ formatIngredientAmount(ing) }}</span>
             </div>
 
             <!-- Prominent Add to Shopping List CTA Button -->
@@ -323,7 +404,7 @@ function startCooking() {
         </div>
 
         <!-- Cooking Steps Checklist -->
-        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
+        <div v-else class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3">
           <h2 class="text-base font-bold text-slate-900 border-b border-slate-100 pb-2.5">
             Шаги приготовления
           </h2>

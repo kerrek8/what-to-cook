@@ -31,6 +31,7 @@ export interface AddItemData {
 
 export const useInventoryStore = defineStore('inventory', () => {
   const items = ref<LocalInventoryItem[]>([])
+  const inventoryVersion = ref(0)
   const isLoading = ref<boolean>(false)
   const isSyncing = ref<boolean>(false)
   const activeCategory = ref<string>('all')
@@ -139,6 +140,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     })
 
     items.value = await getLocalInventory()
+    inventoryVersion.value++
 
     if (authStore.isAuthenticated && navigator.onLine) {
       try {
@@ -178,6 +180,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     })
 
     items.value = await getLocalInventory()
+    inventoryVersion.value++
 
     if (target.serverId && authStore.isAuthenticated && navigator.onLine) {
       try {
@@ -209,6 +212,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     const target = items.value.find((i) => i.id === id)
     await deleteLocalInventoryItem(id)
     items.value = items.value.filter((i) => i.id !== id)
+    inventoryVersion.value++
 
     if (target?.serverId && authStore.isAuthenticated && navigator.onLine) {
       try {
@@ -221,6 +225,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   return {
     items,
+    inventoryVersion,
     isLoading,
     isSyncing,
     activeCategory,

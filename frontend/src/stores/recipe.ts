@@ -29,8 +29,10 @@ export type CookingTimeFilter = 0 | 15 | 30 | 60 | 61
 
 export const useRecipeStore = defineStore('recipe', () => {
   const matchedRecipes = ref<RecipeMatchItem[]>([])
+  const lastMatchedInventoryVersion = ref(-1)
   const allRecipes = ref<RecipeResponse[]>([])
   const favoriteCatalog = ref<RecipeResponse[]>([])
+  const favoriteIds = ref<Set<number>>(new Set())
   const totalCount = ref(0)
   const page = ref(1)
   const pageSize = 15
@@ -114,7 +116,7 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   const filteredMatchedRecipes = computed(() => {
     return matchedRecipes.value.filter(
-      (item) => item.match_percentage >= 60 && filterMatched(item.recipe, item.used_ingredients)
+      (item) => item.match_percentage >= 50 && filterMatched(item.recipe, item.used_ingredients)
     )
   })
 
@@ -129,18 +131,45 @@ export const useRecipeStore = defineStore('recipe', () => {
     return favoriteCatalog.value.filter((r) => r.is_favorite && filterMatched(r))
   })
 
+  function syncFavoritesToLists() {
+    for (const r of allRecipes.value) {
+      r.is_favorite = favoriteIds.value.has(r.id)
+    }
+    for (const m of matchedRecipes.value) {
+      m.recipe.is_favorite = favoriteIds.value.has(m.recipe.id)
+    }
+    for (const r of favoriteCatalog.value) {
+      r.is_favorite = favoriteIds.value.has(r.id)
+    }
+    if (currentRecipe.value) {
+      currentRecipe.value.is_favorite = favoriteIds.value.has(currentRecipe.value.id)
+    }
+  }
+
   async function loadMatchedRecipes(force = false) {
     if (!authStore.isAuthenticated) {
       matchedRecipes.value = []
+      lastMatchedInventoryVersion.value = -1
       return
     }
 
-    if (matchedRecipes.value.length > 0 && !force) return
+    if (
+      matchedRecipes.value.length > 0 &&
+      !force &&
+      lastMatchedInventoryVersion.value === inventoryStore.inventoryVersion
+    ) {
+      return
+    }
 
     isMatching.value = true
     try {
       const resp = await matchRecipesApi()
+      for (const m of resp.items) {
+        if (m.recipe.is_favorite) favoriteIds.value.add(m.recipe.id)
+      }
       matchedRecipes.value = resp.items
+      lastMatchedInventoryVersion.value = inventoryStore.inventoryVersion
+      syncFavoritesToLists()
     } catch {
       matchedRecipes.value = []
     } finally {
@@ -167,6 +196,10 @@ export const useRecipeStore = defineStore('recipe', () => {
       } else {
         allRecipes.value = resp.items
       }
+      for (const r of resp.items) {
+        if (r.is_favorite) favoriteIds.value.add(r.id)
+      }
+      syncFavoritesToLists()
       totalCount.value = resp.total
       page.value = targetPage
     } catch {
@@ -190,9 +223,14 @@ export const useRecipeStore = defineStore('recipe', () => {
       if (!navigator.onLine) throw new Error('offline')
       const favorites = await getFavoriteRecipesApi()
       favoriteCatalog.value = favorites
+      favoriteIds.value = new Set(favorites.map((f) => f.id))
+      syncFavoritesToLists()
       await cacheFavoriteRecipes(favorites)
     } catch {
-      favoriteCatalog.value = await getCachedFavoriteRecipes()
+      const cached = await getCachedFavoriteRecipes()
+      favoriteCatalog.value = cached
+      favoriteIds.value = new Set(cached.map((f) => f.id))
+      syncFavoritesToLists()
     } finally {
       isFavoritesLoading.value = false
     }
@@ -269,19 +307,23 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   function updateFavoriteState(recipeId: number, isFav: boolean) {
-    for (const r of allRecipes.value) {
-      if (r.id === recipeId) r.is_favorite = isFav
+    if (isFav) {
+      favoriteIds.value.add(recipeId)
+    } else {
+      favoriteIds.value.delete(recipeId)
     }
-    for (const r of favoriteCatalog.value) if (r.id === recipeId) r.is_favorite = isFav
-    const source = [...allRecipes.value, ...matchedRecipes.value.map(m => m.recipe), ...(currentRecipe.value ? [currentRecipe.value] : [])].find(r => r.id === recipeId)
-    if (isFav && source && !favoriteCatalog.value.some(r => r.id === recipeId)) favoriteCatalog.value.unshift(source)
-    if (!isFav) favoriteCatalog.value = favoriteCatalog.value.filter(r => r.id !== recipeId)
-    if (!isFav) void removeCachedFavoriteRecipe(recipeId)
-    for (const m of matchedRecipes.value) {
-      if (m.recipe.id === recipeId) m.recipe.is_favorite = isFav
+    syncFavoritesToLists()
+    const source = [
+      ...allRecipes.value,
+      ...matchedRecipes.value.map((m) => m.recipe),
+      ...(currentRecipe.value ? [currentRecipe.value] : [])
+    ].find((r) => r.id === recipeId)
+    if (isFav && source && !favoriteCatalog.value.some((r) => r.id === recipeId)) {
+      favoriteCatalog.value.unshift(source)
     }
-    if (currentRecipe.value && currentRecipe.value.id === recipeId) {
-      currentRecipe.value.is_favorite = isFav
+    if (!isFav) {
+      favoriteCatalog.value = favoriteCatalog.value.filter((r) => r.id !== recipeId)
+      void removeCachedFavoriteRecipe(recipeId)
     }
   }
 

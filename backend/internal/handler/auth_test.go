@@ -32,17 +32,24 @@ func newMockAuthQuerier() *mockAuthQuerier {
 
 func (m *mockAuthQuerier) CreateUser(ctx context.Context, arg store.CreateUserParams) (store.User, error) {
 	u := store.User{
-		ID:                    pgtype.UUID{Bytes: uuid.New(), Valid: true},
-		Email:                 arg.Email,
-		PasswordHash:          arg.PasswordHash,
-		Name:                  arg.Name,
-		TokenVersion:          1,
-		ExcludedIngredientIds: []int32{},
-		CreatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		UpdatedAt:             pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		ID:           pgtype.UUID{Bytes: uuid.New(), Valid: true},
+		Email:        arg.Email,
+		PasswordHash: arg.PasswordHash,
+		Name:         arg.Name,
+		TokenVersion: 1,
+		CreatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		UpdatedAt:    pgtype.Timestamptz{Time: time.Now(), Valid: true},
 	}
 	m.users[arg.Email] = u
 	return u, nil
+}
+
+func (m *mockAuthQuerier) ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return nil, nil
+}
+
+func (m *mockAuthQuerier) ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error) {
+	return nil, nil
 }
 
 func (m *mockAuthQuerier) GetUserByEmail(ctx context.Context, email string) (store.User, error) {

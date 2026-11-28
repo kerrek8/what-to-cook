@@ -29,4 +29,9 @@ describe('AddProductSheet Shelf-Life Presets & Native Implementation', () => {
   it('supports native date input for custom expiration date', () => {
     expect(content).toContain('type="date"')
   })
+
+  it('watches initialItem changes and supports keepOpenOnSubmit for transfer queue', () => {
+    expect(content).toContain('() => props.initialItem')
+    expect(content).toContain('keepOpenOnSubmit')
+  })
 })

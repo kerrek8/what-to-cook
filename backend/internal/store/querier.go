@@ -13,6 +13,11 @@ import (
 type Querier interface {
 	AddRecipeFavorite(ctx context.Context, arg AddRecipeFavoriteParams) error
 	AddRecipeIngredient(ctx context.Context, arg AddRecipeIngredientParams) (RecipeIngredient, error)
+	AddRecipeStep(ctx context.Context, arg AddRecipeStepParams) error
+	AddUserExcludedIngredient(ctx context.Context, arg AddUserExcludedIngredientParams) error
+	AddUserPantryIngredient(ctx context.Context, arg AddUserPantryIngredientParams) error
+	ClearUserExcludedIngredients(ctx context.Context, userID pgtype.UUID) error
+	ClearUserPantryIngredients(ctx context.Context, userID pgtype.UUID) error
 	CountRecipes(ctx context.Context, arg CountRecipesParams) (int64, error)
 	CountTotalRecipes(ctx context.Context) (int64, error)
 	CreateIngredient(ctx context.Context, arg CreateIngredientParams) (Ingredient, error)
@@ -25,14 +30,17 @@ type Querier interface {
 	DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error
 	DeletePushSubscriptionByID(ctx context.Context, arg DeletePushSubscriptionByIDParams) error
 	DeleteRecipeIngredients(ctx context.Context, recipeID int32) error
+	DeleteRecipeSteps(ctx context.Context, recipeID int32) error
 	DeleteShoppingItem(ctx context.Context, arg DeleteShoppingItemParams) error
 	GetAllRecipeIngredientsWithDetails(ctx context.Context) ([]GetAllRecipeIngredientsWithDetailsRow, error)
+	GetAllRecipeSteps(ctx context.Context) ([]GetAllRecipeStepsRow, error)
 	GetIngredientByID(ctx context.Context, id int32) (Ingredient, error)
 	GetIngredientByNameCaseInsensitive(ctx context.Context, lower string) (Ingredient, error)
 	GetInventoryItemByIDAndUserID(ctx context.Context, arg GetInventoryItemByIDAndUserIDParams) (GetInventoryItemByIDAndUserIDRow, error)
 	GetRecipeByID(ctx context.Context, id int32) (Recipe, error)
 	GetRecipeByTitle(ctx context.Context, lower string) (Recipe, error)
 	GetRecipeIngredients(ctx context.Context, recipeID int32) ([]GetRecipeIngredientsRow, error)
+	GetRecipeSteps(ctx context.Context, recipeID int32) ([]GetRecipeStepsRow, error)
 	GetShoppingItemByIDAndUserID(ctx context.Context, arg GetShoppingItemByIDAndUserIDParams) (GetShoppingItemByIDAndUserIDRow, error)
 	GetShoppingItemByIngredientAndUserID(ctx context.Context, arg GetShoppingItemByIngredientAndUserIDParams) (ShoppingListItem, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
@@ -45,17 +53,18 @@ type Querier interface {
 	ListPushSubscriptionsByUserID(ctx context.Context, userID pgtype.UUID) ([]PushSubscription, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	ListShoppingItemsByUserID(ctx context.Context, userID pgtype.UUID) ([]ListShoppingItemsByUserIDRow, error)
+	ListUserExcludedIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
 	ListUserFavoriteRecipeIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
+	ListUserPantryIngredientIDs(ctx context.Context, userID pgtype.UUID) ([]int32, error)
 	RemoveRecipeFavorite(ctx context.Context, arg RemoveRecipeFavoriteParams) error
 	SearchIngredients(ctx context.Context, arg SearchIngredientsParams) ([]Ingredient, error)
 	SetShoppingItemBoughtStatus(ctx context.Context, arg SetShoppingItemBoughtStatusParams) (ShoppingListItem, error)
+	SetUserCustomPantryFlag(ctx context.Context, arg SetUserCustomPantryFlagParams) error
 	TransferBoughtItemsToInventory(ctx context.Context, userID pgtype.UUID) ([]InventoryItem, error)
 	UpdateInventoryItem(ctx context.Context, arg UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateRecipeImage(ctx context.Context, arg UpdateRecipeImageParams) error
 	UpdateShoppingItem(ctx context.Context, arg UpdateShoppingItemParams) (ShoppingListItem, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) (User, error)
-	UpdateUserExcludedIngredients(ctx context.Context, arg UpdateUserExcludedIngredientsParams) error
-	UpdateUserPantryIngredients(ctx context.Context, arg UpdateUserPantryIngredientsParams) error
 	UpdateUserTokenVersion(ctx context.Context, id pgtype.UUID) error
 	UpsertPushSubscription(ctx context.Context, arg UpsertPushSubscriptionParams) (PushSubscription, error)
 }
